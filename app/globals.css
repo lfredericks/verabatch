@@ -75,3 +75,37 @@ h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2rem, 7vw, 
 
 .note { background: var(--warn-soft); border-left: 3px solid var(--warn); border-radius: 8px; padding: 10px 12px; font-size: 0.9rem; margin: 0; }
 footer { color: var(--muted); font-size: 0.85rem; }
+
+/* Forms and app pages */
+.narrow { max-width: 520px; }
+a.brand { color: inherit; text-decoration: none; }
+.topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+h2.section { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 8px 0 -8px; }
+.form p { margin: 0; }
+.fld { display: flex; flex-direction: column; gap: 6px; }
+.fld > span { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+input {
+  font: inherit; color: inherit; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px; min-height: 46px; width: 100%;
+}
+input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+input.code { font-family: var(--mono); font-size: 1.4rem; letter-spacing: 0.2em; }
+.btn {
+  appearance: none; font: inherit; font-weight: 600; cursor: pointer; border-radius: 9px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 11px 18px; min-height: 46px;
+}
+.btn:hover { border-color: var(--muted); }
+.btn:disabled { opacity: 0.6; cursor: default; }
+.btn.pri { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.ghost { background: none; border-color: transparent; color: var(--muted); }
+.btn.sm { min-height: 36px; padding: 6px 12px; font-size: 0.9rem; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.error { color: #a02f29; font-weight: 600; }
+.ok { color: #2b6942; font-weight: 600; }
+.hint { color: var(--muted); font-size: 0.9rem; }
+.cta { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; align-self: flex-start; }
+@media (prefers-color-scheme: dark) {
+  .btn.pri { color: #1d1017; }
+  .error { color: #ec8f88; }
+  .ok { color: #86c9a0; }
+}

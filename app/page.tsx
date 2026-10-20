@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { computeRecipe, labelIngredients, netContentsForSize, UNIT_LABELS, type RecipeLine } from "@/lib/core";
 import { cosmeticsPack } from "@/lib/packs/cosmetics";
 
@@ -26,6 +27,9 @@ export default function Home() {
         Type your recipe the way you make it. Verabatch does the conversions, the official ingredient names and the
         label rules, and keeps a record of every batch.
       </p>
+      <Link href="/app" className="btn pri cta">
+        Sign in or create an account
+      </Link>
 
       <section className="card" aria-labelledby="try">
         <h2 id="try">Sample recipe</h2>
