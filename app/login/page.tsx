@@ -12,7 +12,7 @@ export default function LoginPage() {
         <span>Verabatch</span>
       </Link>
       <h1>Sign in</h1>
-      <p className="lead">No password. We'll email you a code. New here? The same steps create your account.</p>
+      <p className="lead">No password. We'll email you a sign-in link. New here? The same steps create your account.</p>
       <LoginForm />
     </main>
   );

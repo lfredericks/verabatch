@@ -9,6 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const tokenHash = searchParams.get("token_hash");
+  const code = searchParams.get("code");
   const type = (searchParams.get("type") ?? "email") as EmailOtpType;
   const next = searchParams.get("next");
   const safeNext = next && next.startsWith("/") && !next.startsWith("//") ? next : "/app";
@@ -16,6 +17,11 @@ export async function GET(request: NextRequest) {
   if (tokenHash) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+    if (!error) return NextResponse.redirect(`${origin}${safeNext}`);
+  } else if (code) {
+    // Link from Supabase's default email. Works in the browser that asked for it.
+    const supabase = await createClient();
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) return NextResponse.redirect(`${origin}${safeNext}`);
   }
   return NextResponse.redirect(`${origin}/login?expired=1`);

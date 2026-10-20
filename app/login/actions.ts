@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,7 +17,13 @@ export async function sendCode(_prev: LoginState, form: FormData): Promise<Login
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   if (!EMAIL_RE.test(email)) return { step: "email", email, error: "Enter an email address like you@yourshop.com." };
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+  // Supabase's default email (no custom sender yet) only has a link, so send people
+  // back to /auth/confirm, which finishes sign-in.
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const proto = h.get("x-forwarded-proto") ?? "https";
+  const emailRedirectTo = host ? `${proto}://${host}/auth/confirm?next=/app` : undefined;
+  const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo } });
   if (error) {
     const tooMany = /rate|too many|security purposes/i.test(error.message);
     return {

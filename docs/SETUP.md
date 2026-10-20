@@ -23,8 +23,14 @@ when the session can reach supabase.co / supabase.com.
 1. **Database tables:** SQL Editor → New query → paste all of `supabase/migrations/0001_businesses.sql` → Run.
 2. **Site URL:** Authentication → URL Configuration → Site URL = `https://verabatch-six.vercel.app`.
    Add `https://verabatch-six.vercel.app/**` under Redirect URLs. (Update both when verabatch.com is live.)
-3. **Sign-in email:** Authentication → Emails → Templates. Paste `supabase/email-templates/sign-in.html`
-   into both **Magic Link** and **Confirm signup**. Subject: `Your Verabatch sign-in code`.
+3. **Sign-in email:** Supabase only allows editing email templates once a custom SMTP sender is set up.
+   Until then the app uses Supabase's default email, which has a sign-in link (no code); the link
+   lands on `/auth/confirm` and works in the same browser that asked for it.
+   After setting up SMTP: Authentication → Emails → Templates, paste `supabase/email-templates/sign-in.html`
+   into both **Magic link or OTP** and **Confirm sign up**, subject `Your Verabatch sign-in code`,
+   and switch the login screen back to the code entry step (`verifyCode` in `app/login/actions.ts`).
+
+Status (Oct 20, 2026): steps 1 and 2 done. Step 3 waits on custom SMTP.
 
 ## Before launch
 

@@ -26,35 +26,25 @@ export function LoginForm() {
           />
         </label>
         {emailState.error && <p className="error" role="alert">{emailState.error}</p>}
-        <button className="btn pri" disabled={sending}>{sending ? "Sending..." : "Email me a code"}</button>
+        <button className="btn pri" disabled={sending}>{sending ? "Sending..." : "Email me a sign-in link"}</button>
       </form>
     );
   }
 
-  const state = codeState.email === emailState.email ? codeState : emailState;
+  // Sign-in link step. Supabase's default email has a link, not a code, until a custom
+  // email sender is set up (see docs/SETUP.md). verifyCode stays ready for that.
+  void codeState;
+  void codeAction;
+  void checking;
   return (
-    <form action={codeAction} className="card form">
+    <div className="card form">
       <p>
-        We sent a code to <b>{emailState.email}</b>. It can take a minute, so check your spam folder too.
+        We emailed a sign-in link to <b>{emailState.email}</b>. Open it on this device, in this browser.
+        It can take a minute, so check your spam folder too.
       </p>
-      <label className="fld">
-        <span>Code</span>
-        <input
-          name="code"
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          pattern="[0-9 ]*"
-          placeholder="123456"
-          required
-          autoFocus
-          className="code"
-        />
-      </label>
-      {state.error && <p className="error" role="alert">{state.error}</p>}
-      <button className="btn pri" disabled={checking}>{checking ? "Checking..." : "Sign in"}</button>
       <button className="btn ghost" type="button" onClick={() => window.location.reload()}>
         Use a different email
       </button>
-    </form>
+    </div>
   );
 }
