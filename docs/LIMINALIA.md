@@ -4,7 +4,7 @@ Source: Leslie's "2025 materials cost master" sheet (Oct 20, 2026). These seed t
 milestone 3 ingredient check (`tests/liminalia.test.ts`) and the milestone 4 label test.
 Amounts as Leslie wrote them; "oz" in her sheet is fluid ounces (her cup column matches).
 
-## Relief Balm (sheet name "Tiger Balm"; that name is a trademark, internal only)
+## Relief Balm (same product as "Tiger Balm" in the sheet, confirmed by Leslie; that name is a trademark, internal only)
 
 Container: 2 oz cobalt glass jar. **One batch makes close to 5 jars** (Leslie, Oct 20).
 
