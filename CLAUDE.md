@@ -23,6 +23,8 @@ Read first:
 
 ## Rules
 
+- v1 is US-only: FDA cosmetic labeling rules, "USA" on the made-by line. Country choice in setup comes later.
+
 - Run `npm test` and `npm run build` before every push. Pushes to `main` deploy to Vercel.
 - Never commit secrets. `.env.local` holds local settings and is ignored.
 - Every business-owned table needs row level security through `public.is_member(business_id)`.

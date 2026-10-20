@@ -103,6 +103,9 @@ Build order from the spec: 1 skeleton and sign-in, 2 math core, 3 ingredient dat
 - **Milestone 5 (batches): built Oct 20, optional by design.** Label defaults to the usual
   recipe with no lot; logging a batch gives that run its own label and lot.
 - Later: "Open this label in Canva" button (see Canva note above).
+- **Countries (Leslie, Oct 20):** v1 follows US FDA labeling only, and every label says USA.
+  Later, setup asks for the maker's country and the matching rules apply (another market
+  pack per country or region; `BusinessInfo.country` already exists for the made-by line).
 - Next: milestone 5 check, then the rest of Liminalia's products
   (sprays: `docs/LIMINALIA.md`).
 - Live: https://verabatch-six.vercel.app
