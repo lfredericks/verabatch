@@ -29,4 +29,5 @@ Read first:
 - Never commit secrets. `.env.local` holds local settings and is ignored.
 - Every business-owned table needs row level security through `public.is_member(business_id)`.
 - Design is themed: no raw colors, fonts or the product name in `app/`. Use `lib/brand` (see `docs/BRANDING.md`).
+- Delete safety follows the hierarchy (Leslie): products/recipes and batches are the top branch, so deleting them lives on the Manage page and needs typed DELETE. Lower-level things (sizes, recipe lines) use a simple inline confirm.
 - Leslie isn't a developer: explain steps in plain words, one click at a time.
