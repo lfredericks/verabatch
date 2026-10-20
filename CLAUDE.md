@@ -11,7 +11,9 @@ Read first:
 
 - `lib/core`: market-agnostic engine (units, recipe math, ingredient order, net contents, lettering, lots, claims, quick entry). Never put cosmetics rules here.
 - `lib/packs/cosmetics`: the first market pack. Ingredient and variety names are drafts (`source: "draft"`) until checked against CosIng.
-- `app/`: Next.js 15 App Router. `/login` (email code sign-in), `/app` (signed-in area), `/auth/confirm` (email link).
+- `app/`: Next.js 15 App Router. `/login` (email code sign-in), `/app` (signed-in area, product list), `/app/products/new` and `/app/products/[id]` (product editor), `/auth/confirm` (email link).
+- `lib/packs/index.ts`: `activePack()` picks the market. Screens use it, never a pack directly.
+- `lib/products.ts`: product shape and `cleanRecipe()` (server-side check of what the browser sends).
 - `lib/brand`: product name/words (`brand.ts`) and themes (`themes/`). `/styleguide` shows every token.
 - `supabase/migrations`: SQL migrations, applied in order. `supabase/email-templates`: auth emails.
 - `tests/`: `spec.test.ts` mirrors the spec's test table; change the test before changing a rule.

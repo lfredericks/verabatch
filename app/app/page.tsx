@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { brand, pageTitle } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/server";
@@ -22,6 +23,9 @@ export default async function AppHome() {
     .limit(1)
     .maybeSingle();
   const business = (data as Business | null) ?? null;
+  const { data: products } = business
+    ? await supabase.from("products").select("id, name, identity").order("name")
+    : { data: null };
 
   return (
     <main className="wrap narrow">
@@ -36,9 +40,25 @@ export default async function AppHome() {
         <>
           <h1>{business.name}</h1>
           <p className="lead">Signed in as {user.email}.</p>
-          <section className="card" aria-labelledby="next">
-            <h2 id="next">Coming next</h2>
-            <p>Your products, sizes and labels will live here.</p>
+          <section className="card" aria-labelledby="products">
+            <h2 id="products">Your products</h2>
+            {products && products.length > 0 ? (
+              <ul className="plist">
+                {products.map((p) => (
+                  <li key={p.id}>
+                    <Link href={`/app/products/${p.id}`}>
+                      <b>{p.name}</b>
+                      {p.identity && <span>{p.identity}</span>}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>Add your first product: its name and the recipe the way you make it.</p>
+            )}
+            <Link href="/app/products/new" className="btn pri cta">
+              Add a product
+            </Link>
           </section>
           <h2 className="section">Your business details</h2>
           <BusinessForm business={business} />

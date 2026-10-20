@@ -32,6 +32,12 @@ when the session can reach supabase.co / supabase.com.
 
 Status (Oct 20, 2026): steps 1 and 2 done. Step 3 waits on custom SMTP.
 
+## Later migrations
+
+Run each new file in `supabase/migrations` in the SQL Editor, in order.
+
+- `0002_products.sql`: run Oct 20, 2026.
+
 ## Before launch
 
 - Supabase's built-in email sender is limited to a few emails an hour. Set up a custom SMTP sender before real users.

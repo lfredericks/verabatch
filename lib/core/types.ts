@@ -24,6 +24,13 @@ export interface RecipeLine {
   variety?: VarietyChoice;
 }
 
+/** One answer to a "which one?" question. */
+export interface Choice {
+  key: string;
+  label: string;
+  note?: string;
+}
+
 export interface VarietyChoice {
   group: string;
   variety?: string;
@@ -60,6 +67,8 @@ export type Resolution =
       missing: "variety" | "form" | "carrier";
       /** What was already worked out from the wording or the unit. */
       known: { variety?: string; form?: string; carrier?: string };
+      /** A tip about the chosen variety, shown with the question. */
+      note?: string;
     }
   | { status: "unknown" };
 
@@ -111,4 +120,6 @@ export interface MarketPack {
   claimRules: ClaimRule[];
   /** Resolve what a maker typed into a label name and density, or say what to ask. */
   resolve(line: RecipeLine): Resolution;
+  /** The options to show for a "which one?" question from resolve(). */
+  choices?(question: Extract<Resolution, { status: "needsChoice" }>): Choice[];
 }

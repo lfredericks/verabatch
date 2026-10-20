@@ -1,5 +1,5 @@
 import { hasWords, normalize } from "../../core/text";
-import type { Ingredient, LetteringStep, MarketPack, ProductType, RecipeLine, Resolution } from "../../core/types";
+import type { Choice, Ingredient, LetteringStep, MarketPack, ProductType, RecipeLine, Resolution } from "../../core/types";
 import { CLAIM_RULES } from "./claims";
 import { INGREDIENTS } from "./ingredients";
 import { CARRIERS, FORM_DETECT_ORDER, FORMS, VARIETY_GROUPS, type FormKey, type VarietyGroup } from "./varieties";
@@ -109,10 +109,10 @@ function resolveVariety(line: RecipeLine, group: VarietyGroup): Resolution {
   const V = group.varieties.find((v) => v.key === variety)!;
   if (!form) {
     const question = group.varieties.length > 1 ? `${V.label} as...` : group.question;
-    return { status: "needsChoice", group: group.key, question, missing: "form", known };
+    return { status: "needsChoice", group: group.key, question, missing: "form", known, ...(V.note ? { note: V.note } : {}) };
   }
   if (form === "infused" && !carrier) {
-    return { status: "needsChoice", group: group.key, question: "Infused in which oil?", missing: "carrier", known };
+    return { status: "needsChoice", group: group.key, question: "Infused in which oil?", missing: "carrier", known, ...(V.note ? { note: V.note } : {}) };
   }
 
   let labelName: string;
@@ -141,6 +141,19 @@ export function resolveLine(line: RecipeLine): Resolution {
   return { status: "unknown" };
 }
 
+/** Options for a "which one?" question. */
+export function choicesFor(q: Extract<Resolution, { status: "needsChoice" }>): Choice[] {
+  const group = VARIETY_GROUPS.find((g) => g.key === q.group);
+  if (!group) return [];
+  if (q.missing === "variety") {
+    return group.varieties.map((v) => ({ key: v.key, label: `${v.label} (${v.latin})`, ...(v.note ? { note: v.note } : {}) }));
+  }
+  if (q.missing === "form") {
+    return formsFor(group, q.known.variety).map((f) => ({ key: f, label: FORMS[f].label }));
+  }
+  return CARRIERS.map((c) => ({ key: c.key, label: c.label }));
+}
+
 export const cosmeticsPack: MarketPack = {
   id: "cosmetics",
   name: "Cosmetics and home fragrance",
@@ -149,4 +162,5 @@ export const cosmeticsPack: MarketPack = {
   lettering: LETTERING,
   claimRules: CLAIM_RULES,
   resolve: resolveLine,
+  choices: choicesFor,
 };
