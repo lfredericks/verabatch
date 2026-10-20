@@ -24,7 +24,7 @@ export default async function AppHome() {
     .maybeSingle();
   const business = (data as Business | null) ?? null;
   const { data: products } = business
-    ? await supabase.from("products").select("id, name, identity").order("name")
+    ? await supabase.from("products").select("id, name, identity, parent_id").order("name")
     : { data: null };
 
   return (
@@ -44,14 +44,24 @@ export default async function AppHome() {
             <h2 id="products">Your products</h2>
             {products && products.length > 0 ? (
               <ul className="plist">
-                {products.map((p) => (
-                  <li key={p.id}>
-                    <Link href={`/app/products/${p.id}`}>
-                      <b>{p.name}</b>
-                      {p.identity && <span>{p.identity}</span>}
-                    </Link>
-                  </li>
-                ))}
+                {products
+                  .filter((p) => !p.parent_id || !products.some((x) => x.id === p.parent_id))
+                  .map((p) => (
+                    <li key={p.id}>
+                      <Link href={`/app/products/${p.id}`}>
+                        <b>{p.name}</b>
+                        {p.identity && <span>{p.identity}</span>}
+                      </Link>
+                      {products
+                        .filter((k) => k.parent_id === p.id)
+                        .map((k) => (
+                          <Link key={k.id} href={`/app/products/${k.id}`} className="variation">
+                            <b>{k.name}</b>
+                            <span>Variation</span>
+                          </Link>
+                        ))}
+                    </li>
+                  ))}
               </ul>
             ) : (
               <p>Add your first product: its name and the recipe the way you make it.</p>

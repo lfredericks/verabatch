@@ -159,3 +159,11 @@ fieldset.fld .radio + .radio { margin-top: 4px; }
 .danger-zone { border-color: var(--danger); }
 .manage-row { display: flex; flex-direction: column; gap: 6px; padding-bottom: 10px; }
 .manage-row > .btn { align-self: flex-start; }
+.rline-diff { border-left: 3px solid var(--accent); padding-left: 10px; }
+.tag { margin: 0; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); }
+.removed { display: flex; flex-direction: column; gap: 6px; padding: 10px; background: var(--sunk); border-radius: var(--radius-small); }
+.removed s { color: var(--muted); font-weight: 400; }
+.choose { border: 1px solid var(--accent); border-radius: var(--radius-small); padding: 12px; display: flex; flex-direction: column; gap: 12px; background: var(--accent-soft); }
+.choice { display: flex; flex-direction: column; gap: 4px; }
+.choice .btn { align-self: flex-start; }
+.plist a.variation { padding: 6px 0 6px 16px; border-left: 2px solid var(--line); margin-left: 4px; }

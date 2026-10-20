@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { pageTitle } from "@/lib/brand";
 import { activePack } from "@/lib/packs";
-import { cleanRecipe, type Product } from "@/lib/products";
+import { effectiveRecipe } from "@/lib/productData";
+import type { Product } from "@/lib/products";
 import type { Size } from "@/lib/sizes";
 import { countsText } from "@/lib/batches";
 import { createClient } from "@/lib/supabase/server";
@@ -13,21 +14,22 @@ import { SizesEditor } from "../SizesEditor";
 
 export const dynamic = "force-dynamic";
 
-async function load(id: string): Promise<Product | null> {
+async function load(id: string) {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
   const supabase = await createClient();
   const { data } = await supabase
     .from("products")
-    .select("id, name, type_key, identity, makes, recipe, updated_at")
+    .select("id, name, type_key, identity, makes, recipe, parent_id, changes, updated_at")
     .eq("id", id)
     .maybeSingle();
   if (!data) return null;
-  return { ...(data as Product), recipe: cleanRecipe(data.recipe) };
+  const { lines, parent } = await effectiveRecipe(supabase, data);
+  return { product: { ...(data as Product), recipe: lines } as Product, parent };
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-  const product = await load((await params).id);
-  return { title: pageTitle(product?.name ?? "Product") };
+  const loaded = await load((await params).id);
+  return { title: pageTitle(loaded?.product.name ?? "Product") };
 }
 
 export default async function EditProduct({
@@ -42,8 +44,10 @@ export default async function EditProduct({
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  const product = await load((await params).id);
-  if (!product) notFound();
+  const loaded = await load((await params).id);
+  if (!loaded) notFound();
+  const { product, parent } = loaded;
+  const { data: kids } = await supabase.from("products").select("id, name").eq("parent_id", product.id).order("name");
   const { saved } = await searchParams;
   const { data: sizeRows } = await supabase
     .from("sizes")
@@ -66,8 +70,26 @@ export default async function EditProduct({
   return (
     <main className="wrap narrow">
       <BrandMark href="/app" />
-      <h1>{product.name}</h1>
-      <ProductEditor product={product} justSaved={saved === "1"} />
+      <div>
+        {parent && (
+          <p className="eyebrow">
+            Variation of <Link href={`/app/products/${parent.id}`}>{parent.name}</Link>
+          </p>
+        )}
+        <h1>{product.name}</h1>
+      </div>
+      {kids && kids.length > 0 && (
+        <p className="hint">
+          Variations:{" "}
+          {kids.map((k, i) => (
+            <span key={k.id}>
+              {i > 0 && ", "}
+              <Link href={`/app/products/${k.id}`}>{k.name}</Link>
+            </span>
+          ))}
+        </p>
+      )}
+      <ProductEditor product={product} parent={parent} justSaved={saved === "1"} />
       <SizesEditor productId={product.id} sizes={sizes} defaultUnit={defaultUnit} />
       <Link href={`/app/products/${product.id}/label`} className="btn pri cta">
         See the label

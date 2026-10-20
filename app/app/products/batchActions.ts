@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { readBatchForm } from "@/lib/batches";
 import { lotNumber, productInitials } from "@/lib/core";
+import { effectiveRecipe } from "@/lib/productData";
 import { cleanRecipe } from "@/lib/products";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,7 +17,7 @@ const UUID = /^[0-9a-f-]{36}$/i;
 async function loadContext(productId: string) {
   const supabase = await createClient();
   const [{ data: product }, { data: sizes }] = await Promise.all([
-    supabase.from("products").select("id, name, recipe").eq("id", productId).maybeSingle(),
+    supabase.from("products").select("id, name, recipe, parent_id, changes").eq("id", productId).maybeSingle(),
     supabase.from("sizes").select("id").eq("product_id", productId),
   ]);
   return { supabase, product, sizeIds: (sizes ?? []).map((s) => s.id as string) };
@@ -31,7 +32,7 @@ export async function saveBatch(_prev: BatchFormState, form: FormData): Promise<
   const b = readBatchForm(form, sizeIds);
   if (b.error) return { error: b.error };
   // The usual way = a frozen copy of the master recipe as it is right now.
-  const master = cleanRecipe(product.recipe);
+  const master = (await effectiveRecipe(supabase, product)).lines;
   const fields = { made_on: b.madeOn, changed: b.changed, counts: b.counts, recipe: b.changed ? b.recipe : master, note: b.note };
 
   if (b.id) {

@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { pageTitle } from "@/lib/brand";
 import { buildLabel } from "@/lib/label";
 import { activePack } from "@/lib/packs";
+import { effectiveRecipe } from "@/lib/productData";
 import { cleanRecipe } from "@/lib/products";
 import type { Size } from "@/lib/sizes";
 import { createClient } from "@/lib/supabase/server";
@@ -32,7 +33,7 @@ export default async function LabelPage({
   if (!user) redirect("/login");
 
   const [{ data: product }, { data: sizeRows }, { data: biz }, { data: batchRows }] = await Promise.all([
-    supabase.from("products").select("id, name, type_key, identity, makes, recipe").eq("id", id).maybeSingle(),
+    supabase.from("products").select("id, name, type_key, identity, makes, recipe, parent_id, changes").eq("id", id).maybeSingle(),
     supabase.from("sizes").select("*").eq("product_id", id).order("position").order("created_at"),
     supabase.from("businesses").select("name, city_state_zip, contact").limit(1).maybeSingle(),
     supabase
@@ -45,6 +46,7 @@ export default async function LabelPage({
   ]);
   if (!product) notFound();
 
+  const { lines: recipeLines } = await effectiveRecipe(supabase, product);
   const sizes = (sizeRows ?? []) as Size[];
   const size = sizes.find((s) => s.id === sizeId) ?? sizes[0] ?? null;
   const batches = batchRows ?? [];
@@ -60,7 +62,7 @@ export default async function LabelPage({
   };
   const pack = activePack();
   const label = buildLabel({
-    product: { ...product, recipe: cleanRecipe(product.recipe) },
+    product: { ...product, recipe: recipeLines },
     business: { name: biz?.name ?? "", cityStateZip: biz?.city_state_zip ?? "", contact: biz?.contact ?? "" },
     size,
     pack,

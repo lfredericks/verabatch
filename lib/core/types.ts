@@ -22,6 +22,8 @@ export interface RecipeLine {
   text: string;
   /** Answers to variety questions ("which chamomile?"), when the pack asks them. */
   variety?: VarietyChoice;
+  /** Stable id for the line, so variations can say which parent line they change. */
+  key?: string;
 }
 
 /** The business details that go on labels. */

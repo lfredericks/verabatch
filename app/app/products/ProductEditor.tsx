@@ -5,6 +5,7 @@ import { useActionState, useMemo, useState } from "react";
 import { computeRecipe, labelIngredients, type RecipeLine } from "@/lib/core";
 import { activePack } from "@/lib/packs";
 import type { Product } from "@/lib/products";
+import { recipesDiffer } from "@/lib/variations";
 import { saveProduct, type ProductFormState } from "./actions";
 import { blankRow, RecipeLines, rowsToLines, toRows, type Row } from "./RecipeLines";
 
@@ -15,7 +16,16 @@ function weight(g: number): string {
   return `${(g / 28.3495).toFixed(g < 28 ? 2 : 1)} oz (${g < 10 ? g.toFixed(1) : Math.round(g)} g)`;
 }
 
-export function ProductEditor({ product, justSaved }: { product: Product | null; justSaved?: boolean }) {
+export function ProductEditor({
+  product,
+  parent = null,
+  justSaved,
+}: {
+  product: Product | null;
+  /** Set when this product is a variation: the parent's name and recipe. */
+  parent?: { id: string; name: string; recipe: RecipeLine[] } | null;
+  justSaved?: boolean;
+}) {
   const [state, action, saving] = useActionState<ProductFormState, FormData>(saveProduct, {});
   const [name, setName] = useState(product?.name ?? "");
   const [typeKey, setTypeKey] = useState(product?.type_key ?? "");
@@ -27,11 +37,14 @@ export function ProductEditor({ product, justSaved }: { product: Product | null;
   );
   const [copied, setCopied] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [choosing, setChoosing] = useState(false);
+  const [newName, setNewName] = useState("");
 
   const lines: RecipeLine[] = useMemo(() => rowsToLines(rows), [rows]);
   const recipe = useMemo(() => computeRecipe(lines, pack), [lines]);
   const ingredients = useMemo(() => labelIngredients(recipe, pack), [recipe]);
   const ingredientText = ingredients.map((i) => i.name).join(", ");
+  const recipeChanged = Boolean(product) && recipesDiffer(product!.recipe, lines);
   const perUnit = makes && Number(makes) > 0 ? recipe.totalGrams / Number(makes) : 0;
   const waiting = recipe.needsChoice.length;
   const unknown = recipe.unknown.length;
@@ -39,6 +52,7 @@ export function ProductEditor({ product, justSaved }: { product: Product | null;
   function touch() {
     setDirty(true);
     setCopied(false);
+    setChoosing(false);
   }
   function pickType(key: string) {
     setTypeKey(key);
@@ -99,6 +113,12 @@ export function ProductEditor({ product, justSaved }: { product: Product | null;
         <p className="hint">The plain words under the name that say what the product is. Required on cosmetic labels.</p>
 
         <h2>Recipe</h2>
+        {parent && (
+          <p className="note">
+            A variation of <Link href={`/app/products/${parent.id}`}>{parent.name}</Link>. Lines you haven&rsquo;t changed follow{" "}
+            {parent.name}&rsquo;s recipe.
+          </p>
+        )}
         <p className="hint">Type it the way you make it. Use &ldquo;fl oz&rdquo; for liquid ounces and &ldquo;oz&rdquo; for weighed ounces.</p>
 
         <RecipeLines
@@ -107,6 +127,7 @@ export function ProductEditor({ product, justSaved }: { product: Product | null;
           onChange={touch}
           startOpen={!product?.recipe.length}
           onMakes={(n) => setMakes(String(n))}
+          parent={parent ? { name: parent.name, lines: parent.recipe } : null}
         />
 
         <label className="fld narrow-fld">
@@ -130,14 +151,67 @@ export function ProductEditor({ product, justSaved }: { product: Product | null;
             Saved.
           </p>
         )}
-        <div className="row">
-          <button className="btn pri" disabled={saving}>
-            {saving ? "Saving..." : product ? "Save changes" : "Save product"}
-          </button>
-          <Link href="/app" className="btn ghost cta">
-            Back
-          </Link>
-        </div>
+        {choosing && product ? (
+          <div className="choose" role="group" aria-label="How to save this recipe change">
+            <p>
+              <b>You changed the recipe.</b> How should it be saved?
+            </p>
+            <div className="choice">
+              <button className="btn pri sm" name="mode" value="master" disabled={saving}>
+                {parent ? "Update this variation" : `Update the ${product.name} recipe`}
+              </button>
+              <span className="hint">
+                {parent
+                  ? `Only this variation changes. ${parent.name} stays as it is.`
+                  : "Future labels use the new recipe. Logged batches keep the recipe they were made with. Variations follow, except where they differ."}
+              </span>
+            </div>
+            <label className="fld">
+              <span>Or save it as a new recipe called</span>
+              <input
+                name="new_name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder={`${product.name}, coconut-free`}
+                maxLength={120}
+              />
+            </label>
+            <div className="choice">
+              <button className="btn sm" name="mode" value="variation" disabled={saving || !newName.trim()}>
+                Save as a variation of {parent ? parent.name : product.name}
+              </button>
+              <span className="hint">
+                Linked: it keeps following {parent ? parent.name : product.name}&rsquo;s recipe, except for what you changed. Good for
+                &ldquo;same blend, no mugwort.&rdquo;
+              </span>
+            </div>
+            <div className="choice">
+              <button className="btn sm" name="mode" value="standalone" disabled={saving || !newName.trim()}>
+                Save as a new product
+              </button>
+              <span className="hint">A full copy that stands on its own from now on. Good for a new blend built on the same base.</span>
+            </div>
+            <p className="hint">Sizes are copied to the new recipe. {product.name} isn&rsquo;t changed by either of these.</p>
+            <button type="button" className="btn ghost sm" onClick={() => setChoosing(false)}>
+              Keep editing
+            </button>
+          </div>
+        ) : (
+          <div className="row">
+            {recipeChanged ? (
+              <button type="button" className="btn pri" onClick={() => setChoosing(true)}>
+                Save changes
+              </button>
+            ) : (
+              <button className="btn pri" disabled={saving}>
+                {saving ? "Saving..." : product ? "Save changes" : "Save product"}
+              </button>
+            )}
+            <Link href="/app" className="btn ghost cta">
+              Back
+            </Link>
+          </div>
+        )}
       </form>
 
       <section className="card" aria-labelledby="preview">

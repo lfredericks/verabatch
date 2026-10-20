@@ -9,6 +9,10 @@ export interface Product {
   identity: string;
   makes: number | null;
   recipe: RecipeLine[];
+  /** Set for a variation: the product it is based on. */
+  parent_id?: string | null;
+  /** A variation's differences from its parent (see lib/variations.ts). */
+  changes?: unknown;
   updated_at?: string;
 }
 
@@ -32,6 +36,19 @@ function cleanVariety(v: unknown): VarietyChoice | undefined {
   return out;
 }
 
+/** One recipe line, tidied; null if it's blank or not a line at all. */
+export function cleanLine(raw: unknown): RecipeLine | null {
+  if (!raw || typeof raw !== "object") return null;
+  const o = raw as Record<string, unknown>;
+  const text = str(o.text, 160).trim();
+  const amount = str(o.amount, 20).trim();
+  if (!text && !amount) return null;
+  const unit = UNITS.includes(o.unit as Unit) ? (o.unit as Unit) : "g";
+  const variety = cleanVariety(o.variety);
+  const key = typeof o.key === "string" && /^[a-z0-9]{1,12}$/.test(o.key) ? o.key : undefined;
+  return { amount, unit, text, ...(variety ? { variety } : {}), ...(key ? { key } : {}) };
+}
+
 /**
  * Turns whatever the browser sent into safe recipe lines. Amounts and text are kept
  * as typed (trimmed and length-capped); blank lines are dropped.
@@ -40,14 +57,8 @@ export function cleanRecipe(input: unknown): RecipeLine[] {
   if (!Array.isArray(input)) return [];
   const out: RecipeLine[] = [];
   for (const raw of input.slice(0, MAX_LINES)) {
-    if (!raw || typeof raw !== "object") continue;
-    const o = raw as Record<string, unknown>;
-    const text = str(o.text, 160).trim();
-    const amount = str(o.amount, 20).trim();
-    if (!text && !amount) continue;
-    const unit = UNITS.includes(o.unit as Unit) ? (o.unit as Unit) : "g";
-    const variety = cleanVariety(o.variety);
-    out.push({ amount, unit, text, ...(variety ? { variety } : {}) });
+    const l = cleanLine(raw);
+    if (l) out.push(l);
   }
   return out;
 }

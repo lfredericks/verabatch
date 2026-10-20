@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { computeRecipe, parseQuickEntry, UNIT_LABELS, type RecipeLine, type Resolution, type Unit } from "@/lib/core";
 import { activePack } from "@/lib/packs";
+import { compareToParent } from "@/lib/variations";
 
 export type Row = RecipeLine & { id: number };
 type Question = Extract<Resolution, { status: "needsChoice" }>;
@@ -35,6 +36,7 @@ export function RecipeLines({
   onChange,
   startOpen,
   onMakes,
+  parent,
 }: {
   rows: Row[];
   setRows: (fn: (rows: Row[]) => Row[]) => void;
@@ -43,6 +45,8 @@ export function RecipeLines({
   startOpen: boolean;
   /** "makes 5" in a pasted recipe. */
   onMakes?: (n: number) => void;
+  /** For a variation: the parent's recipe, to mark what differs. */
+  parent?: { name: string; lines: RecipeLine[] } | null;
 }) {
   const [open, setOpen] = useState<Set<number>>(() => new Set(startOpen ? rows.map((r) => r.id) : []));
   const [paste, setPaste] = useState("");
@@ -51,6 +55,7 @@ export function RecipeLines({
   const lines = useMemo(() => rowsToLines(rows), [rows]);
   const recipe = useMemo(() => computeRecipe(lines, pack), [lines]);
   const byLine = new Map(recipe.lines.map((c) => [c.line, c]));
+  const vs = parent ? compareToParent(parent.lines, lines) : null;
 
   const toggle = (id: number, on: boolean) =>
     setOpen((s) => {
@@ -93,8 +98,11 @@ export function RecipeLines({
         {rows.map((row, i) => {
           const r = byLine.get(lines[i]!)?.resolution;
           const editing = open.has(row.id);
+          const mark = vs?.status[i];
           return (
-            <div className="rline" key={row.id}>
+            <div className={`rline${mark && mark !== "same" ? " rline-diff" : ""}`} key={row.id}>
+              {mark === "changed" && <p className="tag">Changed from {parent!.name}</p>}
+              {mark === "added" && <p className="tag">Added in this variation</p>}
               {editing ? (
                 <div className="rinputs">
                   <input
@@ -175,6 +183,25 @@ export function RecipeLines({
           );
         })}
       </div>
+
+      {vs && vs.removed.length > 0 && (
+        <div className="removed">
+          <p className="hint">Left out from {parent!.name}:</p>
+          {vs.removed.map((l) => (
+            <div key={l.key} className="rread">
+              <span className="amt">{amountText(l)}</span>
+              <s className="ing">{l.text}</s>
+              <button
+                type="button"
+                className="btn ghost sm"
+                onClick={() => (setRows((rs) => [...rs, ...toRows([l])]), onChange())}
+              >
+                Put back
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="row">
         <button type="button" className="btn sm" onClick={addLine}>

@@ -16,6 +16,7 @@ Read first:
 - `lib/label.ts`: `buildLabel()` turns product + size + business into label text and print blockers. `lib/sizes.ts`: sizes, net contents, lettering.
 - `lib/batches.ts`: batches are OPTIONAL. The label defaults to the usual recipe with no lot; a batch adds its own recipe copy and lot.
 - `app/app/products/RecipeLines.tsx`: shared recipe list; saved lines are locked behind a per-line Edit.
+- `lib/variations.ts`: recipe variations. A variation (products.parent_id) stores only `changes` (remove/replace/add by line key) and follows its parent otherwise. Always get a product's real recipe with `effectiveRecipe()` in `lib/productData.ts`. Saving a changed recipe asks: update master, save as variation, or save as a new standalone product.
 - `lib/products.ts`: product shape and `cleanRecipe()` (server-side check of what the browser sends).
 - `lib/brand`: product name/words (`brand.ts`) and themes (`themes/`). `/styleguide` shows every token.
 - `supabase/migrations`: SQL migrations, applied in order. `supabase/email-templates`: auth emails.

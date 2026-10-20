@@ -6,7 +6,7 @@ import { pageTitle } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/server";
 import { BrandMark } from "../../../../BrandMark";
 import { DangerDelete } from "../../../DangerDelete";
-import { deleteProduct } from "../../actions";
+import { deleteProduct, detachVariation } from "../../actions";
 import { deleteBatch } from "../../batchActions";
 
 export const metadata: Metadata = { title: pageTitle("Manage product") };
@@ -24,8 +24,8 @@ export default async function ManageProduct({ params }: { params: Promise<{ id: 
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: product }, { data: sizes }, { data: batches }] = await Promise.all([
-    supabase.from("products").select("id, name").eq("id", id).maybeSingle(),
+  const [{ data: product }, { data: sizes }, { data: batches }, { data: kids }] = await Promise.all([
+    supabase.from("products").select("id, name, parent_id").eq("id", id).maybeSingle(),
     supabase.from("sizes").select("id, name").eq("product_id", id),
     supabase
       .from("batches")
@@ -33,11 +33,13 @@ export default async function ManageProduct({ params }: { params: Promise<{ id: 
       .eq("product_id", id)
       .order("made_on", { ascending: false })
       .order("created_at", { ascending: false }),
+    supabase.from("products").select("id, name").eq("parent_id", id).order("name"),
   ]);
   if (!product) notFound();
   const sizeNames = Object.fromEntries((sizes ?? []).map((s) => [s.id, s.name]));
   const nBatches = batches?.length ?? 0;
   const nSizes = sizes?.length ?? 0;
+  const nKids = kids?.length ?? 0;
 
   return (
     <main className="wrap narrow">
@@ -80,6 +82,19 @@ export default async function ManageProduct({ params }: { params: Promise<{ id: 
         )}
       </section>
 
+      {product.parent_id && (
+        <section className="card" aria-labelledby="unlink">
+          <h2 id="unlink">Unlink from the parent recipe</h2>
+          <p className="hint">
+            Turns this variation into its own product with the recipe it has right now. After that it won&rsquo;t follow the parent&rsquo;s changes.
+          </p>
+          <form action={detachVariation}>
+            <input type="hidden" name="id" value={product.id} />
+            <button className="btn sm">Make it a standalone product</button>
+          </form>
+        </section>
+      )}
+
       <section className="card danger-zone" aria-labelledby="dz">
         <h2 id="dz">Delete this product</h2>
         <DangerDelete
@@ -91,6 +106,9 @@ export default async function ManageProduct({ params }: { params: Promise<{ id: 
             "The recipe and every label for it are gone.",
             `${nSizes} size${nSizes === 1 ? "" : "s"} will be deleted.`,
             `${nBatches} batch record${nBatches === 1 ? "" : "s"} and ${nBatches === 1 ? "its lot number" : "their lot numbers"} will be deleted.`,
+            ...(nKids
+              ? [`${nKids} variation${nKids === 1 ? "" : "s"} (${kids!.map((k) => k.name).join(", ")}) will be kept as standalone product${nKids === 1 ? "" : "s"} with ${nKids === 1 ? "its" : "their"} current recipe.`]
+              : []),
           ]}
         />
       </section>
