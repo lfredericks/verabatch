@@ -59,6 +59,12 @@ To do: USPTO search, buy verabatch.com and veribatch.com (redirect).
   sidebar, Faire, WooCommerce, Wix, Zapier, Clover, QuickBooks, label printers.
 - **Canva:** build a Verabatch app inside Canva (Apps SDK) rather than the Autofill API, which
   needs Canva Pro. Print through Canva or a printer partner later.
+  **Goal (Leslie, Oct 20):** an "Open this label in Canva" button on the label page, so the
+  label text (and later the design) lands in Canva without copy-paste. How it gets there
+  (Canva app/plugin, Connect API, or the sidebar app pulling from Verabatch) is still to be
+  worked out; check what Canva currently allows before building. Until then, keep label
+  output structured (`buildLabel()` in `lib/label.ts` returns front, back, net, lot as
+  separate fields) so any Canva route can fill named text boxes.
 - **Ingredient data:** EU CosIng (free) as the base, US name corrections, a curated maker layer;
   license PCPC's wINCI later. Supplier documents: extract facts, link to sources, don't host
   their PDFs; pitch suppliers on a "document drop" portal.
@@ -94,7 +100,10 @@ Build order from the spec: 1 skeleton and sign-in, 2 math core, 3 ingredient dat
   Not done: product description field and its claims check, Free plan limits (deferred
   until payments).
 - **Theming:** name and look live in `lib/brand` (`docs/BRANDING.md`).
-- Next: milestone 5 (batches and lot numbers), then the rest of Liminalia's products
+- **Milestone 5 (batches): built Oct 20, optional by design.** Label defaults to the usual
+  recipe with no lot; logging a batch gives that run its own label and lot.
+- Later: "Open this label in Canva" button (see Canva note above).
+- Next: milestone 5 check, then the rest of Liminalia's products
   (sprays: `docs/LIMINALIA.md`).
 - Live: https://verabatch-six.vercel.app
 
