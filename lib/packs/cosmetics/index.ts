@@ -118,9 +118,21 @@ function resolveVariety(line: RecipeLine, group: VarietyGroup): Resolution {
   let labelName: string;
   let displayName: string;
   if (form === "infused") {
+    // Mostly carrier oil; the plant contributes a trace, listed under 1%.
     const C = CARRIERS.find((c) => c.key === carrier)!;
-    labelName = `${C.labelName}, ${V.base} Extract`;
+    const extract = `${V.base} Extract`;
+    labelName = `${C.labelName}, ${extract}`;
     displayName = `${V.label} infused oil (${C.label.replace(/ oil$/i, "").toLowerCase()})`;
+    return {
+      status: "known",
+      labelName,
+      density: FORMS[form].density,
+      displayName,
+      parts: [
+        { labelName: C.labelName, share: 1 },
+        { labelName: extract, share: 0 },
+      ],
+    };
   } else {
     labelName =
       form === "eo" ? V.eo ?? `${V.base} Oil`

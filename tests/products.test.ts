@@ -86,3 +86,25 @@ describe("cleanRecipe keeps what was typed and drops junk", () => {
     expect(cleanRecipe({ a: 1 })).toEqual([]);
   });
 });
+
+describe("infused oils", () => {
+  it("carrier oil merges with the same oil elsewhere; the plant is a trace", () => {
+    const r = computeRecipe(
+      [
+        { amount: "1/2", unit: "cup", text: "jojoba oil" },
+        { amount: "1/4", unit: "cup", text: "coconut oil" },
+        { amount: "45", unit: "drop", text: "arnica", variety: { group: "arnica", variety: "montana", form: "infused", carrier: "jojoba" } },
+        { amount: "2", unit: "drop", text: "cayenne", variety: { group: "cayenne", variety: "frutescens", form: "infused", carrier: "jojoba" } },
+      ],
+      cosmeticsPack,
+    );
+    const list = labelIngredients(r, cosmeticsPack);
+    const names = list.map((i) => i.name);
+    expect(names.filter((n) => n.includes("Jojoba"))).toHaveLength(1);
+    expect(names[0]).toBe("Simmondsia Chinensis (Jojoba) Seed Oil");
+    expect(names).toContain("Arnica Montana Flower Extract");
+    expect(names).toContain("Capsicum Frutescens Fruit Extract");
+    expect(list.find((i) => i.name === "Arnica Montana Flower Extract")!.minor).toBe(true);
+    expect(names.indexOf("Arnica Montana Flower Extract")).toBeGreaterThan(names.indexOf("Cocos Nucifera (Coconut) Oil"));
+  });
+});

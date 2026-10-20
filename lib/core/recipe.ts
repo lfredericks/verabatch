@@ -78,21 +78,32 @@ function titleCase(s: string): string {
  */
 export function labelIngredients(recipe: ComputedRecipe, pack: MarketPack): LabelIngredient[] {
   const merged = new Map<string, LabelIngredient>();
-  for (const l of recipe.lines) {
-    const r = l.resolution;
-    const name = r.status === "known" ? r.labelName : titleCase(l.line.text);
+  const traces = new Set<string>();
+  const add = (name: string, grams: number, pct: number, unresolved: boolean) => {
     const key = name.toLowerCase();
     const existing = merged.get(key);
     if (existing) {
-      existing.grams += l.grams;
-      existing.pct += l.pct;
-      existing.unresolved ||= r.status !== "known";
+      existing.grams += grams;
+      existing.pct += pct;
+      existing.unresolved ||= unresolved;
     } else {
-      merged.set(key, { name, grams: l.grams, pct: l.pct, minor: false, unresolved: r.status !== "known" });
+      merged.set(key, { name, grams, pct, minor: false, unresolved });
     }
+  };
+  for (const l of recipe.lines) {
+    const r = l.resolution;
+    if (r.status === "known" && r.parts?.length) {
+      // e.g. arnica infused in jojoba: the jojoba joins any other jojoba, the extract is a trace.
+      for (const p of r.parts) {
+        add(p.labelName, l.grams * p.share, l.pct * p.share, false);
+        if (p.share === 0) traces.add(p.labelName.toLowerCase());
+      }
+      continue;
+    }
+    add(r.status === "known" ? r.labelName : titleCase(l.line.text), l.grams, l.pct, r.status !== "known");
   }
   const all = [...merged.values()];
-  for (const i of all) i.minor = i.pct < pack.minorThresholdPct;
+  for (const i of all) i.minor = i.pct < pack.minorThresholdPct || (traces.has(i.name.toLowerCase()) && i.grams === 0);
   const byWeight = (a: LabelIngredient, b: LabelIngredient) => b.grams - a.grams;
   return [...all.filter((i) => !i.minor).sort(byWeight), ...all.filter((i) => i.minor).sort(byWeight)];
 }

@@ -59,7 +59,19 @@ export interface Ingredient {
 
 /** What a recipe line resolved to. */
 export type Resolution =
-  | { status: "known"; labelName: string; density: number; displayName: string; ingredientKey?: string }
+  | {
+      status: "known";
+      labelName: string;
+      density: number;
+      displayName: string;
+      ingredientKey?: string;
+      /**
+       * For one line that is really several label ingredients (an infused oil is the
+       * carrier oil plus the plant extract). Shares are fractions of the line's weight.
+       * A share of 0 means "a trace": listed among the under-1% ingredients.
+       */
+      parts?: { labelName: string; share: number }[];
+    }
   | {
       status: "needsChoice";
       group: string;
