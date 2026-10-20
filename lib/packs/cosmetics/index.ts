@@ -173,7 +173,8 @@ export function choicesFor(q: Extract<Resolution, { status: "needsChoice" }>): C
  */
 export function backPanel({ business, productType }: { business: BusinessInfo; productType?: ProductType }): string[] {
   const lines: string[] = [];
-  const where = business.cityStateZip ? `, ${business.cityStateZip}` : "";
+  const country = business.country ?? "USA";
+  const where = [business.cityStateZip, country].filter(Boolean).map((x) => `, ${x}`).join("");
   lines.push(`Made by ${business.name}${where}.`);
   if (productType?.use !== "home" && business.contact) lines.push(`Questions or reactions: ${business.contact}`);
   return lines;

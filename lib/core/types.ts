@@ -29,6 +29,8 @@ export interface BusinessInfo {
   name: string;
   cityStateZip: string;
   contact: string;
+  /** Country for the "made by" line. Packs choose a default (USA for the US cosmetics pack). */
+  country?: string;
 }
 
 /** One answer to a "which one?" question. */
