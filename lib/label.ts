@@ -7,6 +7,8 @@ export interface LabelInput {
   business: BusinessInfo;
   size: Size | null;
   pack: MarketPack;
+  /** The batch this label is for. Its recipe copy replaces the master recipe. */
+  batch?: { lot: string; recipe: RecipeLine[] } | null;
 }
 
 export interface Label {
@@ -28,9 +30,9 @@ export interface Label {
  * Everything printed on a label for one product and size, in plain text,
  * plus what to fix before printing. Market wording comes from the pack.
  */
-export function buildLabel({ product, business, size, pack }: LabelInput): Label {
+export function buildLabel({ product, business, size, pack, batch }: LabelInput): Label {
   const productType = pack.productTypes.find((t) => t.key === product.type_key);
-  const recipe = computeRecipe(product.recipe, pack);
+  const recipe = computeRecipe(batch ? batch.recipe : product.recipe, pack);
   const list = labelIngredients(recipe, pack);
   const ingredients = list.length ? `Ingredients: ${list.map((i) => i.name).join(", ")}.` : "";
   const facts = size ? sizeFacts(size, pack.lettering) : null;
@@ -41,7 +43,11 @@ export function buildLabel({ product, business, size, pack }: LabelInput): Label
   }
 
   const front = [product.name, product.identity, net].filter((x): x is string => Boolean(x && x.trim()));
-  const back = [ingredients, ...(pack.backPanel?.({ business, ...(productType ? { productType } : {}) }) ?? [])].filter(Boolean);
+  const back = [
+    ingredients,
+    ...(pack.backPanel?.({ business, ...(productType ? { productType } : {}) }) ?? []),
+    batch ? `Lot ${batch.lot}` : "",
+  ].filter(Boolean);
 
   const blockers: string[] = [];
   if (!list.length) blockers.push("Add the recipe so the ingredient list can be written.");

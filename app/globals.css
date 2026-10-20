@@ -141,3 +141,12 @@ fieldset.fld { border: 0; padding: 0; margin: 0; }
 .lbl .net { font-weight: 600; }
 ul.tight { margin: 6px 0 0; padding-left: 1.2em; }
 ul.tight li + li { margin-top: 4px; }
+.rread { display: grid; grid-template-columns: 6.5rem 1fr auto; gap: 8px; align-items: center; }
+.rread .amt { font-family: var(--mono); color: var(--muted); font-size: 0.95rem; }
+.rread .ing { font-weight: 600; }
+.mono { font-family: var(--mono); }
+.sub { border-left: 3px solid var(--accent-soft); padding-left: 12px; display: flex; flex-direction: column; gap: 12px; }
+.counts { display: flex; flex-direction: column; gap: 8px; }
+.count { display: grid; grid-template-columns: 5rem 1fr; gap: 10px; align-items: center; }
+.count input { font-family: var(--mono); text-align: right; }
+fieldset.fld .radio + .radio { margin-top: 4px; }

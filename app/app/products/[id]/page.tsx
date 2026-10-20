@@ -5,6 +5,7 @@ import { pageTitle } from "@/lib/brand";
 import { activePack } from "@/lib/packs";
 import { cleanRecipe, type Product } from "@/lib/products";
 import type { Size } from "@/lib/sizes";
+import { countsText } from "@/lib/batches";
 import { createClient } from "@/lib/supabase/server";
 import { BrandMark } from "../../../BrandMark";
 import { ProductEditor } from "../ProductEditor";
@@ -51,6 +52,14 @@ export default async function EditProduct({
     .order("position")
     .order("created_at");
   const sizes = (sizeRows ?? []) as Size[];
+  const { data: batches } = await supabase
+    .from("batches")
+    .select("id, lot, made_on, changed, counts")
+    .eq("product_id", product.id)
+    .order("made_on", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(50);
+  const sizeNames = Object.fromEntries(sizes.map((s) => [s.id, s.name]));
   const type = activePack().productTypes.find((t) => t.key === product.type_key);
   const defaultUnit = type?.declareBy === "volume" ? "floz" : "oz";
 
@@ -63,6 +72,43 @@ export default async function EditProduct({
       <Link href={`/app/products/${product.id}/label`} className="btn pri cta">
         See the label
       </Link>
+      <section className="card" aria-labelledby="batches">
+        <h2 id="batches">Batches (optional)</h2>
+        {batches && batches.length > 0 ? (
+          <ul className="plist">
+            {batches.map((b) => (
+              <li key={b.id}>
+                <div className="sizerow">
+                  <div>
+                    <b className="mono">{b.lot}</b>
+                    <span>
+                      {new Date(`${b.made_on}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      {" · "}
+                      {countsText(b.counts as Record<string, number>, sizeNames)}
+                      {b.changed && " · changed"}
+                    </span>
+                  </div>
+                  <div className="row">
+                    <Link href={`/app/products/${product.id}/label?batch=${b.id}`} className="btn sm cta">
+                      Label
+                    </Link>
+                    <Link href={`/app/products/${product.id}/batches/${b.id}`} className="btn ghost sm cta">
+                      Edit
+                    </Link>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="hint">
+            Optional. One label for every run works fine. If you want a lot number on each run&rsquo;s label, log the batch here.
+          </p>
+        )}
+        <Link href={`/app/products/${product.id}/batches/new`} className="btn pri cta">
+          I made a batch
+        </Link>
+      </section>
     </main>
   );
 }

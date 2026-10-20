@@ -20,10 +20,10 @@ export default async function LabelPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ size?: string }>;
+  searchParams: Promise<{ size?: string; batch?: string }>;
 }) {
   const { id } = await params;
-  const { size: sizeId } = await searchParams;
+  const { size: sizeId, batch: batchParam } = await searchParams;
   if (!UUID.test(id)) notFound();
   const supabase = await createClient();
   const {
@@ -31,21 +31,40 @@ export default async function LabelPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: product }, { data: sizeRows }, { data: biz }] = await Promise.all([
+  const [{ data: product }, { data: sizeRows }, { data: biz }, { data: batchRows }] = await Promise.all([
     supabase.from("products").select("id, name, type_key, identity, makes, recipe").eq("id", id).maybeSingle(),
     supabase.from("sizes").select("*").eq("product_id", id).order("position").order("created_at"),
     supabase.from("businesses").select("name, city_state_zip, contact").limit(1).maybeSingle(),
+    supabase
+      .from("batches")
+      .select("id, lot, made_on, recipe")
+      .eq("product_id", id)
+      .order("made_on", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(50),
   ]);
   if (!product) notFound();
 
   const sizes = (sizeRows ?? []) as Size[];
   const size = sizes.find((s) => s.id === sizeId) ?? sizes[0] ?? null;
+  const batches = batchRows ?? [];
+  // Batches are optional: the label is the usual recipe with no lot unless a batch is picked.
+  const batch = batches.find((b) => b.id === batchParam) ?? null;
+  const link = (o: { size?: string | undefined; batch?: string | undefined }) => {
+    const q = new URLSearchParams();
+    const sz = o.size ?? size?.id;
+    const bt = o.batch ?? (batch ? batch.id : "standard");
+    if (sz) q.set("size", sz);
+    if (bt) q.set("batch", bt);
+    return `/app/products/${id}/label?${q}`;
+  };
   const pack = activePack();
   const label = buildLabel({
     product: { ...product, recipe: cleanRecipe(product.recipe) },
     business: { name: biz?.name ?? "", cityStateZip: biz?.city_state_zip ?? "", contact: biz?.contact ?? "" },
     size,
     pack,
+    batch: batch ? { lot: batch.lot as string, recipe: cleanRecipe(batch.recipe) } : null,
   });
   const frontText = label.front.join("\n");
   const backText = label.back.join("\n");
@@ -63,11 +82,29 @@ export default async function LabelPage({
           {sizes.map((s) => (
             <Link
               key={s.id}
-              href={`/app/products/${id}/label?size=${s.id}`}
+              href={link({ size: s.id })}
               className={`btn sm${s.id === size?.id ? " pri" : ""}`}
               aria-current={s.id === size?.id ? "page" : undefined}
             >
               {s.name}
+            </Link>
+          ))}
+        </nav>
+      )}
+
+      {batches.length > 0 && (
+        <nav className="tabs" aria-label="Batches">
+          <Link href={link({ batch: "standard" })} className={`btn sm${!batch ? " pri" : ""}`}>
+            Usual recipe
+          </Link>
+          {batches.slice(0, 6).map((b) => (
+            <Link
+              key={b.id}
+              href={link({ batch: b.id })}
+              className={`btn sm${b.id === batch?.id ? " pri" : ""}`}
+              aria-current={b.id === batch?.id ? "page" : undefined}
+            >
+              <span className="mono">{b.lot}</span>
             </Link>
           ))}
         </nav>
@@ -131,9 +168,14 @@ export default async function LabelPage({
         <p className="hint">Paste into Canva or your label app. Check every label before you print.</p>
       </section>
 
-      <Link href={`/app/products/${id}`} className="btn ghost cta">
-        Back to {product.name}
-      </Link>
+      <div className="row">
+        <Link href={`/app/products/${id}/batches/new`} className="btn cta">
+          Log a batch (optional)
+        </Link>
+        <Link href={`/app/products/${id}`} className="btn ghost cta">
+          Back to {product.name}
+        </Link>
+      </div>
     </main>
   );
 }
