@@ -120,6 +120,23 @@ export const VARIETY_GROUPS: VarietyGroup[] = [
     { key: "leaf", label: "Cinnamon leaf", latin: "Cinnamomum verum", keywords: ["leaf"], base: "Cinnamomum Zeylanicum Leaf", eo: "Cinnamomum Zeylanicum Leaf Oil", note: "Gentler than bark, still use low." },
     { key: "cassia", label: "Cassia", latin: "Cinnamomum cassia", keywords: ["cassia", "chinese"], base: "Cinnamomum Cassia Bark", eo: "Cinnamomum Cassia Leaf Oil", note: "What most US grocery cinnamon actually is." },
   ] },
+  { key: "clove", triggers: ["clove", "cloves"], question: "Which clove oil?", forms: ["eo", "flower"], varieties: [
+    { key: "bud", label: "Clove bud", latin: "Syzygium aromaticum", keywords: ["bud", "buds"], base: "Eugenia Caryophyllus (Clove) Bud", note: "The usual one. Strong skin irritant; keep it low on skin." },
+    { key: "leaf", label: "Clove leaf", latin: "Syzygium aromaticum", keywords: ["leaf"], base: "Eugenia Caryophyllus (Clove) Leaf", only: ["eo"], note: "Cheaper and harsher than bud. Check your bottle." },
+  ] },
+  { key: "sandalwood", triggers: ["sandalwood", "santalum"], question: "Which sandalwood?", forms: ["eo"], varieties: [
+    { key: "album", label: "Indian sandalwood", latin: "Santalum album", keywords: ["album", "indian", "mysore"], base: "Santalum Album (Sandalwood) Wood", eo: "Santalum Album (Sandalwood) Oil", note: "The classic and the priciest." },
+    { key: "spicatum", label: "Australian sandalwood", latin: "Santalum spicatum", keywords: ["spicatum", "australian"], base: "Santalum Spicatum Wood", eo: "Santalum Spicatum Wood Oil", note: "Common in affordable bottles." },
+    { key: "austro", label: "New Caledonian sandalwood", latin: "Santalum austrocaledonicum", keywords: ["austrocaledonicum", "new caledonia", "vanuatu"], base: "Santalum Austrocaledonicum Wood", eo: "Santalum Austrocaledonicum Wood Oil" },
+  ] },
+  { key: "arnica", triggers: ["arnica"], question: "What kind of arnica?", forms: ["infused", "extract", "flower"], varieties: [
+    { key: "montana", label: "Arnica", latin: "Arnica montana", keywords: ["montana"], base: "Arnica Montana Flower",
+      note: "Arnica isn't sold as a true essential oil. \"Arnica oil\" is usually the flowers soaked in a carrier oil. Check your bottle's ingredient list. Never on broken skin." },
+  ] },
+  { key: "cayenne", triggers: ["cayenne", "capsicum", "chili", "chilli"], question: "What kind of cayenne?", forms: ["infused", "extract", "flower"], varieties: [
+    { key: "frutescens", label: "Cayenne pepper", latin: "Capsicum frutescens", keywords: ["frutescens", "cayenne"], base: "Capsicum Frutescens Fruit",
+      note: "Cayenne isn't a true essential oil. \"Cayenne oil\" is usually an oleoresin (extract) or peppers soaked in oil. Check your bottle. Hot on skin; keep away from eyes." },
+  ] },
   { key: "calendula", triggers: ["calendula", "marigold"], question: "Calendula as...", forms: ["infused", "flower", "extract"], varieties: [
     { key: "officinalis", label: "Calendula", latin: "Calendula officinalis", keywords: [], base: "Calendula Officinalis Flower" },
   ] },
