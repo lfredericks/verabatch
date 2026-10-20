@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { brand, brandText } from "@/lib/brand";
+import { BrandMark } from "./BrandMark";
 import { computeRecipe, labelIngredients, netContentsForSize, UNIT_LABELS, type RecipeLine } from "@/lib/core";
 import { cosmeticsPack } from "@/lib/packs/cosmetics";
 
@@ -17,16 +19,10 @@ export default function Home() {
 
   return (
     <main className="wrap">
-      <div className="brand">
-        <span className="mark" aria-hidden="true" />
-        <span>Verabatch</span>
-      </div>
+      <BrandMark />
 
-      <h1>Correct labels for small-batch makers.</h1>
-      <p className="lead">
-        Type your recipe the way you make it. Verabatch does the conversions, the official ingredient names and the
-        label rules, and keeps a record of every batch.
-      </p>
+      <h1>{brand.tagline}</h1>
+      <p className="lead">{brandText(brand.intro)}</p>
       <Link href="/app" className="btn pri cta">
         Sign in or create an account
       </Link>
@@ -63,7 +59,7 @@ export default function Home() {
         )}
       </section>
 
-      <footer>Verabatch is in early development. Sample only; check every label before you print.</footer>
+      <footer>{brandText(brand.footer)}</footer>
     </main>
   );
 }

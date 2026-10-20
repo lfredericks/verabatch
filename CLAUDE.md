@@ -12,6 +12,7 @@ Read first:
 - `lib/core`: market-agnostic engine (units, recipe math, ingredient order, net contents, lettering, lots, claims, quick entry). Never put cosmetics rules here.
 - `lib/packs/cosmetics`: the first market pack. Ingredient and variety names are drafts (`source: "draft"`) until checked against CosIng.
 - `app/`: Next.js 15 App Router. `/login` (email code sign-in), `/app` (signed-in area), `/auth/confirm` (email link).
+- `lib/brand`: product name/words (`brand.ts`) and themes (`themes/`). `/styleguide` shows every token.
 - `supabase/migrations`: SQL migrations, applied in order. `supabase/email-templates`: auth emails.
 - `tests/`: `spec.test.ts` mirrors the spec's test table; change the test before changing a rule.
 
@@ -20,4 +21,5 @@ Read first:
 - Run `npm test` and `npm run build` before every push. Pushes to `main` deploy to Vercel.
 - Never commit secrets. `.env.local` holds local settings and is ignored.
 - Every business-owned table needs row level security through `public.is_member(business_id)`.
+- Design is themed: no raw colors, fonts or the product name in `app/`. Use `lib/brand` (see `docs/BRANDING.md`).
 - Leslie isn't a developer: explain steps in plain words, one click at a time.

@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { activeTheme, brand, googleFontsUrl, themeCss } from "@/lib/brand";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Verabatch",
-  description: "Correct labels and batch records for small-batch makers.",
+  title: brand.name,
+  description: brand.description,
 };
 
 export const viewport: Viewport = {
@@ -13,15 +14,20 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const theme = activeTheme();
+  const fonts = googleFontsUrl(theme);
   return (
     <html lang="en">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
-        />
+        {fonts && (
+          <>
+            <link rel="preconnect" href="https://fonts.googleapis.com" />
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+            <link rel="stylesheet" href={fonts} />
+          </>
+        )}
+        {/* Theme colors, fonts and corners. Everything in globals.css reads these. */}
+        <style dangerouslySetInnerHTML={{ __html: themeCss(theme) }} />
       </head>
       <body>{children}</body>
     </html>

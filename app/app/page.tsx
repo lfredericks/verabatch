@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { brand, pageTitle } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/server";
+import { BrandMark } from "../BrandMark";
 import { BusinessForm, type Business } from "./BusinessForm";
 import { signOut } from "./actions";
 
-export const metadata: Metadata = { title: "Your shop · Verabatch" };
+export const metadata: Metadata = { title: pageTitle("Your shop") };
 export const dynamic = "force-dynamic";
 
 export default async function AppHome() {
@@ -24,10 +26,7 @@ export default async function AppHome() {
   return (
     <main className="wrap narrow">
       <div className="topbar">
-        <div className="brand">
-          <span className="mark" aria-hidden="true" />
-          <span>Verabatch</span>
-        </div>
+        <BrandMark href="/" />
         <form action={signOut}>
           <button className="btn ghost sm">Sign out</button>
         </form>
@@ -46,7 +45,7 @@ export default async function AppHome() {
         </>
       ) : (
         <>
-          <h1>Welcome to Verabatch</h1>
+          <h1>Welcome to {brand.name}</h1>
           <p className="lead">First, tell us about your business. This goes on every label, and you only enter it once.</p>
           <BusinessForm business={null} />
         </>

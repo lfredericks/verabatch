@@ -1,0 +1,52 @@
+import type { Theme } from "../types";
+
+/** Current look: sage paper, plum accent. The starting point for every other theme. */
+export const defaultTheme: Theme = {
+  id: "default",
+  label: "Default (sage and plum)",
+  colors: {
+    light: {
+      paper: "#eceeea",
+      surface: "#fafbf9",
+      sunk: "#e3e7e2",
+      ink: "#1a1f1c",
+      muted: "#59635d",
+      line: "#d0d6d0",
+      accent: "#6a2945",
+      accentSoft: "#efe0e6",
+      onAccent: "#ffffff",
+      warn: "#8a5300",
+      warnSoft: "#f5e8d2",
+      danger: "#a02f29",
+      success: "#2b6942",
+      label: "#f7f2ea",
+      labelInk: "#2a2320",
+      labelAccent: "#6a2945",
+    },
+    dark: {
+      paper: "#111513",
+      surface: "#191e1b",
+      sunk: "#141815",
+      ink: "#e5eae6",
+      muted: "#9aa49e",
+      line: "#2c3430",
+      accent: "#d793b2",
+      accentSoft: "#3a2430",
+      onAccent: "#1d1017",
+      warn: "#e3ab60",
+      warnSoft: "#3a2c17",
+      danger: "#ec8f88",
+      success: "#86c9a0",
+      label: "#f7f2ea",
+      labelInk: "#2a2320",
+      labelAccent: "#6a2945",
+    },
+  },
+  fonts: {
+    display: { stack: '"Gloock", Georgia, "Times New Roman", serif', google: "Gloock" },
+    body: { stack: '"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif', google: "Figtree:wght@400;600;700" },
+    mono: { stack: '"IBM Plex Mono", ui-monospace, Menlo, monospace', google: "IBM+Plex+Mono:wght@400;500" },
+  },
+  radius: { card: "12px", control: "9px", small: "8px" },
+  mark: "diamond",
+};
