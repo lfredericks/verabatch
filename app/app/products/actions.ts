@@ -31,8 +31,11 @@ function readForm(form: FormData) {
   } catch {
     recipe = [];
   }
-  const mode = String(form.get("mode") ?? "master");
+  const rawMode = form.get("mode");
+  const mode = String(rawMode ?? "master");
   return {
+    /** Pages from before the save prompt existed don't send a mode. */
+    modeSent: rawMode !== null,
     id: String(form.get("id") ?? ""),
     name: String(form.get("name") ?? "").trim(),
     newName: String(form.get("new_name") ?? "").trim(),
@@ -116,6 +119,9 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
     revalidatePath("/app");
     redirect(`/app/products/${data.id}?saved=1`);
   }
+
+  // An out-of-date page (no save prompt) must never overwrite a recipe without asking.
+  if (!p.modeSent) return { error: "This page is out of date. Reload the page, then make your change again." };
 
   // Update this product. A variation stores its differences from the parent.
   let recipeFields: Record<string, unknown>;
