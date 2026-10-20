@@ -83,15 +83,22 @@ $10M a year could come from ~25,000 Pro makers at ~$20/mo ($6M) + 400 Enterprise
 Build order from the spec: 1 skeleton and sign-in, 2 math core, 3 ingredient database,
 4 products/sizes/labels, 5 batches, 6 Liminalia run then five outside makers.
 
-- **Milestone 2 (math core): done.** `lib/core` + `lib/packs/cosmetics`, 36 passing tests
-  including every spec test case. Ingredient names are drafts until checked against CosIng.
-- **Milestone 1 (skeleton): code done, setup pending.** Next.js 15 app on Vercel, email-code
-  sign-in (no passwords), business details form, row level security. Needs the one-time
-  Supabase setup in `docs/SETUP.md` (SQL, Site URL, email template). Then test: sign up on
-  phone, see shop name on laptop.
+- **Milestone 1 (skeleton): done.** Sign-in works (Supabase's default email link; custom
+  email waits on SMTP). Leslie signed up on her phone and saved Liminalia's details.
+- **Milestone 2 (math core): done.** Every spec test case passes.
+- **Milestone 3 (ingredients): partly done.** Every ingredient in Leslie's materials sheet
+  resolves or asks "which one?" (`tests/liminalia.test.ts`). Still drafts: CosIng import and
+  hand checks not done; bottle photos pending to confirm species.
+- **Milestone 4 (products, sizes, labels): working.** Leslie built the Relief Balm 2 oz
+  label on her phone (Oct 20): front, back, lettering minimum, claims flag, copy buttons.
+  Not done: product description field and its claims check, Free plan limits (deferred
+  until payments).
+- **Theming:** name and look live in `lib/brand` (`docs/BRANDING.md`).
+- Next: milestone 5 (batches and lot numbers), then the rest of Liminalia's products
+  (sprays: `docs/LIMINALIA.md`).
 - Live: https://verabatch-six.vercel.app
 
-## Why a new session
+## Why a new session (Oct 20)
 
 This session's network allowlist was fixed at start, so it couldn't reach supabase.co even
 after Leslie added the domains. A new session should be able to use the Supabase Management
