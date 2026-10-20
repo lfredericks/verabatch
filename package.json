@@ -1,0 +1,17 @@
+{
+  "name": "verabatch",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Verabatch: recipe in, batch recorded, compliant label out.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}
