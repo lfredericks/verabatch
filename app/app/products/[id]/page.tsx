@@ -109,6 +109,9 @@ export default async function EditProduct({
           I made a batch
         </Link>
       </section>
+      <Link href={`/app/products/${product.id}/manage`} className="btn ghost sm cta">
+        Manage product (delete)
+      </Link>
     </main>
   );
 }

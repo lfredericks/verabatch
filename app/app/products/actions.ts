@@ -69,8 +69,10 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
 
 export async function deleteProduct(form: FormData) {
   const id = String(form.get("id") ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(id)) redirect("/app");
+  if (String(form.get("confirm") ?? "").trim() !== "DELETE") redirect(`/app/products/${id}/manage`);
   const supabase = await createClient();
-  if (id) await supabase.from("products").delete().eq("id", id);
+  await supabase.from("products").delete().eq("id", id);
   revalidatePath("/app");
   redirect("/app");
 }

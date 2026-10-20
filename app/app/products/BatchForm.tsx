@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useActionState, useEffect, useMemo, useState } from "react";
 import type { RecipeLine } from "@/lib/core";
 import { NO_SIZE, type Batch } from "@/lib/batches";
-import { deleteBatch, saveBatch, type BatchFormState } from "./batchActions";
+import { saveBatch, type BatchFormState } from "./batchActions";
 import { RecipeLines, rowsToLines, toRows, type Row } from "./RecipeLines";
 
 function today(): string {
@@ -38,7 +38,6 @@ export function BatchForm({
     else if (sizes.length === 1 && makes) c[sizes[0]!.id] = String(makes);
     return c;
   });
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   // Today's date in the maker's own time zone, set after the page loads.
   useEffect(() => {
@@ -126,29 +125,6 @@ export function BatchForm({
         </div>
       </form>
 
-      {batch && (
-        <section className="card">
-          {confirmDelete ? (
-            <form action={deleteBatch} className="form">
-              <input type="hidden" name="id" value={batch.id} />
-              <input type="hidden" name="product_id" value={productId} />
-              <p>
-                Delete batch <b>{batch.lot}</b>? Labels already printed with this lot won&rsquo;t have a record. This can&rsquo;t be undone.
-              </p>
-              <div className="row">
-                <button className="btn danger">Delete</button>
-                <button type="button" className="btn ghost" onClick={() => setConfirmDelete(false)}>
-                  Keep it
-                </button>
-              </div>
-            </form>
-          ) : (
-            <button type="button" className="btn ghost sm" onClick={() => setConfirmDelete(true)}>
-              Delete this batch
-            </button>
-          )}
-        </section>
-      )}
     </>
   );
 }

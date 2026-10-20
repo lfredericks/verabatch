@@ -5,7 +5,7 @@ import { useActionState, useMemo, useState } from "react";
 import { computeRecipe, labelIngredients, type RecipeLine } from "@/lib/core";
 import { activePack } from "@/lib/packs";
 import type { Product } from "@/lib/products";
-import { deleteProduct, saveProduct, type ProductFormState } from "./actions";
+import { saveProduct, type ProductFormState } from "./actions";
 import { blankRow, RecipeLines, rowsToLines, toRows, type Row } from "./RecipeLines";
 
 const pack = activePack();
@@ -25,7 +25,6 @@ export function ProductEditor({ product, justSaved }: { product: Product | null;
   const [rows, setRows] = useState<Row[]>(() =>
     product?.recipe.length ? toRows(product.recipe) : [blankRow(), blankRow(), blankRow()],
   );
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [copied, setCopied] = useState(false);
   const [dirty, setDirty] = useState(false);
 
@@ -176,28 +175,6 @@ export function ProductEditor({ product, justSaved }: { product: Product | null;
         )}
       </section>
 
-      {product && (
-        <section className="card">
-          {confirmDelete ? (
-            <form action={deleteProduct} className="form">
-              <input type="hidden" name="id" value={product.id} />
-              <p>
-                Delete <b>{product.name}</b>? This can&rsquo;t be undone.
-              </p>
-              <div className="row">
-                <button className="btn danger">Delete</button>
-                <button type="button" className="btn ghost" onClick={() => setConfirmDelete(false)}>
-                  Keep it
-                </button>
-              </div>
-            </form>
-          ) : (
-            <button type="button" className="btn ghost sm" onClick={() => setConfirmDelete(true)}>
-              Delete this product
-            </button>
-          )}
-        </section>
-      )}
     </>
   );
 }

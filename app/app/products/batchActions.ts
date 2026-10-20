@@ -68,8 +68,10 @@ export async function deleteBatch(form: FormData) {
   const id = String(form.get("id") ?? "");
   const productId = String(form.get("product_id") ?? "");
   if (!UUID.test(id) || !UUID.test(productId)) return;
+  if (String(form.get("confirm") ?? "").trim() !== "DELETE") redirect(`/app/products/${productId}/manage`);
   const supabase = await createClient();
   await supabase.from("batches").delete().eq("id", id);
   revalidatePath(`/app/products/${productId}`);
-  redirect(`/app/products/${productId}`);
+  revalidatePath(`/app/products/${productId}/manage`);
+  redirect(`/app/products/${productId}/manage`);
 }
