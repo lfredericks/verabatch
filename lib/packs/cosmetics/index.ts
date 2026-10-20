@@ -1,5 +1,5 @@
 import { hasWords, normalize } from "../../core/text";
-import type { Choice, Ingredient, LetteringStep, MarketPack, ProductType, RecipeLine, Resolution } from "../../core/types";
+import type { BusinessInfo, Choice, Ingredient, LetteringStep, MarketPack, ProductType, RecipeLine, Resolution } from "../../core/types";
 import { CLAIM_RULES } from "./claims";
 import { INGREDIENTS } from "./ingredients";
 import { CARRIERS, FORM_DETECT_ORDER, FORMS, VARIETY_GROUPS, type FormKey, type VarietyGroup } from "./varieties";
@@ -166,6 +166,19 @@ export function choicesFor(q: Extract<Resolution, { status: "needsChoice" }>): C
   return CARRIERS.map((c) => ({ key: c.key, label: c.label }));
 }
 
+/**
+ * Back panel lines. DRAFT wording: US cosmetic labels need the maker's or
+ * distributor's name and place of business (21 CFR 701.12), and MoCRA asks for a
+ * domestic contact for reactions. Home products skip the reactions line (spec).
+ */
+export function backPanel({ business, productType }: { business: BusinessInfo; productType?: ProductType }): string[] {
+  const lines: string[] = [];
+  const where = business.cityStateZip ? `, ${business.cityStateZip}` : "";
+  lines.push(`Made by ${business.name}${where}.`);
+  if (productType?.use !== "home" && business.contact) lines.push(`Questions or reactions: ${business.contact}`);
+  return lines;
+}
+
 export const cosmeticsPack: MarketPack = {
   id: "cosmetics",
   name: "Cosmetics and home fragrance",
@@ -175,4 +188,5 @@ export const cosmeticsPack: MarketPack = {
   claimRules: CLAIM_RULES,
   resolve: resolveLine,
   choices: choicesFor,
+  backPanel,
 };

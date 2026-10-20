@@ -128,3 +128,16 @@ select:focus, textarea:focus { outline: none; border-color: var(--accent); box-s
 .plist a { display: flex; flex-direction: column; padding: 10px 0; color: inherit; text-decoration: none; }
 .plist a span { color: var(--muted); font-size: 0.9rem; }
 .plist a:hover b { color: var(--accent); }
+
+/* Sizes and label page */
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+fieldset.fld { border: 0; padding: 0; margin: 0; }
+.radio { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.radio input { width: auto; min-height: 0; }
+.sizerow { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; }
+.sizerow > div:first-child { display: flex; flex-direction: column; }
+.sizerow span { color: var(--muted); font-size: 0.9rem; }
+.sizeform { padding: 12px 0; display: flex; flex-direction: column; gap: 12px; }
+.lbl .net { font-weight: 600; }
+ul.tight { margin: 6px 0 0; padding-left: 1.2em; }
+ul.tight li + li { margin-top: 4px; }

@@ -24,6 +24,13 @@ export interface RecipeLine {
   variety?: VarietyChoice;
 }
 
+/** The business details that go on labels. */
+export interface BusinessInfo {
+  name: string;
+  cityStateZip: string;
+  contact: string;
+}
+
 /** One answer to a "which one?" question. */
 export interface Choice {
   key: string;
@@ -132,6 +139,11 @@ export interface MarketPack {
   claimRules: ClaimRule[];
   /** Resolve what a maker typed into a label name and density, or say what to ask. */
   resolve(line: RecipeLine): Resolution;
+  /**
+   * Lines for the back of the label besides the ingredient list: who made it,
+   * where, and how to reach them. Wording is the pack's, so each market can differ.
+   */
+  backPanel?(ctx: { business: BusinessInfo; productType?: ProductType }): string[];
   /** The options to show for a "which one?" question from resolve(). */
   choices?(question: Extract<Resolution, { status: "needsChoice" }>): Choice[];
 }
