@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useMemo, useRef, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { computeRecipe, labelIngredients, type RecipeLine } from "@/lib/core";
 import { activePack } from "@/lib/packs";
 import type { Product } from "@/lib/products";
@@ -51,11 +51,17 @@ export function ProductEditor({
   const waiting = recipe.needsChoice.length;
   const unknown = recipe.unknown.length;
 
-  /** Submit with an explicit save mode (written straight into the form, so it can't be lost). */
-  function submitAs(mode: "master" | "variation" | "standalone") {
+  /**
+   * Record which save button was pressed. Runs on the button's click, before the
+   * browser submits the form, so the server always gets an explicit choice.
+   */
+  function setMode(mode: "master" | "variation" | "standalone") {
     if (modeRef.current) modeRef.current.value = mode;
-    formRef.current?.requestSubmit();
   }
+  // After a successful save, close the "how should it be saved?" box.
+  useEffect(() => {
+    if (state.saved) setChoosing(false);
+  }, [state]);
   function touch() {
     setDirty(true);
     setCopied(false);
@@ -78,7 +84,16 @@ export function ProductEditor({
 
   return (
     <>
-      <form ref={formRef} action={action} className="card form" onSubmit={() => setDirty(false)}>
+      <form
+        ref={formRef}
+        action={action}
+        className="card form"
+        onSubmit={() => setDirty(false)}
+        // The keyboard's Enter/Go key must never pick a save option by itself.
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && (e.target as HTMLElement).tagName === "INPUT") e.preventDefault();
+        }}
+      >
         <input ref={modeRef} type="hidden" name="mode" defaultValue="master" />
         {product && <input type="hidden" name="id" value={product.id} />}
         <input type="hidden" name="recipe" value={JSON.stringify(lines)} />
@@ -165,8 +180,8 @@ export function ProductEditor({
               <b>You changed the recipe.</b> How should it be saved?
             </p>
             <div className="choice">
-              <button type="button" className="btn pri sm" onClick={() => submitAs("master")} disabled={saving}>
-                {parent ? "Update this variation" : `Update the ${product.name} recipe`}
+              <button type="submit" className="btn pri sm" onClick={() => setMode("master")} disabled={saving}>
+                {saving ? "Saving..." : parent ? "Update this variation" : `Update the ${product.name} recipe`}
               </button>
               <span className="hint">
                 {parent
@@ -185,7 +200,7 @@ export function ProductEditor({
               />
             </label>
             <div className="choice">
-              <button type="button" className="btn sm" onClick={() => submitAs("variation")} disabled={saving || !newName.trim()}>
+              <button type="submit" className="btn sm" onClick={() => setMode("variation")} disabled={saving || !newName.trim()}>
                 Save as a variation of {parent ? parent.name : product.name}
               </button>
               <span className="hint">
@@ -194,11 +209,17 @@ export function ProductEditor({
               </span>
             </div>
             <div className="choice">
-              <button type="button" className="btn sm" onClick={() => submitAs("standalone")} disabled={saving || !newName.trim()}>
+              <button type="submit" className="btn sm" onClick={() => setMode("standalone")} disabled={saving || !newName.trim()}>
                 Save as a new product
               </button>
               <span className="hint">A full copy that stands on its own from now on. Good for a new blend built on the same base.</span>
             </div>
+            {saving && <p className="hint" role="status">Saving...</p>}
+            {state.error && (
+              <p className="error" role="alert">
+                {state.error}
+              </p>
+            )}
             <p className="hint">Sizes are copied to the new recipe. {product.name} isn&rsquo;t changed by either of these.</p>
             <button type="button" className="btn ghost sm" onClick={() => setChoosing(false)}>
               Keep editing
@@ -211,7 +232,7 @@ export function ProductEditor({
                 Save changes
               </button>
             ) : (
-              <button type="button" className="btn pri" disabled={saving} onClick={() => submitAs("master")}>
+              <button type="submit" className="btn pri" disabled={saving} onClick={() => setMode("master")}>
                 {saving ? "Saving..." : product ? "Save changes" : "Save product"}
               </button>
             )}
