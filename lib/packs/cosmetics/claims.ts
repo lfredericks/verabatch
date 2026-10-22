@@ -13,6 +13,8 @@ export const CLAIM_RULES: ClaimRule[] = [
     why: "\"Anti-\" plus a germ or inflammation is a drug claim.", fix: "Remove it." },
   { pattern: /\b(pain|relieves?|relief|aches?|sore muscles?|arthritis|headaches?)\b/i, severity: "drug",
     why: "Pain relief is a drug claim.", fix: "Talk about the scent or the ritual instead." },
+  { pattern: /\b(inflammation|inflamed|swelling|bruis\w*|circulation|immune|immunity|nerve pain|joint pain|muscle pain)\b/i, severity: "drug",
+    why: "Talking about inflammation, swelling or body systems is a drug claim.", fix: "Describe how it feels on the skin instead, like \"warming\" or \"cooling.\"" },
   { pattern: /\b(spf|sunscreen|sun protection|uv protection|sunblock)\b/i, severity: "drug",
     why: "Sun protection claims make it an OTC drug.", fix: "Remove unless you test and register it as a drug." },
   { pattern: /\b(hair growth|regrow|regrowth|grows hair|hair loss)\b/i, severity: "drug",

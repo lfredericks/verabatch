@@ -170,3 +170,8 @@ fieldset.fld .radio + .radio { margin-top: 4px; }
 .finder { gap: 10px; }
 .picks { display: flex; flex-wrap: wrap; gap: 6px; }
 .picks .btn { text-align: left; }
+
+/* Descriptions */
+.desc-text { white-space: pre-wrap; background: var(--sunk); border-radius: var(--radius-small); padding: 12px; font-size: 0.95rem; }
+mark.flag-drug { background: var(--warn-soft); color: var(--danger); font-weight: 700; border-bottom: 2px solid var(--danger); border-radius: 2px; }
+mark.flag-check { background: var(--warn-soft); color: var(--warn); font-weight: 700; border-radius: 2px; }

@@ -40,6 +40,7 @@ Run each new file in `supabase/migrations` in the SQL Editor, in order.
 - `0003_sizes.sql`: run Oct 20, 2026.
 - `0004_batches.sql`: run Oct 20, 2026.
 - `0005_variations.sql`: run Oct 20, 2026.
+- `0006_descriptions.sql`: NOT RUN YET (Oct 22). Descriptions won't save until it is.
 
 ## Before launch
 

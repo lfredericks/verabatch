@@ -12,6 +12,8 @@ import { BrandMark } from "../../../BrandMark";
 import { ProductEditor } from "../ProductEditor";
 import { ProductInfo } from "../ProductInfo";
 import { SizesEditor } from "../SizesEditor";
+import { Descriptions } from "../Descriptions";
+import { cleanDescriptions } from "@/lib/channels";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +22,12 @@ async function load(id: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("products")
-    .select("id, name, type_key, identity, makes, recipe, parent_id, changes, updated_at")
+    .select("*")
     .eq("id", id)
     .maybeSingle();
   if (!data) return null;
   const { lines, parent } = await effectiveRecipe(supabase, data);
-  return { product: { ...(data as Product), recipe: lines } as Product, parent };
+  return { product: { ...(data as Product), recipe: lines } as Product, parent, descriptions: cleanDescriptions(data.descriptions) };
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -47,7 +49,7 @@ export default async function EditProduct({
   if (!user) redirect("/login");
   const loaded = await load((await params).id);
   if (!loaded) notFound();
-  const { product, parent } = loaded;
+  const { product, parent, descriptions } = loaded;
   const { data: kids } = await supabase.from("products").select("id, name").eq("parent_id", product.id).order("name");
   const { saved } = await searchParams;
   const { data: sizeRows } = await supabase
@@ -96,6 +98,7 @@ export default async function EditProduct({
       <Link href={`/app/products/${product.id}/label`} className="btn pri cta">
         See the label
       </Link>
+      <Descriptions productId={product.id} descriptions={descriptions} />
       <section className="card" aria-labelledby="batches">
         <h2 id="batches">Batches (optional)</h2>
         {batches && batches.length > 0 ? (

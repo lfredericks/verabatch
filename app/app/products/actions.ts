@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { RecipeLine } from "@/lib/core";
+import { CHANNELS, cleanDescriptions, MAX_DESCRIPTION, type ChannelKey } from "@/lib/channels";
 import { activePack } from "@/lib/packs";
 import { effectiveRecipe } from "@/lib/productData";
 import { cleanRecipe } from "@/lib/products";
@@ -206,4 +207,28 @@ export async function deleteProduct(form: FormData) {
   await supabase.from("products").delete().eq("id", id);
   revalidatePath("/app");
   redirect("/app");
+}
+
+export interface DescriptionState {
+  error?: string;
+  saved?: number;
+}
+
+/** Save one channel's description (Etsy, website, Amazon, other). Empty text removes it. */
+export async function saveDescription(_prev: DescriptionState, form: FormData): Promise<DescriptionState> {
+  const id = String(form.get("id") ?? "");
+  const channel = String(form.get("channel") ?? "");
+  const text = String(form.get("text") ?? "").replace(/\r\n/g, "\n").trim();
+  if (!UUID.test(id) || !CHANNELS.some((c) => c.key === channel)) return { error: "Something went wrong. Reload the page and try again." };
+  if (text.length > MAX_DESCRIPTION) return { error: `Keep it under ${MAX_DESCRIPTION.toLocaleString()} characters.` };
+  const supabase = await createClient();
+  const { data: current } = await supabase.from("products").select("descriptions").eq("id", id).maybeSingle();
+  if (!current) return { error: "That product is gone. Go back and reload." };
+  const next = cleanDescriptions(current.descriptions);
+  if (text) next[channel as ChannelKey] = text;
+  else delete next[channel as ChannelKey];
+  const { data, error } = await supabase.from("products").update({ descriptions: next }).eq("id", id).select("id");
+  if (error || !data?.length) return { error: "That didn't save. Reload the page and try again." };
+  revalidatePath(`/app/products/${id}`);
+  return { saved: Date.now() };
 }

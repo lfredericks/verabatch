@@ -99,7 +99,8 @@ Verabatch is a product for any small-batch maker. Liminalia is only the first te
 4. **Products, sizes, labels: almost done.** Built: products and recipes, locked info and
    recipe lines, variations (linked or standalone), sizes, label page (front/back, net
    contents, lettering minimum, claims flag on name, copy buttons), Manage page with typed
-   DELETE. Not done: description check (paste listing copy, flag risky words); label sign-off
+   DELETE. Description check built (Oct 22): descriptions per channel (Etsy, website, Amazon, other)
+   with risky words highlighted live. Not done: label sign-off
    against a real printed label. Free plan limits deferred until payments.
 5. **Batches: built, optional by design.** Not done: sign-off with a real logged batch.
 6. **Real-world run, then five outside makers: not started.** Run a full product line through
@@ -118,6 +119,7 @@ Parked for later:
   pre-corrected; bleed on round/square designs. First version could correct existing Canva
   PDFs. Color matching on home inkjets is limited.
 - **"Open this label in Canva" button** (see Canva note above).
+- **Help writing descriptions for each channel's audience (Leslie, Oct 22).**
 - **Ingredient list upkeep (Leslie, Oct 22).** Update the official list automatically, and flag
   makers' saved recipes when a name they use changes or is removed (`docs/INGREDIENTS.md`).
 - **Country choice in setup.** v1 is US/FDA only; `BusinessInfo.country` exists for later.
