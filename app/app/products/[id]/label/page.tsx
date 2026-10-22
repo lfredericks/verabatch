@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { pageTitle } from "@/lib/brand";
 import { BrandMark } from "../../../../BrandMark";
 import { CopyButtons } from "./CopyButtons";
-import { labelPdfFor, loadLabel } from "./data";
+import { labelPdfFor, loadLabel, readLogoChoice } from "./data";
 
 export const metadata: Metadata = { title: pageTitle("Label") };
 export const dynamic = "force-dynamic";
@@ -14,14 +14,25 @@ export default async function LabelPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ size?: string; batch?: string }>;
+  searchParams: Promise<{ size?: string; batch?: string; ls?: string; logo?: string | string[] }>;
 }) {
   const { id } = await params;
-  const { size: sizeId, batch: batchParam } = await searchParams;
-  const loaded = await loadLabel(id, sizeId, batchParam);
+  const sp = await searchParams;
+  const { size: sizeId, batch: batchParam } = sp;
+  const raw = new URLSearchParams();
+  if (sp.ls) raw.set("ls", sp.ls);
+  for (const l of ([] as string[]).concat(sp.logo ?? [])) raw.append("logo", l);
+  const loaded = await loadLabel(id, sizeId, batchParam, readLogoChoice(raw));
   if (!loaded) notFound();
   if (loaded.signedOut) redirect("/login");
-  const { product, sizes, size, batches, batch, label } = loaded;
+  const { product, sizes, size, batches, batch, label, logos, has, fileName } = loaded;
+  // Keep the logo choice when switching size or batch.
+  const logoQuery = (q: URLSearchParams) => {
+    if (!raw.get("ls")) return;
+    q.set("ls", "1");
+    if (logos.product) q.append("logo", "product");
+    if (logos.business) q.append("logo", "business");
+  };
   const made = await labelPdfFor(loaded);
   const link = (o: { size?: string | undefined; batch?: string | undefined }) => {
     const q = new URLSearchParams();
@@ -29,12 +40,14 @@ export default async function LabelPage({
     const bt = o.batch ?? (batch ? batch.id : "standard");
     if (sz) q.set("size", sz);
     if (bt) q.set("batch", bt);
+    logoQuery(q);
     return `/app/products/${id}/label?${q}`;
   };
   const pdfQuery = new URLSearchParams();
   if (size) pdfQuery.set("size", size.id);
   if (batch) pdfQuery.set("batch", batch.id);
-  const pdfHref = `/app/products/${id}/label/pdf?${pdfQuery}`;
+  logoQuery(pdfQuery);
+  const pdfHref = `/app/products/${id}/label/pdf/${encodeURIComponent(fileName ?? "Label.pdf")}?${pdfQuery}`;
   const frontText = label.front.join("\n");
   const backText = label.back.join("\n");
 
@@ -147,6 +160,26 @@ export default async function LabelPage({
               Front on page 1, back on page 2, each at your label&rsquo;s exact size ({label.size?.labelText}). Two fonts
               only, Libre Baskerville and Lato, both in Canva, so the text stays editable when you upload it there.
             </p>
+            {(has.product || has.business) && (
+              <form method="get" className="fld">
+                <span>Logos on this label</span>
+                {size && <input type="hidden" name="size" value={size.id} />}
+                <input type="hidden" name="batch" value={batch ? batch.id : "standard"} />
+                <input type="hidden" name="ls" value="1" />
+                {has.product && (
+                  <label className="radio">
+                    <input type="checkbox" name="logo" value="product" defaultChecked={logos.product} /> Product logo (front)
+                  </label>
+                )}
+                {has.business && (
+                  <label className="radio">
+                    <input type="checkbox" name="logo" value="business" defaultChecked={logos.business} /> Business logo
+                    {has.product ? " (back, when both are ticked)" : " (front)"}
+                  </label>
+                )}
+                <button className="btn sm cta">Update the PDF</button>
+              </form>
+            )}
             {made.pdf.warnings.length > 0 && (
               <div className="note">
                 <ul className="tight">

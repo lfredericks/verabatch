@@ -38,6 +38,10 @@ export interface LabelPdfInput {
   /** Back panel paragraphs: ingredients, made-by line, questions line, lot. */
   back: string[];
   title: string;
+  /** Logo for the top of the front: the product's, or the business's. PNG or JPG bytes. */
+  logo?: { bytes: Uint8Array; kind: "png" | "jpg" } | null;
+  /** Small logo at the bottom of the back (the business logo, when the product has its own on the front). */
+  backLogo?: { bytes: Uint8Array; kind: "png" | "jpg" } | null;
 }
 
 export interface LabelPdf {
@@ -232,26 +236,61 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
     draw(front, H, placed.lines);
   }
 
-  // Name and "what it is", as big as fits above the net weight.
-  const nameBase = short * 0.17;
+  // Logo (if any) at the top, then the name and "what it is", as big as fits above the net weight.
   const regionBottom = input.net ? netTop - netSize * 0.6 : frame.bottom;
+  const logo = input.logo ? await (input.logo.kind === "png" ? pdf.embedPng(input.logo.bytes) : pdf.embedJpg(input.logo.bytes)) : null;
+  const nameBase = short * 0.17;
   let nameSize = nameBase;
   let identitySize = nameBase * 0.5;
-  let frontDone = false;
-  for (let s = 1; s >= 0.25; s -= 0.025) {
-    nameSize = Math.round(nameBase * s * 10) / 10;
-    identitySize = Math.max(6, Math.round(nameBase * 0.5 * Math.max(s, 0.6) * 10) / 10);
-    const paras: Para[] = [{ text: input.name, font: serif, size: nameSize, gap: 0 }];
-    if (input.identity.trim()) paras.push({ text: input.identity, font: sans, size: identitySize, gap: identitySize * 0.35 });
-    const out = centerIn(paras, frame, frame.top, regionBottom, "center");
-    if (out.fits) {
-      draw(front, H, out.lines);
-      frontDone = true;
-      break;
+
+  /** The name block between `top` and the net weight, shrinking no further than `minScale`. */
+  const fitName = (top: number, minScale: number) => {
+    for (let s = 1; s >= minScale - 0.001; s -= 0.025) {
+      nameSize = Math.round(nameBase * s * 10) / 10;
+      identitySize = Math.max(6, Math.round(nameBase * 0.5 * Math.max(s, 0.6) * 10) / 10);
+      const paras: Para[] = [{ text: input.name, font: serif, size: nameSize, gap: 0 }];
+      if (input.identity.trim()) paras.push({ text: input.identity, font: sans, size: identitySize, gap: identitySize * 0.35 });
+      const out = centerIn(paras, frame, top, regionBottom, "center");
+      if (out.fits) return out;
     }
+    return null;
+  };
+
+  /** Where the logo fits at this share of the label's height: as high as the shape allows. */
+  const placeLogo = (frac: number) => {
+    if (!logo) return null;
+    let h = H * frac;
+    let w = (logo.width / logo.height) * h;
+    if (w > W * 0.7) {
+      w = W * 0.7;
+      h = (logo.height / logo.width) * w;
+    }
+    for (let y = frame.top; y + h < regionBottom; y += 1) {
+      const span = frame.across(y, y + h);
+      if (span && span[1] - span[0] >= w) return { x: (W - w) / 2, y, w, h };
+    }
+    return null;
+  };
+
+  const logoSteps = logo ? [0.3, 0.24, 0.18, 0.13] : [0];
+  let frontDone = false;
+  for (let i = 0; i < logoSteps.length && !frontDone; i++) {
+    const last = i === logoSteps.length - 1;
+    const box = placeLogo(logoSteps[i]!);
+    if (logo && !box) continue;
+    const textTop = box ? box.y + box.h + short * 0.04 : frame.top;
+    const out = fitName(textTop, last ? 0.25 : 0.55);
+    if (!out) continue;
+    if (box && logo) front.drawImage(logo, { x: box.x, y: H - box.y - box.h, width: box.w, height: box.h });
+    draw(front, H, out.lines);
+    frontDone = true;
   }
   if (!frontDone) {
-    warnings.push("The name doesn't fit on the front. Shorten it or use a bigger label.");
+    warnings.push(
+      logo
+        ? "The logo and name don't fit on the front together. Shorten the name, use a wider logo, or use a bigger label."
+        : "The name doesn't fit on the front. Shorten it or use a bigger label.",
+    );
     const paras: Para[] = [{ text: input.name, font: serif, size: nameSize, gap: 0 }];
     if (input.identity.trim()) paras.push({ text: input.identity, font: sans, size: identitySize, gap: 2 });
     draw(front, H, flow(paras, frame, frame.top, "center").lines);
@@ -264,7 +303,36 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
   const smallBack = sizeForXHeight(ING_SMALL_PACKAGE_IN, xSans);
   const backParas = (size: number): Para[] =>
     input.back.filter((t) => t.trim()).map((text, i) => ({ text, font: sans, size, gap: i === 0 ? 0 : size * 0.45 }));
-  const tryBack = (size: number) => centerIn(backParas(size), frame, frame.top, frame.bottom, align);
+  // Business logo (when both logos are ticked) sits small at the bottom of the back.
+  const backLogoImg = input.backLogo
+    ? await (input.backLogo.kind === "png" ? pdf.embedPng(input.backLogo.bytes) : pdf.embedJpg(input.backLogo.bytes))
+    : null;
+  let backBox: { x: number; y: number; w: number; h: number } | null = null;
+  if (backLogoImg) {
+    let h = H * 0.14;
+    let w = (backLogoImg.width / backLogoImg.height) * h;
+    if (w > W * 0.5) {
+      w = W * 0.5;
+      h = (backLogoImg.height / backLogoImg.width) * w;
+    }
+    for (let y = frame.bottom - h; y > H * 0.6; y -= 1) {
+      const span = frame.across(y, y + h);
+      if (span && span[1] - span[0] >= w) {
+        backBox = { x: (W - w) / 2, y, w, h };
+        break;
+      }
+    }
+  }
+  let textBottom = backBox ? backBox.y - short * 0.04 : frame.bottom;
+  const tryBack = (size: number) => centerIn(backParas(size), frame, frame.top, textBottom, align);
+  // The legal text comes first: if it can't fit at full size with the logo, leave the logo off.
+  if (backBox && !tryBack(minBack).fits) {
+    backBox = null;
+    textBottom = frame.bottom;
+    warnings.push("There wasn't room for the business logo on the back, so it was left off.");
+  } else if (backLogoImg && !backBox) {
+    warnings.push("There wasn't room for the business logo on the back, so it was left off.");
+  }
 
   let backSize = minBack;
   let back = tryBack(minBack);
@@ -294,6 +362,8 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
     }
   }
   draw(backPage, H, back.lines);
+  if (backBox && backLogoImg)
+    backPage.drawImage(backLogoImg, { x: backBox.x, y: H - backBox.y - backBox.h, width: backBox.w, height: backBox.h });
 
   const bytes = await pdf.save();
   return {
@@ -301,4 +371,19 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
     warnings,
     sizes: { name: nameSize, identity: identitySize, net: input.net ? netSize : 0, back: backSize },
   };
+}
+
+/**
+ * File name for a label PDF (also the design's name once it's in Canva):
+ * "Business - Product - Size.pdf", plus " - Lot X" for a batch label.
+ */
+export function labelFileName(parts: { business: string; product: string; size: string; lot?: string | null }): string {
+  const clean = (t: string) => t.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, " ").replace(/\s+/g, " ").trim();
+  const name = [parts.business, parts.product, parts.size, parts.lot ? `Lot ${parts.lot}` : ""]
+    .map(clean)
+    .filter(Boolean)
+    .join(" - ")
+    .slice(0, 150)
+    .trim();
+  return `${name || "Label"}.pdf`;
 }

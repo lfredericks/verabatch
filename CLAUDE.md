@@ -17,6 +17,7 @@ Read first:
 - `lib/packs/index.ts`: `activePack()` picks the market. Screens use it, never a pack directly.
 - `lib/label.ts`: `buildLabel()` turns product + size + business into label text and print blockers.
 - `lib/labelPdf.ts`: the label as an exact-size PDF (front page, back page) for printing and Canva import. Only two font families, both in Canva: Libre Baskerville and Lato (`lib/labelFonts/`, OFL). Letter sizes never go below the FDA minimums. Served at `/app/products/[id]/label/pdf`.
+- `lib/logos.ts` + `app/app/LogoField.tsx`: business and product logos (private `logos` bucket, folder = business id). Product logo overrides the business logo on the label front unless the label page's checkboxes say otherwise.
 - `lib/sizes.ts`: sizes, net contents, lettering.
 - `lib/batches.ts`: batches are OPTIONAL. The label defaults to the usual recipe with no lot; a batch adds its own recipe copy and lot.
 - `app/app/products/RecipeLines.tsx`: shared recipe list; saved lines are locked behind a per-line Edit.

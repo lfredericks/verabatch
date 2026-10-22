@@ -68,8 +68,13 @@ To do: USPTO search, buy verabatch.com and veribatch.com (redirect).
   Canva, so text stays editable after import: Libre Baskerville (product name) and Lato
   (everything else, bold for the net weight). Makers restyle in Canva. Each label part is
   one paragraph in one font and size, so it should import as one text box.
-  **To test first on Leslie's Canva:** upload the PDF by hand and check the text is editable,
-  in single boxes, in the right fonts.
+  **Tested Oct 22 on Leslie's Canva:** hand-uploaded PDF imports with editable text in the right
+  fonts. File names follow "Business - Product - Size.pdf" (plus " - Lot X" for a batch), which
+  also becomes the design's name in Canva.
+  **Logos (Leslie, Oct 22):** a business logo, and an optional logo per product (a variation uses
+  its parent's). The product logo overrides the business logo on the front by default; checkboxes
+  on the label page pick either or both (both: business logo small at the bottom of the back).
+  PNG or JPG up to 4 MB, private storage bucket `logos` (migration 0007).
 - **Ingredient data:** EU CosIng (free) as the base, US name corrections, a curated maker layer;
   license PCPC's wINCI later. Supplier documents: extract facts, link to sources, don't host
   their PDFs; pitch suppliers on a "document drop" portal.
@@ -134,6 +139,9 @@ Parked for later:
   told to avoid drug/advertising/brand claims, then run through the claims check; lands in the
   edit box, never auto-saved. Needs an Anthropic API key (Console account, pay-as-you-go) in
   Vercel. Likely a Pro feature.
+- **Standard label size templates (Leslie, Oct 22).** Pick a common label (for example a 2 in
+  round or 3 x 2 in rectangle, by label-sheet brand and number) instead of typing dimensions.
+  Ties into printer profiles: the sheet number also gives the print layout.
 - **Makers' own flag list:** let a maker add brand names or words to flag (the built-in brand
   list in `lib/packs/cosmetics/brands.ts` is a starting point, not every trademark).
 - **Ingredient list upkeep (Leslie, Oct 22).** Update the official list automatically, and flag

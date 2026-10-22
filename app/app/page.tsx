@@ -5,6 +5,8 @@ import { brand, pageTitle } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/server";
 import { BrandMark } from "../BrandMark";
 import { BusinessForm, type Business } from "./BusinessForm";
+import { LogoField } from "./LogoField";
+import { logoUrl } from "@/lib/logos";
 import { signOut } from "./actions";
 
 export const metadata: Metadata = { title: pageTitle("Your shop") };
@@ -19,10 +21,11 @@ export default async function AppHome() {
 
   const { data } = await supabase
     .from("businesses")
-    .select("id, name, city_state_zip, contact")
+    .select("id, name, city_state_zip, contact, logo_path")
     .limit(1)
     .maybeSingle();
   const business = (data as Business | null) ?? null;
+  const businessLogo = await logoUrl(supabase, (data as { logo_path?: string | null } | null)?.logo_path);
   const { data: products } = business
     ? await supabase.from("products").select("id, name, identity, parent_id").order("name")
     : { data: null };
@@ -72,6 +75,11 @@ export default async function AppHome() {
           </section>
           <h2 className="section">Your business details</h2>
           <BusinessForm business={business} />
+          <LogoField
+            title="Business logo"
+            url={businessLogo}
+            note="No logo yet. It goes on the front of your labels unless a product has its own."
+          />
         </>
       ) : (
         <>

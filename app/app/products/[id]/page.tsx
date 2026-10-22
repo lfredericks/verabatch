@@ -14,6 +14,8 @@ import { ProductInfo } from "../ProductInfo";
 import { SizesEditor } from "../SizesEditor";
 import { Descriptions } from "../Descriptions";
 import { cleanDescriptions } from "@/lib/channels";
+import { logoUrl } from "@/lib/logos";
+import { LogoField } from "../../LogoField";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +71,13 @@ export default async function EditProduct({
   const sizeNames = Object.fromEntries(sizes.map((s) => [s.id, s.name]));
   const type = activePack().productTypes.find((t) => t.key === product.type_key);
   const defaultUnit = type?.declareBy === "volume" ? "floz" : "oz";
+  const ownLogo = (product as Product & { logo_path?: string | null }).logo_path ?? null;
+  const productLogo = await logoUrl(supabase, ownLogo);
+  let logoNote = "Optional. Without one, the label uses your business logo.";
+  if (!ownLogo && parent) {
+    const { data: p } = await supabase.from("products").select("logo_path").eq("id", parent.id).maybeSingle();
+    if (p?.logo_path) logoNote = `Optional. Without one, the label uses ${parent.name}'s logo.`;
+  }
 
   return (
     <main className="wrap narrow">
@@ -93,6 +102,7 @@ export default async function EditProduct({
         </p>
       )}
       <ProductInfo product={product} />
+      <LogoField title="Product logo" url={productLogo} productId={product.id} note={logoNote} />
       <ProductEditor product={product} parent={parent} justSaved={saved === "1"} />
       <SizesEditor productId={product.id} sizes={sizes} defaultUnit={defaultUnit} />
       <Link href={`/app/products/${product.id}/label`} className="btn pri cta">

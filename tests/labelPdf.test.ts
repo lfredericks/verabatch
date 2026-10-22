@@ -72,3 +72,37 @@ describe("line breaks", () => {
     expect(keepTogether("Net 4 fl oz (118 mL)").split(" ")).toEqual(["Net 4 fl oz", "(118 mL)"]);
   });
 });
+
+describe("logos and file names", () => {
+  it("puts a logo on the front, and a second one on the back", async () => {
+    const { readFileSync } = await import("node:fs");
+    const png = new Uint8Array(readFileSync("tests/fixtures/logo.png"));
+    const out = await buildLabelPdf(
+      { ...base, shape: { shape: "rect", widthIn: 3, heightIn: 2 }, netMinIn: 1 / 8, logo: { bytes: png, kind: "png" }, backLogo: { bytes: png, kind: "png" } },
+      await loadLabelFonts(),
+    );
+    expect(out.warnings).toEqual([]);
+    const doc = await PDFDocument.load(out.bytes);
+    for (const page of doc.getPages()) {
+      const xo = page.node.Resources()?.lookupMaybe(PDFName.of("XObject"), PDFDict);
+      expect(xo?.keys().length).toBe(1);
+    }
+  });
+
+  it("still fits a logo on a 2 in round label", async () => {
+    const { readFileSync } = await import("node:fs");
+    const png = new Uint8Array(readFileSync("tests/fixtures/logo.png"));
+    const out = await buildLabelPdf({ ...base, back: base.back.slice(1), shape: { shape: "round", diameterIn: 2 }, netMinIn: 1 / 16, logo: { bytes: png, kind: "png" } }, await loadLabelFonts());
+    expect(out.warnings).toEqual([]);
+  });
+
+  it("names the file Business - Product - Size (- Lot)", async () => {
+    const { labelFileName } = await import("../lib/labelPdf");
+    expect(labelFileName({ business: "Hollow Pine Soap Co.", product: "Garden Balm", size: "2 oz jar" })).toBe(
+      "Hollow Pine Soap Co. - Garden Balm - 2 oz jar.pdf",
+    );
+    expect(labelFileName({ business: "Hollow Pine", product: "Garden/Balm", size: "2 oz", lot: "2026-014" })).toBe(
+      "Hollow Pine - Garden Balm - 2 oz - Lot 2026-014.pdf",
+    );
+  });
+});

@@ -41,6 +41,7 @@ Run each new file in `supabase/migrations` in the SQL Editor, in order.
 - `0004_batches.sql`: run Oct 20, 2026.
 - `0005_variations.sql`: run Oct 20, 2026.
 - `0006_descriptions.sql`: run Oct 22, 2026.
+- `0007_logos.sql`: run Oct 22, 2026 (logo columns, private `logos` storage bucket and its rules).
 
 ## Before launch
 
