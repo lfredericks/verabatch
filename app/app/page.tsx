@@ -73,6 +73,13 @@ export default async function AppHome() {
               Add a product
             </Link>
           </section>
+          <section className="card" aria-labelledby="supplies">
+            <h2 id="supplies">Supplies</h2>
+            <p className="hint">Supplier lot numbers for what you buy, so a recall can be traced to your batches.</p>
+            <Link href="/app/supplies" className="btn cta">
+              Supplier lots
+            </Link>
+          </section>
           <h2 className="section">Your business details</h2>
           <BusinessForm business={business} />
           <LogoField

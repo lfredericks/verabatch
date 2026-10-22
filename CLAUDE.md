@@ -21,6 +21,7 @@ Read first:
 - `lib/warnings.ts` + `lib/packs/cosmetics/warnings.ts` + `app/app/products/Warnings.tsx`: standard label warnings per product (products.warnings = {keys, custom}). Required FDA wording prints as written; the rest join after "Caution:". Warnings print in bold.
 - `lib/sizes.ts`: sizes, net contents, lettering. Label shapes: rect, round, oval.
 - `lib/labelTemplates.ts`: Avery label sheets (layouts measured from Avery's own template PDFs only). A size remembers its sheet in `sizes.label_template`.
+- `lib/supplies.ts` + `app/app/supplies/`: supplier lots. `batch_supplies` links a batch's recipe line (by line key) to the lots it used; used lots can't be deleted (keeps the recall trace).
 - `lib/batches.ts`: batches are OPTIONAL. The label defaults to the usual recipe with no lot; a batch adds its own recipe copy and lot.
 - `app/app/products/RecipeLines.tsx`: shared recipe list; saved lines are locked behind a per-line Edit.
 - `lib/variations.ts`: recipe variations. A variation (products.parent_id) stores only `changes` (remove/replace/add by line key) and follows its parent otherwise. Always get a product's real recipe with `effectiveRecipe()` in `lib/productData.ts`. Saving a changed recipe asks: update master, save as variation, or save as a new standalone product.

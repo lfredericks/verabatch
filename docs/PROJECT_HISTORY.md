@@ -80,6 +80,12 @@ To do: USPTO search, buy verabatch.com and veribatch.com (redirect).
   the capitals, so it stays legal smaller), in the bottom 30% of the front by AREA (701.13(f):
   34% of the height on round and oval labels); fronts of 5 sq in or less are exempt from the
   30% rule. Oval labels added (migration 0009).
+  **Supplier lots (Leslie, Oct 22):** "Supplies" logs each delivery (ingredient, supplier, their
+  lot number, amount, received, best-by, note). Logging a batch asks which lot(s) each recipe
+  line used (an infused oil line can use the herb lot and the oil lot), pre-filled with the
+  newest matching lots on hand. A supply page lists every batch that used it (recall trace);
+  used lots can't be deleted, only marked used up. Subtracting amounts on hand is a later
+  option (Leslie). Migration 0010.
   **Warnings (Leslie, Oct 22):** standard warning statements per product (`lib/packs/cosmetics/warnings.ts`):
   FDA-required wording when it applies (21 CFR 740.17 foaming bath products, 740.11 aerosols),
   common skin cautions, room-spray cautions, candle safety (ASTM F2058 style), plus up to five of
@@ -155,6 +161,8 @@ Parked for later:
   layout was measured from Avery's own template PDF; third-party template sites were off by up
   to 3 mm, so never add one from them. Still to do: OnlineLabels, SheetLabels and other brands;
   printing whole sheets (pairs with printer profiles).
+- **Supply amounts on hand (Leslie, Oct 22):** optionally subtract what each batch used from a
+  supply lot's amount, with low-stock hints. Needs unit conversion between recipe and supply units.
 - **Makers' own flag list:** let a maker add brand names or words to flag (the built-in brand
   list in `lib/packs/cosmetics/brands.ts` is a starting point, not every trademark).
 - **Ingredient list upkeep (Leslie, Oct 22).** Update the official list automatically, and flag

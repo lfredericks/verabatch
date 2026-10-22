@@ -184,3 +184,9 @@ input.file { min-height: 0; padding: 8px; flex: 1 1 200px; }
 .warn-opt .radio { align-items: flex-start; font-weight: 400; }
 .warn-opt .radio input { margin-top: 5px; }
 .warn-opt .tag { display: inline; margin-left: 6px; }
+.supply-pick { gap: 2px; }
+.supply-pick .hint { margin: 0; font-weight: 600; }
+details.card > summary { cursor: pointer; list-style: none; }
+details.card > summary::-webkit-details-marker { display: none; }
+.inline-h2 { display: inline; }
+.lot-row { display: flex; gap: 6px; align-items: center; }

@@ -7,6 +7,25 @@ import { lotNumber, productInitials } from "@/lib/core";
 import { effectiveRecipe } from "@/lib/productData";
 import { cleanRecipe } from "@/lib/products";
 import { createClient } from "@/lib/supabase/server";
+import { cleanSupplyPicks } from "@/lib/supplies";
+import { newKey } from "@/lib/variations";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { RecipeLine } from "@/lib/core";
+
+/** Record which supply lot each line used. Replaces what was there. */
+async function saveSupplyLinks(supabase: SupabaseClient, batchId: string, recipe: RecipeLine[], raw: string) {
+  let parsed: unknown = {};
+  try {
+    parsed = JSON.parse(raw || "{}");
+  } catch {
+    parsed = {};
+  }
+  const { data: own } = await supabase.from("supplies").select("id");
+  const picks = cleanSupplyPicks(parsed, recipe.length, new Set((own ?? []).map((s) => s.id as string)));
+  await supabase.from("batch_supplies").delete().eq("batch_id", batchId);
+  const rows = [...picks].flatMap(([i, ids]) => ids.map((supplyId) => ({ batch_id: batchId, supply_id: supplyId, line_key: recipe[i]!.key! })));
+  if (rows.length) await supabase.from("batch_supplies").insert(rows);
+}
 
 export interface BatchFormState {
   error?: string;
@@ -33,15 +52,26 @@ export async function saveBatch(_prev: BatchFormState, form: FormData): Promise<
   if (b.error) return { error: b.error };
   // The usual way = a frozen copy of the master recipe as it is right now.
   const master = (await effectiveRecipe(supabase, product)).lines;
-  const fields = { made_on: b.madeOn, changed: b.changed, counts: b.counts, recipe: b.changed ? b.recipe : master, note: b.note };
+  // Every line gets a key, so supply lots can point at it.
+  const keyed = (ls: RecipeLine[]) => {
+    const seen = new Set<string>();
+    return ls.map((l) => {
+      const key = l.key && !seen.has(l.key) ? l.key : newKey();
+      seen.add(key);
+      return { ...l, key };
+    });
+  };
+  const fields = { made_on: b.madeOn, changed: b.changed, counts: b.counts, recipe: keyed(b.changed ? b.recipe : master), note: b.note };
+  const supplyRaw = String(form.get("supplies") ?? "{}");
 
   if (b.id) {
     if (!UUID.test(b.id)) return { error: "Something went wrong. Reload the page and try again." };
     // Editing a usual batch keeps the recipe it was made with, even if the master changed since.
     const { data: existing } = await supabase.from("batches").select("changed, recipe").eq("id", b.id).maybeSingle();
-    if (existing && !b.changed && !existing.changed) fields.recipe = cleanRecipe(existing.recipe);
+    if (existing && !b.changed && !existing.changed) fields.recipe = keyed(cleanRecipe(existing.recipe));
     const { error } = await supabase.from("batches").update(fields).eq("id", b.id);
     if (error) return { error: "We couldn't save that batch. Try again in a moment." };
+    await saveSupplyLinks(supabase, b.id, fields.recipe, supplyRaw);
     revalidatePath(`/app/products/${productId}`);
     redirect(`/app/products/${productId}/label?batch=${b.id}`);
   }
@@ -61,6 +91,7 @@ export async function saveBatch(_prev: BatchFormState, form: FormData): Promise<
     else if (error && error.code !== "23505") return { error: "We couldn't save that batch. Try again in a moment." };
   }
   if (!newId) return { error: "We couldn't save that batch. Try again in a moment." };
+  await saveSupplyLinks(supabase, newId, fields.recipe, supplyRaw);
   revalidatePath(`/app/products/${productId}`);
   redirect(`/app/products/${productId}/label?batch=${newId}`);
 }
