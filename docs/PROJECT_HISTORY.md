@@ -119,7 +119,11 @@ Parked for later:
   pre-corrected; bleed on round/square designs. First version could correct existing Canva
   PDFs. Color matching on home inkjets is limited.
 - **"Open this label in Canva" button** (see Canva note above).
-- **Help writing descriptions for each channel's audience (Leslie, Oct 22).**
+- **"Write this for me" descriptions (Leslie, Oct 22).** AI drafts per channel from the product's
+  info, following each platform's format and current length limits (look them up when building),
+  told to avoid drug/advertising/brand claims, then run through the claims check; lands in the
+  edit box, never auto-saved. Needs an Anthropic API key (Console account, pay-as-you-go) in
+  Vercel. Likely a Pro feature.
 - **Makers' own flag list:** let a maker add brand names or words to flag (the built-in brand
   list in `lib/packs/cosmetics/brands.ts` is a starting point, not every trademark).
 - **Ingredient list upkeep (Leslie, Oct 22).** Update the official list automatically, and flag
