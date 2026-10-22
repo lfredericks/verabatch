@@ -78,6 +78,7 @@ $10M a year could come from ~25,000 Pro makers at ~$20/mo ($6M) + 400 Enterprise
 
 | What | Link |
 | --- | --- |
+| Punchlist (checkable, kept current) | https://claude.ai/artifact/YZdTcL2X36owXc5qAwrEQS |
 | Verabatch v1 Spec (source of truth) | https://claude.ai/code/artifact/93909ffe-e531-4a28-b074-adbc7ce57611 |
 | Five-Maker Test Plan | https://claude.ai/code/artifact/4e1e1656-4506-4047-9e29-d13646a88581 |
 | Full prototype (workbench, guided flow, supplier docs) | https://claude.ai/artifact/FXhLhwVPEWDgKbH162cs5t |
