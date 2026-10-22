@@ -73,6 +73,7 @@ async function copySizes(supabase: SupabaseClient, fromId: string, toId: string)
 export async function saveProduct(_prev: ProductFormState, form: FormData): Promise<ProductFormState> {
   const p = readForm(form);
   const err = check(p);
+  console.log("[diag] saveProduct start", JSON.stringify({ id: p.id ? "yes" : "new", mode: p.mode, modeSent: p.modeSent, type_key: p.type_key, lines: p.recipe.length, err: err ?? null }));
   if (err) return { error: err };
   if (p.id && !UUID.test(p.id)) return { error: "Something went wrong. Reload the page and try again." };
   const supabase = await createClient();
@@ -134,11 +135,15 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
     const known = new Set(stored.map((l) => l.key));
     recipeFields = { recipe: p.recipe.map((l) => (l.key && known.has(l.key) ? l : { ...l, key: newKey() })) };
   }
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("products")
     .update({ ...base, name: p.name, ...recipeFields })
-    .eq("id", p.id);
+    .eq("id", p.id)
+    .select("id, type_key");
+  console.log("[diag] saveProduct update", JSON.stringify({ mode: p.mode, type_key: p.type_key, rows: updated?.length ?? null, saved: updated?.[0]?.type_key, error: error?.message ?? null, code: error?.code ?? null }));
   if (error) return { error: "We couldn't save that. Try again in a moment." };
+  // An update that touched no rows is a failure, not a success.
+  if (!updated?.length) return { error: "That didn't save. Reload the page and try again." };
   revalidatePath("/app");
   revalidatePath(`/app/products/${p.id}`);
   return { saved: true };
