@@ -38,10 +38,10 @@ export interface LabelPdfInput {
   /** Back panel paragraphs: ingredients, made-by line, questions line, lot. */
   back: string[];
   title: string;
-  /** Logo for the top of the front: the product's, or the business's. PNG or JPG bytes. */
-  logo?: { bytes: Uint8Array; kind: "png" | "jpg" } | null;
-  /** Small logo at the bottom of the back (the business logo, when the product has its own on the front). */
-  backLogo?: { bytes: Uint8Array; kind: "png" | "jpg" } | null;
+  /** Logos for the top of the front (product, business, or both side by side). PNG or JPG bytes. */
+  logos?: { bytes: Uint8Array; kind: "png" | "jpg" }[];
+  /** Back paragraphs printed in bold (warnings: FDA wants them conspicuous). */
+  boldBack?: string[];
 }
 
 export interface LabelPdf {
@@ -238,7 +238,10 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
 
   // Logo (if any) at the top, then the name and "what it is", as big as fits above the net weight.
   const regionBottom = input.net ? netTop - netSize * 0.6 : frame.bottom;
-  const logo = input.logo ? await (input.logo.kind === "png" ? pdf.embedPng(input.logo.bytes) : pdf.embedJpg(input.logo.bytes)) : null;
+  const logoImgs = await Promise.all(
+    (input.logos ?? []).slice(0, 2).map((l) => (l.kind === "png" ? pdf.embedPng(l.bytes) : pdf.embedJpg(l.bytes))),
+  );
+  const logo = logoImgs.length > 0;
   const nameBase = short * 0.17;
   let nameSize = nameBase;
   let identitySize = nameBase * 0.5;
@@ -256,18 +259,19 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
     return null;
   };
 
-  /** Where the logo fits at this share of the label's height: as high as the shape allows. */
+  /** Where the logos fit at this share of the label's height: side by side, as high as the shape allows. */
   const placeLogo = (frac: number) => {
     if (!logo) return null;
+    const gap = short * 0.05;
     let h = H * frac;
-    let w = (logo.width / logo.height) * h;
-    if (w > W * 0.7) {
-      w = W * 0.7;
-      h = (logo.height / logo.width) * w;
-    }
+    // Same height for each logo; total width no more than 80% (70% for one logo).
+    const ratio = logoImgs.reduce((sum, img) => sum + img.width / img.height, 0);
+    const maxW = W * (logoImgs.length > 1 ? 0.8 : 0.7) - gap * (logoImgs.length - 1);
+    if (ratio * h > maxW) h = maxW / ratio;
+    const w = ratio * h + gap * (logoImgs.length - 1);
     for (let y = frame.top; y + h < regionBottom; y += 1) {
       const span = frame.across(y, y + h);
-      if (span && span[1] - span[0] >= w) return { x: (W - w) / 2, y, w, h };
+      if (span && span[1] - span[0] >= w) return { x: (W - w) / 2, y, w, h, gap };
     }
     return null;
   };
@@ -281,7 +285,14 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
     const textTop = box ? box.y + box.h + short * 0.04 : frame.top;
     const out = fitName(textTop, last ? 0.25 : 0.55);
     if (!out) continue;
-    if (box && logo) front.drawImage(logo, { x: box.x, y: H - box.y - box.h, width: box.w, height: box.h });
+    if (box) {
+      let x = box.x;
+      for (const img of logoImgs) {
+        const w = (img.width / img.height) * box.h;
+        front.drawImage(img, { x, y: H - box.y - box.h, width: w, height: box.h });
+        x += w + box.gap;
+      }
+    }
     draw(front, H, out.lines);
     frontDone = true;
   }
@@ -302,37 +313,10 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
   const minBack = sizeForXHeight(ING_MIN_IN, xSans);
   const smallBack = sizeForXHeight(ING_SMALL_PACKAGE_IN, xSans);
   const backParas = (size: number): Para[] =>
-    input.back.filter((t) => t.trim()).map((text, i) => ({ text, font: sans, size, gap: i === 0 ? 0 : size * 0.45 }));
-  // Business logo (when both logos are ticked) sits small at the bottom of the back.
-  const backLogoImg = input.backLogo
-    ? await (input.backLogo.kind === "png" ? pdf.embedPng(input.backLogo.bytes) : pdf.embedJpg(input.backLogo.bytes))
-    : null;
-  let backBox: { x: number; y: number; w: number; h: number } | null = null;
-  if (backLogoImg) {
-    let h = H * 0.14;
-    let w = (backLogoImg.width / backLogoImg.height) * h;
-    if (w > W * 0.5) {
-      w = W * 0.5;
-      h = (backLogoImg.height / backLogoImg.width) * w;
-    }
-    for (let y = frame.bottom - h; y > H * 0.6; y -= 1) {
-      const span = frame.across(y, y + h);
-      if (span && span[1] - span[0] >= w) {
-        backBox = { x: (W - w) / 2, y, w, h };
-        break;
-      }
-    }
-  }
-  let textBottom = backBox ? backBox.y - short * 0.04 : frame.bottom;
-  const tryBack = (size: number) => centerIn(backParas(size), frame, frame.top, textBottom, align);
-  // The legal text comes first: if it can't fit at full size with the logo, leave the logo off.
-  if (backBox && !tryBack(minBack).fits) {
-    backBox = null;
-    textBottom = frame.bottom;
-    warnings.push("There wasn't room for the business logo on the back, so it was left off.");
-  } else if (backLogoImg && !backBox) {
-    warnings.push("There wasn't room for the business logo on the back, so it was left off.");
-  }
+    input.back
+      .filter((t) => t.trim())
+      .map((text, i) => ({ text, font: input.boldBack?.includes(text) ? sansBold : sans, size, gap: i === 0 ? 0 : size * 0.45 }));
+  const tryBack = (size: number) => centerIn(backParas(size), frame, frame.top, frame.bottom, align);
 
   let backSize = minBack;
   let back = tryBack(minBack);
@@ -362,8 +346,6 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
     }
   }
   draw(backPage, H, back.lines);
-  if (backBox && backLogoImg)
-    backPage.drawImage(backLogoImg, { x: backBox.x, y: H - backBox.y - backBox.h, width: backBox.w, height: backBox.h });
 
   const bytes = await pdf.save();
   return {

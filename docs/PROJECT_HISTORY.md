@@ -73,7 +73,13 @@ To do: USPTO search, buy verabatch.com and veribatch.com (redirect).
   also becomes the design's name in Canva.
   **Logos (Leslie, Oct 22):** a business logo, and an optional logo per product (a variation uses
   its parent's). The product logo overrides the business logo on the front by default; checkboxes
-  on the label page pick either or both (both: business logo small at the bottom of the back).
+  on the label page pick either or both (both: side by side at the top of the front). Logos never
+  go on the back (ingredient) label.
+  **Warnings (Leslie, Oct 22):** standard warning statements per product (`lib/packs/cosmetics/warnings.ts`):
+  FDA-required wording when it applies (21 CFR 740.17 foaming bath products, 740.11 aerosols),
+  common skin cautions, room-spray cautions, candle safety (ASTM F2058 style), plus up to five of
+  the maker's own. Suggested ones are marked per product type. They print in bold after the
+  ingredients (740.2: warnings must be conspicuous, at least 1/16 in). Migration 0008.
   PNG or JPG up to 4 MB, private storage bucket `logos` (migration 0007).
 - **Ingredient data:** EU CosIng (free) as the base, US name corrections, a curated maker layer;
   license PCPC's wINCI later. Supplier documents: extract facts, link to sources, don't host

@@ -147,6 +147,29 @@ export interface LetteringStep {
  * Everything specific to one market. Adding a market means writing a new pack,
  * not changing the core.
  */
+/** A standard warning statement a maker can put on a label. */
+export interface WarningOption {
+  key: string;
+  /** Heading it's listed under. */
+  group: string;
+  /** Exactly what prints. */
+  text: string;
+  /** Shorter name for the checkbox, when the text is long. */
+  short?: string;
+  /** When to use it, in plain words. */
+  note?: string;
+  /** Regulation wording: prints as written, on its own, never merged into "Caution:". */
+  required?: boolean;
+  /** Product type keys it's suggested for. */
+  suggestFor?: string[];
+}
+
+/** The warnings chosen for one product: standard ones by key, plus the maker's own. */
+export interface ProductWarnings {
+  keys: string[];
+  custom: string[];
+}
+
 export interface MarketPack {
   id: string;
   name: string;
@@ -162,6 +185,8 @@ export interface MarketPack {
    * where, and how to reach them. Wording is the pack's, so each market can differ.
    */
   backPanel?(ctx: { business: BusinessInfo; productType?: ProductType }): string[];
+  /** Standard warning statements makers can add. */
+  warnings?: WarningOption[];
   /**
    * The label form of an official name (e.g. US: common name first, Latin in brackets).
    * needsCommon: the maker must supply an everyday name before printing.

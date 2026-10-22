@@ -10,6 +10,7 @@ import { effectiveRecipe } from "@/lib/productData";
 import { cleanRecipe } from "@/lib/products";
 import { createClient } from "@/lib/supabase/server";
 import { diffRecipe, ensureKeys, newKey } from "@/lib/variations";
+import { cleanWarnings } from "@/lib/warnings";
 
 export interface ProductFormState {
   error?: string;
@@ -96,7 +97,7 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
 
   const { data: current } = await supabase
     .from("products")
-    .select("id, name, type_key, identity, recipe, parent_id, changes, business_id")
+    .select("id, name, type_key, identity, recipe, parent_id, changes, business_id, warnings")
     .eq("id", p.id)
     .maybeSingle();
   if (!current) return { error: "That product is gone. Go back and reload." };
@@ -108,7 +109,7 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
     const parentId = parent ? parent.id : current.id;
     const parentRecipe = parent ? parent.recipe : currentRecipe;
     // The new recipe starts with this product's type and "what it is".
-    const fromCurrent = { type_key: current.type_key, identity: current.identity, makes: p.makes };
+    const fromCurrent = { type_key: current.type_key, identity: current.identity, makes: p.makes, warnings: current.warnings };
     const row =
       p.mode === "variation"
         ? { ...fromCurrent, name: p.newName, parent_id: parentId, recipe: [], changes: diffRecipe(parentRecipe, p.recipe) }
@@ -228,6 +229,29 @@ export async function saveDescription(_prev: DescriptionState, form: FormData): 
   if (text) next[channel as ChannelKey] = text;
   else delete next[channel as ChannelKey];
   const { data, error } = await supabase.from("products").update({ descriptions: next }).eq("id", id).select("id");
+  if (error || !data?.length) return { error: "That didn't save. Reload the page and try again." };
+  revalidatePath(`/app/products/${id}`);
+  return { saved: Date.now() };
+}
+
+export interface WarningsState {
+  error?: string;
+  saved?: number;
+}
+
+/** Save the warnings picked for a product: standard ones by key, plus the maker's own. */
+export async function saveWarnings(_prev: WarningsState, form: FormData): Promise<WarningsState> {
+  const id = String(form.get("id") ?? "");
+  if (!UUID.test(id)) return { error: "Something went wrong. Reload the page and try again." };
+  const custom = String(form.get("custom") ?? "")
+    .split("\n")
+    .map((t) => t.trim())
+    .filter(Boolean);
+  if (custom.length > 5) return { error: "Add up to five of your own warnings." };
+  if (custom.some((t) => t.length > 200)) return { error: "Keep each of your own warnings under 200 characters." };
+  const warnings = cleanWarnings({ keys: form.getAll("key").map(String), custom }, activePack());
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("products").update({ warnings }).eq("id", id).select("id");
   if (error || !data?.length) return { error: "That didn't save. Reload the page and try again." };
   revalidatePath(`/app/products/${id}`);
   return { saved: Date.now() };

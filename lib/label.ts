@@ -1,6 +1,8 @@
 import { checkClaims, computeRecipe, labelIngredients, netContentsFromBatch, type ComputedRecipe } from "./core";
 import type { BusinessInfo, ClaimHit, MarketPack, ProductType, RecipeLine } from "./core/types";
 import { sizeFacts, type Size, type SizeFacts } from "./sizes";
+import { warningLines } from "./warnings";
+import type { ProductWarnings } from "./core/types";
 
 /**
  * The ingredient list as printed: the pack's label form of each name (US: common name
@@ -29,7 +31,7 @@ export function printedIngredients(recipe: ComputedRecipe, pack: MarketPack): { 
 }
 
 export interface LabelInput {
-  product: { name: string; type_key: string; identity: string; makes: number | null; recipe: RecipeLine[] };
+  product: { name: string; type_key: string; identity: string; makes: number | null; recipe: RecipeLine[]; warnings?: ProductWarnings | null };
   business: BusinessInfo;
   size: Size | null;
   pack: MarketPack;
@@ -41,6 +43,8 @@ export interface Label {
   front: string[];
   back: string[];
   ingredients: string;
+  /** Warning paragraphs (also in `back`). Printed in bold: FDA wants warnings conspicuous. */
+  warnings: string[];
   /** Net contents line, or null if it can't be worked out yet. */
   net: string | null;
   size: SizeFacts | null;
@@ -72,8 +76,10 @@ export function buildLabel({ product, business, size, pack, batch }: LabelInput)
   }
 
   const front = [product.name, product.identity, net].filter((x): x is string => Boolean(x && x.trim()));
+  const warnings = warningLines(product.warnings, pack);
   const back = [
     ingredients,
+    ...warnings,
     ...(pack.backPanel?.({ business, ...(productType ? { productType } : {}) }) ?? []),
     batch ? `Lot ${batch.lot}` : "",
   ].filter(Boolean);
@@ -94,6 +100,7 @@ export function buildLabel({ product, business, size, pack, batch }: LabelInput)
     front,
     back,
     ingredients,
+    warnings,
     net,
     size: facts,
     blockers,

@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { buildLabel } from "@/lib/label";
 import { buildLabelPdf, labelFileName, type LabelPdf } from "@/lib/labelPdf";
 import { logoBytes } from "@/lib/logos";
+import { cleanWarnings } from "@/lib/warnings";
 import { loadLabelFonts } from "@/lib/labelFonts/load";
 import { activePack } from "@/lib/packs";
 import { effectiveRecipe } from "@/lib/productData";
@@ -40,7 +41,7 @@ export async function loadLabel(id: string, sizeId?: string, batchParam?: string
   if (!user) return { signedOut: true as const };
 
   const [{ data: product }, { data: sizeRows }, { data: biz }, { data: batchRows }] = await Promise.all([
-    supabase.from("products").select("id, name, type_key, identity, makes, recipe, parent_id, changes, logo_path").eq("id", id).maybeSingle(),
+    supabase.from("products").select("id, name, type_key, identity, makes, recipe, parent_id, changes, logo_path, warnings").eq("id", id).maybeSingle(),
     supabase.from("sizes").select("*").eq("product_id", id).order("position").order("created_at"),
     supabase.from("businesses").select("name, city_state_zip, contact, logo_path").limit(1).maybeSingle(),
     supabase
@@ -60,7 +61,7 @@ export async function loadLabel(id: string, sizeId?: string, batchParam?: string
   // Batches are optional: the label is the usual recipe with no lot unless a batch is picked.
   const batch = batches.find((b) => b.id === batchParam) ?? null;
   const label = buildLabel({
-    product: { ...product, recipe: recipeLines },
+    product: { ...product, recipe: recipeLines, warnings: cleanWarnings(product.warnings, activePack()) },
     business: { name: biz?.name ?? "", cityStateZip: biz?.city_state_zip ?? "", contact: biz?.contact ?? "" },
     size,
     pack: activePack(),
@@ -74,20 +75,19 @@ export async function loadLabel(id: string, sizeId?: string, batchParam?: string
   }
   const businessLogo: string | null = biz?.logo_path ?? null;
   const logos: LogoChoice = choice ?? { product: Boolean(productLogo), business: !productLogo && Boolean(businessLogo) };
-  // Front: the product logo if it's ticked, else the business logo. Both ticked: business logo goes on the back.
-  const frontLogo = logos.product && productLogo ? productLogo : logos.business && !(logos.product && productLogo) ? businessLogo : null;
-  const backLogo = logos.product && productLogo && logos.business ? businessLogo : null;
+  // Both logos sit side by side at the top of the front; logos never go on the back.
+  const frontLogos = [logos.product ? productLogo : null, logos.business ? businessLogo : null].filter((p): p is string => Boolean(p));
   const fileName = size
     ? labelFileName({ business: biz?.name ?? "", product: product.name, size: size.name, lot: batch?.lot as string | undefined })
     : null;
-  return { signedOut: false as const, supabase, product, sizes, size, batches, batch, label, fileName, logos, has: { product: Boolean(productLogo), business: Boolean(businessLogo) }, frontLogo, backLogo };
+  return { signedOut: false as const, supabase, product, sizes, size, batches, batch, label, fileName, logos, has: { product: Boolean(productLogo), business: Boolean(businessLogo) }, frontLogos };
 }
 
 type Loaded = Extract<NonNullable<Awaited<ReturnType<typeof loadLabel>>>, { signedOut: false }>;
 
 /** The label PDF, or why it can't be made yet (no label dimensions on this size). */
 export async function labelPdfFor(loaded: Loaded): Promise<{ pdf: LabelPdf } | { missing: string }> {
-  const { product, size, label, fileName, supabase, frontLogo, backLogo } = loaded;
+  const { product, size, label, fileName, supabase, frontLogos } = loaded;
   if (!size) return { missing: "Add a size with label dimensions to get a print-ready PDF." };
   const shape = labelShapeOf(size);
   if (!shape) return { missing: `Add the label dimensions for ${size.name} to get a print-ready PDF.` };
@@ -100,8 +100,8 @@ export async function labelPdfFor(loaded: Loaded): Promise<{ pdf: LabelPdf } | {
       netMinIn: label.size?.lettering?.minHeightIn ?? 1 / 16,
       back: label.back,
       title: (fileName ?? "Label.pdf").replace(/\.pdf$/, ""),
-      logo: await logoBytes(supabase, frontLogo),
-      backLogo: await logoBytes(supabase, backLogo),
+      logos: (await Promise.all(frontLogos.map((p) => logoBytes(supabase, p)))).filter((l) => l !== null),
+      boldBack: label.warnings,
     },
     await loadLabelFonts(),
   );

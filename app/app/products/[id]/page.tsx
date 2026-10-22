@@ -16,6 +16,8 @@ import { Descriptions } from "../Descriptions";
 import { cleanDescriptions } from "@/lib/channels";
 import { logoUrl } from "@/lib/logos";
 import { LogoField } from "../../LogoField";
+import { Warnings } from "../Warnings";
+import { cleanWarnings } from "@/lib/warnings";
 
 export const dynamic = "force-dynamic";
 
@@ -104,6 +106,7 @@ export default async function EditProduct({
       <ProductInfo product={product} />
       <LogoField title="Product logo" url={productLogo} productId={product.id} note={logoNote} />
       <ProductEditor product={product} parent={parent} justSaved={saved === "1"} />
+      <Warnings productId={product.id} typeKey={product.type_key} warnings={cleanWarnings((product as Product & { warnings?: unknown }).warnings, activePack())} />
       <SizesEditor productId={product.id} sizes={sizes} defaultUnit={defaultUnit} />
       <Link href={`/app/products/${product.id}/label`} className="btn pri cta">
         See the label

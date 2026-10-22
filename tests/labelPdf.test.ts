@@ -74,25 +74,24 @@ describe("line breaks", () => {
 });
 
 describe("logos and file names", () => {
-  it("puts a logo on the front, and a second one on the back", async () => {
+  it("puts both logos side by side on the front, none on the back", async () => {
     const { readFileSync } = await import("node:fs");
     const png = new Uint8Array(readFileSync("tests/fixtures/logo.png"));
     const out = await buildLabelPdf(
-      { ...base, shape: { shape: "rect", widthIn: 3, heightIn: 2 }, netMinIn: 1 / 8, logo: { bytes: png, kind: "png" }, backLogo: { bytes: png, kind: "png" } },
+      { ...base, shape: { shape: "rect", widthIn: 3, heightIn: 2 }, netMinIn: 1 / 8, logos: [{ bytes: png, kind: "png" }, { bytes: png, kind: "png" }] },
       await loadLabelFonts(),
     );
     expect(out.warnings).toEqual([]);
     const doc = await PDFDocument.load(out.bytes);
-    for (const page of doc.getPages()) {
-      const xo = page.node.Resources()?.lookupMaybe(PDFName.of("XObject"), PDFDict);
-      expect(xo?.keys().length).toBe(1);
-    }
+    const [front, back] = doc.getPages();
+    expect(front!.node.Resources()?.lookupMaybe(PDFName.of("XObject"), PDFDict)?.keys().length).toBe(2);
+    expect(back!.node.Resources()?.lookupMaybe(PDFName.of("XObject"), PDFDict)?.keys().length ?? 0).toBe(0);
   });
 
   it("still fits a logo on a 2 in round label", async () => {
     const { readFileSync } = await import("node:fs");
     const png = new Uint8Array(readFileSync("tests/fixtures/logo.png"));
-    const out = await buildLabelPdf({ ...base, back: base.back.slice(1), shape: { shape: "round", diameterIn: 2 }, netMinIn: 1 / 16, logo: { bytes: png, kind: "png" } }, await loadLabelFonts());
+    const out = await buildLabelPdf({ ...base, back: base.back.slice(1), shape: { shape: "round", diameterIn: 2 }, netMinIn: 1 / 16, logos: [{ bytes: png, kind: "png" }] }, await loadLabelFonts());
     expect(out.warnings).toEqual([]);
   });
 
@@ -104,5 +103,17 @@ describe("logos and file names", () => {
     expect(labelFileName({ business: "Hollow Pine", product: "Garden/Balm", size: "2 oz", lot: "2026-014" })).toBe(
       "Hollow Pine - Garden Balm - 2 oz - Lot 2026-014.pdf",
     );
+  });
+});
+
+describe("warnings", () => {
+  it("prints warnings in bold on the back", async () => {
+    const caution = "Caution: For external use only. Avoid contact with eyes.";
+    const out = await buildLabelPdf(
+      { ...base, back: [ingredients, caution, ...base.back.slice(1)], boldBack: [caution], shape: { shape: "rect", widthIn: 3, heightIn: 2.5 }, netMinIn: 1 / 8 },
+      await loadLabelFonts(),
+    );
+    expect(out.warnings).toEqual([]);
+    expect(await fontNames(out.bytes)).toContain("Lato-Bold");
   });
 });

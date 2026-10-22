@@ -147,7 +147,7 @@ export default async function LabelPage({
         <h2 id="back">Back</h2>
         <div className="lbl">
           {label.back.map((line) => (
-            <div key={line}>{line}</div>
+            <div key={line}>{label.warnings.includes(line) ? <b>{line}</b> : line}</div>
           ))}
         </div>
       </section>
@@ -162,19 +162,18 @@ export default async function LabelPage({
             </p>
             {(has.product || has.business) && (
               <form method="get" className="fld">
-                <span>Logos on this label</span>
+                <span>Logos on the front (both ticked: side by side)</span>
                 {size && <input type="hidden" name="size" value={size.id} />}
                 <input type="hidden" name="batch" value={batch ? batch.id : "standard"} />
                 <input type="hidden" name="ls" value="1" />
                 {has.product && (
                   <label className="radio">
-                    <input type="checkbox" name="logo" value="product" defaultChecked={logos.product} /> Product logo (front)
+                    <input type="checkbox" name="logo" value="product" defaultChecked={logos.product} /> Product logo
                   </label>
                 )}
                 {has.business && (
                   <label className="radio">
                     <input type="checkbox" name="logo" value="business" defaultChecked={logos.business} /> Business logo
-                    {has.product ? " (back, when both are ticked)" : " (front)"}
                   </label>
                 )}
                 <button className="btn sm cta">Update the PDF</button>

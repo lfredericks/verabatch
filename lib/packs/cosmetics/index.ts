@@ -3,6 +3,7 @@ import type { BusinessInfo, Choice, Ingredient, LetteringStep, MarketPack, Produ
 import { CLAIM_RULES } from "./claims";
 import { printName } from "./commonNames";
 import { INGREDIENTS } from "./ingredients";
+import { WARNINGS } from "./warnings";
 import { CARRIERS, FORM_DETECT_ORDER, FORMS, VARIETY_GROUPS, type FormKey, type VarietyGroup } from "./varieties";
 
 export const PRODUCT_TYPES: ProductType[] = [
@@ -201,6 +202,7 @@ export const cosmeticsPack: MarketPack = {
   resolve: resolveLine,
   choices: choicesFor,
   backPanel,
+  warnings: WARNINGS,
   guessDensity,
   printName,
 };
