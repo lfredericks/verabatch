@@ -69,7 +69,8 @@ To do: USPTO search, buy verabatch.com and veribatch.com (redirect).
   (everything else, bold for the net weight). Makers restyle in Canva. Each label part is
   one paragraph in one font and size, so it should import as one text box.
   **Tested Oct 22 on Leslie's Canva:** hand-uploaded PDF imports with editable text in the right
-  fonts. File names follow "Business - Product - Size.pdf" (plus " - Lot X" for a batch), which
+  fonts. File names (Leslie): sections joined by underscores, words by dashes:
+  "Liminalia_Relief-Balm_Lot-2026-014_2-oz-jar_3x2.pdf" (no lot part for the usual recipe), which
   also becomes the design's name in Canva.
   **Logos (Leslie, Oct 22):** a business logo, and an optional logo per product (a variation uses
   its parent's). The product logo overrides the business logo on the front by default; checkboxes

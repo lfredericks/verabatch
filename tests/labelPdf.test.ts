@@ -95,14 +95,15 @@ describe("logos and file names", () => {
     expect(out.warnings).toEqual([]);
   });
 
-  it("names the file Business - Product - Size (- Lot)", async () => {
+  it("names the file Business_Product_Lot_Size_LabelSize, dashes inside each part", async () => {
     const { labelFileName } = await import("../lib/labelPdf");
-    expect(labelFileName({ business: "Hollow Pine Soap Co.", product: "Garden Balm", size: "2 oz jar" })).toBe(
-      "Hollow Pine Soap Co. - Garden Balm - 2 oz jar.pdf",
-    );
-    expect(labelFileName({ business: "Hollow Pine", product: "Garden/Balm", size: "2 oz", lot: "2026-014" })).toBe(
-      "Hollow Pine - Garden Balm - 2 oz - Lot 2026-014.pdf",
-    );
+    expect(
+      labelFileName({ business: "Liminalia", product: "Relief Balm", size: "2 oz jar", lot: "2026-014", shape: { shape: "rect", widthIn: 3, heightIn: 2 } }),
+    ).toBe("Liminalia_Relief-Balm_Lot-2026-014_2-oz-jar_3x2.pdf");
+    expect(
+      labelFileName({ business: "Hollow Pine Soap Co.", product: "Bee's Knees & Honey", size: "4 fl oz", shape: { shape: "round", diameterIn: 2.5 } }),
+    ).toBe("Hollow-Pine-Soap-Co_Bees-Knees-and-Honey_4-fl-oz_2.5-round.pdf");
+    expect(labelFileName({ business: "", product: "Balm", size: "1.5 oz tin" })).toBe("Balm_1.5-oz-tin.pdf");
   });
 });
 

@@ -78,7 +78,7 @@ export async function loadLabel(id: string, sizeId?: string, batchParam?: string
   // Both logos sit side by side at the top of the front; logos never go on the back.
   const frontLogos = [logos.product ? productLogo : null, logos.business ? businessLogo : null].filter((p): p is string => Boolean(p));
   const fileName = size
-    ? labelFileName({ business: biz?.name ?? "", product: product.name, size: size.name, lot: batch?.lot as string | undefined })
+    ? labelFileName({ business: biz?.name ?? "", product: product.name, size: size.name, lot: batch?.lot as string | undefined, shape: labelShapeOf(size) })
     : null;
   return { signedOut: false as const, supabase, product, sizes, size, batches, batch, label, fileName, logos, has: { product: Boolean(productLogo), business: Boolean(businessLogo) }, frontLogos };
 }

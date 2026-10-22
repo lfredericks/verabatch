@@ -356,16 +356,37 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
 }
 
 /**
- * File name for a label PDF (also the design's name once it's in Canva):
- * "Business - Product - Size.pdf", plus " - Lot X" for a batch label.
+ * File name for a label PDF (also the design's name once it's in Canva), Leslie's convention:
+ * sections joined by underscores, words inside a section joined by dashes.
+ * "Liminalia_Relief-Balm_Lot-2026-014_2-oz-jar_3x2.pdf" (no lot section for the usual recipe).
  */
-export function labelFileName(parts: { business: string; product: string; size: string; lot?: string | null }): string {
-  const clean = (t: string) => t.replace(/[\\/:*?"<>|\u0000-\u001f]+/g, " ").replace(/\s+/g, " ").trim();
-  const name = [parts.business, parts.product, parts.size, parts.lot ? `Lot ${parts.lot}` : ""]
-    .map(clean)
+export function labelFileName(parts: {
+  business: string;
+  product: string;
+  size: string;
+  lot?: string | null;
+  shape?: LabelShape | null;
+}): string {
+  const word = (t: string) =>
+    t
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/&/g, " and ")
+      .replace(/['’]/g, "")
+      .replace(/[^A-Za-z0-9.]+/g, "-")
+      .replace(/\.(?!\d)|(?<!\d)\./g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+  const inch = (n: number) => String(Number(n.toFixed(3)));
+  const dims = parts.shape
+    ? parts.shape.shape === "round"
+      ? `${inch(parts.shape.diameterIn)}-round`
+      : `${inch(parts.shape.widthIn)}x${inch(parts.shape.heightIn)}`
+    : "";
+  const name = [parts.business, parts.product, parts.lot ? `Lot ${parts.lot}` : "", parts.size, dims]
+    .map(word)
     .filter(Boolean)
-    .join(" - ")
-    .slice(0, 150)
-    .trim();
+    .join("_")
+    .slice(0, 150);
   return `${name || "Label"}.pdf`;
 }
