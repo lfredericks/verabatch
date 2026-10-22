@@ -74,7 +74,6 @@ async function copySizes(supabase: SupabaseClient, fromId: string, toId: string)
 export async function saveProduct(_prev: ProductFormState, form: FormData): Promise<ProductFormState> {
   const p = readForm(form);
   const err = check(p);
-  console.log("[diag] saveProduct start", JSON.stringify({ id: p.id ? "yes" : "new", mode: p.mode, modeSent: p.modeSent, type_key: p.type_key, lines: p.recipe.length, err: err ?? null }));
   if (err) return { error: err };
   if (p.id && !UUID.test(p.id)) return { error: "Something went wrong. Reload the page and try again." };
   const supabase = await createClient();
@@ -143,7 +142,6 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
     .update({ makes: p.makes, ...recipeFields })
     .eq("id", p.id)
     .select("id, type_key");
-  console.log("[diag] saveProduct update", JSON.stringify({ mode: p.mode, rows: updated?.length ?? null, error: error?.message ?? null, code: error?.code ?? null }));
   if (error) return { error: "We couldn't save that. Try again in a moment." };
   // An update that touched no rows is a failure, not a success.
   if (!updated?.length) return { error: "That didn't save. Reload the page and try again." };
@@ -171,7 +169,6 @@ export async function saveProductInfo(_prev: InfoFormState, form: FormData): Pro
   const type_key = pack.productTypes.some((t) => t.key === typeKey) || typeKey === "other" ? typeKey : "";
   const supabase = await createClient();
   const { data, error } = await supabase.from("products").update({ name, type_key, identity }).eq("id", id).select("id");
-  console.log("[diag] saveProductInfo", JSON.stringify({ type_key, rows: data?.length ?? null, error: error?.message ?? null }));
   if (error || !data?.length) return { error: "That didn't save. Reload the page and try again." };
   revalidatePath("/app");
   revalidatePath(`/app/products/${id}`);
