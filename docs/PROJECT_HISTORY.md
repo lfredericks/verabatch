@@ -102,6 +102,9 @@ Build order from the spec: 1 skeleton and sign-in, 2 math core, 3 ingredient dat
 - **Theming:** name and look live in `lib/brand` (`docs/BRANDING.md`).
 - **Milestone 5 (batches): built Oct 20, optional by design.** Label defaults to the usual
   recipe with no lot; logging a batch gives that run its own label and lot.
+- **Variations and locked product info: working on Leslie's iPhone (Oct 22).** Lesson: React 19
+  resets forms after an action, which snapped the type dropdown back; product forms now submit
+  by hand (startTransition). Test on her real phone flow, not just Chromium.
 - Later: "Open this label in Canva" button (see Canva note above).
 - **Printer profiles (Leslie, Oct 22) — PARKED, do later.** Goal in her words: "hit a button and
   print it right every time." Needs: her printer model and label sheet product numbers.
