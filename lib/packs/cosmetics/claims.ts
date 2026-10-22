@@ -1,8 +1,9 @@
 import type { ClaimRule } from "../../core/types";
+import { OTHER_BRANDS_PATTERN, WORD_BRANDS_PATTERN } from "./brands";
 
 /**
- * Words that can turn a cosmetic into a drug (FDA), a pesticide (EPA),
- * or otherwise need evidence. A starting point, not legal advice.
+ * Words that can turn a cosmetic into a drug (FDA), a pesticide (EPA), or are advertising
+ * claims that need proof (FTC). A starting point, not legal advice.
  */
 export const CLAIM_RULES: ClaimRule[] = [
   { pattern: /\b(heal|heals|healing|cure|cures|curing|treat|treats|treating|treatment)\b/i, severity: "drug",
@@ -33,6 +34,21 @@ export const CLAIM_RULES: ClaimRule[] = [
     why: "Saying \"organic\" brings in USDA organic labeling rules.", fix: "Only claim it if your ingredients and process qualify." },
   { pattern: /\b(hypoallergenic|dermatologist|clinically)\b/i, severity: "check",
     why: "This needs evidence you can back up.", fix: "Remove unless you have testing." },
+  // Advertising claims (FTC): anything a shopper could check needs proof you can show.
+  { pattern: /(#\s?1\b|\bnumber one\b|\bno\.\s?1\b|\bbest[- ]sell(ing|er)\b|\btop[- ]rated\b|\baward[- ]winning\b|\bmost popular\b)/i, severity: "check",
+    why: "A ranking (#1, best-selling, award-winning) is a fact claim. The FTC expects you to be able to prove it.", fix: "Only use it with proof, like the actual award or sales numbers." },
+  { pattern: /\b(best|finest|greatest|unbeatable|unmatched|unrivaled|the only|world'?s (best|finest))\b/i, severity: "check",
+    why: "Bragging like \"the best\" is usually treated as opinion, but paired with something measurable (\"best in the industry,\" \"the only balm that...\") it becomes a claim you'd have to prove.", fix: "Say what actually makes it special: the ingredients, how it's made, how it feels." },
+  { pattern: OTHER_BRANDS_PATTERN, severity: "check",
+    why: "That's another company's brand (or a \"dupe\" of one). Using it to sell your product can be trademark infringement.", fix: "Leave the other brand out and describe yours on its own." },
+  { pattern: WORD_BRANDS_PATTERN, severity: "check",
+    why: "That looks like another company's brand. Using it to sell your product can be trademark infringement.", fix: "Leave the other brand out and describe yours on its own." },
+  { pattern: /\b(better than|outperforms?|move over|beats|compared to|unlike (other|those)|versus|vs\.?)(?=\s|$)/i, severity: "check",
+    why: "Comparing to another product needs proof, and naming their brand can raise trademark problems.", fix: "Talk about your product on its own, without the competitor." },
+  { pattern: /\b(guaranteed?|miracle|magic(al)? results|works for everyone|instant(ly)? results|permanent(ly)?|never fails?|100% (effective|safe))\b/i, severity: "check",
+    why: "Promises and guarantees are claims the FTC expects you to back up.", fix: "Describe what people can expect, without promising results." },
+  { pattern: /\b(chemical[- ]free|no chemicals|non-?toxic|all[- ]natural|100% natural|completely safe|safe for (everyone|babies|kids|children|pregnan\w*))\b/i, severity: "check",
+    why: "These are misleading or need evidence: everything is a chemical, \"natural\" has no legal definition, and safety claims for babies or pregnancy need testing.", fix: "Name the ingredients instead, like \"made with plant oils and beeswax.\"" },
   { pattern: /\b(fda approved|fda registered)\b/i, severity: "drug",
     why: "Cosmetics aren't FDA approved, so this is misleading.", fix: "Remove it." },
 ];
