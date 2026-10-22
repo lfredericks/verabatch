@@ -103,6 +103,12 @@ Build order from the spec: 1 skeleton and sign-in, 2 math core, 3 ingredient dat
 - **Milestone 5 (batches): built Oct 20, optional by design.** Label defaults to the usual
   recipe with no lot; logging a batch gives that run its own label and lot.
 - Later: "Open this label in Canva" button (see Canva note above).
+- **Printer profiles (Leslie, Oct 22):** home printers keep wrecking label designs. Idea:
+  Verabatch makes the print-ready sheet itself (exact-size PDF on a chosen label sheet
+  template), and each printer gets a saved profile from a one-time calibration page:
+  measured left/right and up/down shift, scale correction, safe margins. Every sheet for
+  that printer is pre-corrected. Color matching on home inkjets is limited; a proof page
+  helps but can't promise exact color. Waiting on: which problems she sees and which printers.
 - **Countries (Leslie, Oct 20):** v1 follows US FDA labeling only, and every label says USA.
   Later, setup asks for the maker's country and the matching rules apply (another market
   pack per country or region; `BusinessInfo.country` already exists for the made-by line).
