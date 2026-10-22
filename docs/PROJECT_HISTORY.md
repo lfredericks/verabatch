@@ -103,7 +103,9 @@ Build order from the spec: 1 skeleton and sign-in, 2 math core, 3 ingredient dat
 - **Milestone 5 (batches): built Oct 20, optional by design.** Label defaults to the usual
   recipe with no lot; logging a batch gives that run its own label and lot.
 - Later: "Open this label in Canva" button (see Canva note above).
-- **Printer profiles (Leslie, Oct 22):** home printers keep wrecking label designs. Idea:
+- **Printer profiles (Leslie, Oct 22) — PARKED, do later.** Goal in her words: "hit a button and
+  print it right every time." Needs: her printer model and label sheet product numbers.
+  Details: home printers keep wrecking label designs. Idea:
   Verabatch makes the print-ready sheet itself (exact-size PDF on a chosen label sheet
   template), and each printer gets a saved profile from a one-time calibration page:
   measured left/right and up/down shift, scale correction, safe margins. Every sheet for
