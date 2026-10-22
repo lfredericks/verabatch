@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import { startTransition, useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { computeRecipe, labelIngredients, type RecipeLine } from "@/lib/core";
 import { activePack } from "@/lib/packs";
 import type { Product } from "@/lib/products";
@@ -88,7 +88,13 @@ export function ProductEditor({
         ref={formRef}
         action={action}
         className="card form"
-        onSubmit={() => setDirty(false)}
+        // Submitted by hand so the framework doesn't reset fields after saving.
+        onSubmit={(e) => {
+          e.preventDefault();
+          const fd = new FormData(e.currentTarget);
+          setDirty(false);
+          startTransition(() => action(fd));
+        }}
         // The keyboard's Enter/Go key must never pick a save option by itself.
         onKeyDown={(e) => {
           if (e.key === "Enter" && (e.target as HTMLElement).tagName === "INPUT") e.preventDefault();
@@ -98,6 +104,8 @@ export function ProductEditor({
         {product && <input type="hidden" name="id" value={product.id} />}
         <input type="hidden" name="recipe" value={JSON.stringify(lines)} />
 
+        {!product && (
+          <>
         <label className="fld">
           <span>Product name</span>
           <input
@@ -134,6 +142,9 @@ export function ProductEditor({
           />
         </label>
         <p className="hint">The plain words under the name that say what the product is. Required on cosmetic labels.</p>
+
+          </>
+        )}
 
         <h2>Recipe</h2>
         {parent && (
@@ -246,8 +257,8 @@ export function ProductEditor({
       <section className="card" aria-labelledby="preview">
         <h2 id="preview">On the label</h2>
         <div className="lbl">
-          <div className="nm">{name || "Product name"}</div>
-          {identity && <div>{identity}</div>}
+          <div className="nm">{(product ? product.name : name) || "Product name"}</div>
+          {(product ? product.identity : identity) && <div>{product ? product.identity : identity}</div>}
           <div>
             <b>Ingredients:</b> {ingredientText || "add your recipe above"}
             {ingredientText && "."}

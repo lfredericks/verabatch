@@ -10,6 +10,7 @@ import { countsText } from "@/lib/batches";
 import { createClient } from "@/lib/supabase/server";
 import { BrandMark } from "../../../BrandMark";
 import { ProductEditor } from "../ProductEditor";
+import { ProductInfo } from "../ProductInfo";
 import { SizesEditor } from "../SizesEditor";
 
 export const dynamic = "force-dynamic";
@@ -89,6 +90,7 @@ export default async function EditProduct({
           ))}
         </p>
       )}
+      <ProductInfo product={product} />
       <ProductEditor product={product} parent={parent} justSaved={saved === "1"} />
       <SizesEditor productId={product.id} sizes={sizes} defaultUnit={defaultUnit} />
       <Link href={`/app/products/${product.id}/label`} className="btn pri cta">

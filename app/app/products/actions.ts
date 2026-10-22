@@ -48,7 +48,8 @@ function readForm(form: FormData) {
 }
 
 function check(p: ReturnType<typeof readForm>): string | undefined {
-  if (!p.name) return "Give the product a name.";
+  // Name, type and "what it is" of an existing product are saved by saveProductInfo.
+  if (!p.id && !p.name) return "Give the product a name.";
   if (p.name.length > 120 || p.newName.length > 120) return "Keep the name under 120 characters.";
   if (p.identity.length > 120) return "Keep \"what it is\" under 120 characters.";
   if (p.makes !== null && !(p.makes >= 1 && p.makes <= 100000)) return "\"Makes\" should be a whole number, like 5.";
@@ -95,7 +96,7 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
 
   const { data: current } = await supabase
     .from("products")
-    .select("id, name, recipe, parent_id, changes, business_id")
+    .select("id, name, type_key, identity, recipe, parent_id, changes, business_id")
     .eq("id", p.id)
     .maybeSingle();
   if (!current) return { error: "That product is gone. Go back and reload." };
@@ -106,10 +107,12 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
     // A variation of a variation hangs off the same parent (one level only).
     const parentId = parent ? parent.id : current.id;
     const parentRecipe = parent ? parent.recipe : currentRecipe;
+    // The new recipe starts with this product's type and "what it is".
+    const fromCurrent = { type_key: current.type_key, identity: current.identity, makes: p.makes };
     const row =
       p.mode === "variation"
-        ? { ...base, name: p.newName, parent_id: parentId, recipe: [], changes: diffRecipe(parentRecipe, p.recipe) }
-        : { ...base, name: p.newName, recipe: p.recipe.map((l) => ({ ...l, key: newKey() })) };
+        ? { ...fromCurrent, name: p.newName, parent_id: parentId, recipe: [], changes: diffRecipe(parentRecipe, p.recipe) }
+        : { ...fromCurrent, name: p.newName, recipe: p.recipe.map((l) => ({ ...l, key: newKey() })) };
     const { data, error } = await supabase
       .from("products")
       .insert({ ...row, business_id: current.business_id })
@@ -137,16 +140,42 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
   }
   const { data: updated, error } = await supabase
     .from("products")
-    .update({ ...base, name: p.name, ...recipeFields })
+    .update({ makes: p.makes, ...recipeFields })
     .eq("id", p.id)
     .select("id, type_key");
-  console.log("[diag] saveProduct update", JSON.stringify({ mode: p.mode, type_key: p.type_key, rows: updated?.length ?? null, saved: updated?.[0]?.type_key, error: error?.message ?? null, code: error?.code ?? null }));
+  console.log("[diag] saveProduct update", JSON.stringify({ mode: p.mode, rows: updated?.length ?? null, error: error?.message ?? null, code: error?.code ?? null }));
   if (error) return { error: "We couldn't save that. Try again in a moment." };
   // An update that touched no rows is a failure, not a success.
   if (!updated?.length) return { error: "That didn't save. Reload the page and try again." };
   revalidatePath("/app");
   revalidatePath(`/app/products/${p.id}`);
   return { saved: true };
+}
+
+export interface InfoFormState {
+  error?: string;
+  saved?: number;
+}
+
+/** Name, kind of product and "what it is" — edited on their own, behind an Edit button. */
+export async function saveProductInfo(_prev: InfoFormState, form: FormData): Promise<InfoFormState> {
+  const pack = activePack();
+  const id = String(form.get("id") ?? "");
+  const name = String(form.get("name") ?? "").trim();
+  const typeKey = String(form.get("type_key") ?? "").trim();
+  const identity = String(form.get("identity") ?? "").trim();
+  if (!UUID.test(id)) return { error: "Something went wrong. Reload the page and try again." };
+  if (!name) return { error: "Give the product a name." };
+  if (name.length > 120) return { error: "Keep the name under 120 characters." };
+  if (identity.length > 120) return { error: "Keep \"what it is\" under 120 characters." };
+  const type_key = pack.productTypes.some((t) => t.key === typeKey) || typeKey === "other" ? typeKey : "";
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("products").update({ name, type_key, identity }).eq("id", id).select("id");
+  console.log("[diag] saveProductInfo", JSON.stringify({ type_key, rows: data?.length ?? null, error: error?.message ?? null }));
+  if (error || !data?.length) return { error: "That didn't save. Reload the page and try again." };
+  revalidatePath("/app");
+  revalidatePath(`/app/products/${id}`);
+  return { saved: Date.now() };
 }
 
 /** Variations become standalone products, keeping the recipe they have right now. */
