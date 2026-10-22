@@ -108,7 +108,9 @@ Build order from the spec: 1 skeleton and sign-in, 2 math core, 3 ingredient dat
   template), and each printer gets a saved profile from a one-time calibration page:
   measured left/right and up/down shift, scale correction, safe margins. Every sheet for
   that printer is pre-corrected. Color matching on home inkjets is limited; a proof page
-  helps but can't promise exact color. Waiting on: which problems she sees and which printers.
+  helps but can't promise exact color. Main pain (Oct 22): labels print off-center, worst on square and round labels. Calibrate
+  at two corners (catches shift, scale and drift down the sheet). First version could correct
+  her existing Canva PDFs: upload PDF + pick sheet + printer profile, get a corrected PDF.
 - **Countries (Leslie, Oct 20):** v1 follows US FDA labeling only, and every label says USA.
   Later, setup asks for the maker's country and the matching rules apply (another market
   pack per country or region; `BusinessInfo.country` already exists for the made-by line).
