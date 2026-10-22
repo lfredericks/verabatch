@@ -16,6 +16,14 @@ checked against CosIng, the EU's free official ingredient list, by `tests/cosing
   Then run `npm test`: the CosIng test lists any name that no longer matches, and flags
   exceptions that are no longer needed.
 
+## Later (Leslie, Oct 22)
+
+- **Automatic updates.** Refresh the official list on a schedule instead of by hand.
+- **Flag changed names in makers' recipes.** When an official name changes or is removed,
+  find every saved recipe, variation and label that uses it and flag it for the maker
+  ("this name changed: review before you print"). Logged batches keep the name they were
+  labeled with; only future labels change.
+
 ## US vs EU names
 
 US labels use INCI names, the same system CosIng uses, with a few differences:

@@ -118,6 +118,8 @@ Parked for later:
   pre-corrected; bleed on round/square designs. First version could correct existing Canva
   PDFs. Color matching on home inkjets is limited.
 - **"Open this label in Canva" button** (see Canva note above).
+- **Ingredient list upkeep (Leslie, Oct 22).** Update the official list automatically, and flag
+  makers' saved recipes when a name they use changes or is removed (`docs/INGREDIENTS.md`).
 - **Country choice in setup.** v1 is US/FDA only; `BusinessInfo.country` exists for later.
 - **Custom email sender (SMTP)** before real users; then switch sign-in back to a typed code.
 
