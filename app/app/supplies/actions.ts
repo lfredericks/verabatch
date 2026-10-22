@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { activePack } from "@/lib/packs";
 import { readSupplyForm } from "@/lib/supplies";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,7 +14,7 @@ export interface SupplyFormState {
 const UUID = /^[0-9a-f-]{36}$/i;
 
 export async function saveSupply(_prev: SupplyFormState, form: FormData): Promise<SupplyFormState> {
-  const r = readSupplyForm(form);
+  const r = readSupplyForm(form, activePack());
   if ("error" in r) return { error: r.error };
   const supabase = await createClient();
 

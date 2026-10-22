@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { pageTitle } from "@/lib/brand";
-import { amountText, type Supply } from "@/lib/supplies";
+import { amountText, money, type Supply } from "@/lib/supplies";
 import { createClient } from "@/lib/supabase/server";
 import { BrandMark } from "../../BrandMark";
 import { AddSupply } from "./AddSupply";
@@ -19,7 +19,9 @@ function SupplyRow({ s }: { s: Supply }) {
       <Link href={`/app/supplies/${s.id}`}>
         <b>{s.ingredient}</b>
         <span>
-          {[s.supplier, s.supplier_lot ? `lot ${s.supplier_lot}` : "", amountText(s), date ? `received ${date}` : ""].filter(Boolean).join(" · ")}
+          {[s.supplier, s.supplier_lot ? `lot ${s.supplier_lot}` : "", amountText(s), money(s.cost), date ? `received ${date}` : ""]
+            .filter(Boolean)
+            .join(" · ")}
         </span>
       </Link>
     </li>
@@ -51,15 +53,20 @@ export default async function SuppliesPage({ searchParams }: { searchParams: Pro
         <h1>Supplier lots</h1>
       </div>
       <p className="lead">
-        Log each delivery with the supplier&rsquo;s lot number. When you log a batch, pick which lot went in, so a supplier recall can be traced to
+        Log each delivery (or snap the invoice) with the supplier&rsquo;s lot number. When you log a batch, pick which lot went in, so a supplier recall can be traced to
         your batches.
       </p>
       {added && (
         <p className="ok" role="status">
-          Added.
+          {/^\d+$/.test(added) ? `Added ${added} ${added === "1" ? "supply" : "supplies"} from the invoice.` : "Added."}
         </p>
       )}
-      <AddSupply startOpen={supplies.length === 0} />
+      <div className="row">
+        <Link href="/app/supplies/invoice" className="btn pri cta">
+          Snap an invoice
+        </Link>
+        <AddSupply startOpen={false} />
+      </div>
       {open.length > 0 && (
         <section className="card" aria-labelledby="open">
           <h2 id="open">On hand</h2>

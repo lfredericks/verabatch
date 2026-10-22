@@ -40,6 +40,11 @@ export default async function SupplyPage({
   ]);
   if (!data) notFound();
   const supply = data as Supply;
+  let invoiceUrl: string | null = null;
+  if (supply.invoice_id) {
+    const { data: inv } = await supabase.from("invoices").select("file_path").eq("id", supply.invoice_id).maybeSingle();
+    if (inv?.file_path) invoiceUrl = (await supabase.storage.from("invoices").createSignedUrl(inv.file_path as string, 60 * 60)).data?.signedUrl ?? null;
+  }
   // One row per batch (a lot can feed two lines of the same batch).
   const seen = new Set<string>();
   const usedIn = ((links ?? []) as unknown as UsedIn[])
@@ -57,7 +62,7 @@ export default async function SupplyPage({
         </p>
         <h1>{supply.ingredient}</h1>
       </div>
-      <SupplyForm supply={supply} />
+      <SupplyForm supply={supply} invoiceUrl={invoiceUrl} />
 
       <section className="card" aria-labelledby="used">
         <h2 id="used">Used in</h2>

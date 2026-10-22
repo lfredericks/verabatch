@@ -8,8 +8,8 @@ export function AddSupply({ startOpen }: { startOpen: boolean }) {
   const [open, setOpen] = useState(startOpen);
   if (open) return <SupplyForm supply={null} onCancel={startOpen ? undefined : () => setOpen(false)} />;
   return (
-    <button type="button" className="btn pri cta" onClick={() => setOpen(true)}>
-      + Add a supply
+    <button type="button" className="btn cta" onClick={() => setOpen(true)}>
+      + Add one by hand
     </button>
   );
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { amountText, cleanSupplyPicks, defaultLots, matchScore, readSupplyForm, suppliesForLine, supplyText, type Supply } from "../lib/supplies";
+import { cosmeticsPack } from "../lib/packs/cosmetics";
+import { amountText, cleanSupplyPicks, costPerUnit, defaultLots, parseMoney, recognize, matchScore, readSupplyForm, suppliesForLine, supplyText, type Supply } from "../lib/supplies";
 
 const fd = (o: Record<string, string>) => {
   const f = new FormData();
@@ -12,10 +13,31 @@ const sup = (o: Partial<Supply> & { id: string; ingredient: string }): Supply =>
 
 describe("supplies", () => {
   it("reads a delivery from the form", () => {
-    const r = readSupplyForm(fd({ ingredient: " Chamomile flower ", supplier: "Mountain Rose Herbs", supplier_lot: "XXXX-XXXX", amount: "2", unit: "lb", received_on: "2026-10-01" }));
+    const r = readSupplyForm(fd({ ingredient: " Chamomile flower ", supplier: "Mountain Rose Herbs", supplier_lot: "XXXX-XXXX", amount: "2", unit: "lb", received_on: "2026-10-01" }), cosmeticsPack);
     expect("row" in r && r.row).toMatchObject({ ingredient: "Chamomile flower", supplier_lot: "XXXX-XXXX", amount: "2", unit: "lb", received_on: "2026-10-01", best_by: null });
-    expect(readSupplyForm(fd({ ingredient: "" }))).toEqual({ error: "Say what the ingredient is, like Chamomile flower." });
-    expect(readSupplyForm(fd({ ingredient: "x", received_on: "2026-13-45" }))).toHaveProperty("error");
+    expect(readSupplyForm(fd({ ingredient: "" }), cosmeticsPack)).toEqual({ error: "Say what the ingredient is, like Chamomile flower." });
+    expect(readSupplyForm(fd({ ingredient: "x", received_on: "2026-13-45" }), cosmeticsPack)).toHaveProperty("error");
+  });
+
+  it("records cost and works out cost per unit", () => {
+    expect(parseMoney("$1,024.50")).toBe(1024.5);
+    expect(parseMoney("")).toBeNull();
+    expect(parseMoney("abc")).toBeNaN();
+    expect(costPerUnit({ cost: 24.5, amount: "2", unit: "lb" })).toBe("$12.25/lb");
+    expect(costPerUnit({ cost: 9, amount: "16", unit: "floz" })).toBe("$0.563/fl oz");
+    expect(costPerUnit({ cost: null, amount: "2", unit: "lb" })).toBe("");
+    const r = readSupplyForm(fd({ ingredient: "Jojoba oil", cost: "$18.99", amount: "16", unit: "floz" }), cosmeticsPack);
+    expect("row" in r && r.row.cost).toBe(18.99);
+    expect(readSupplyForm(fd({ ingredient: "Jojoba oil", cost: "lots" }), cosmeticsPack)).toEqual({ error: "Enter the cost in dollars, like 24.50." });
+  });
+
+  it("needs a description when the ingredient isn't recognized", () => {
+    expect(recognize("Jojoba oil", null, cosmeticsPack).status).toBe("recognized");
+    expect(recognize("Frobnitz blend #4", null, cosmeticsPack).status).toBe("unknown");
+    expect(recognize("Frobnitz blend #4", { kind: "official", name: "Lavandula Angustifolia Oil" }, cosmeticsPack).status).toBe("official");
+    expect(readSupplyForm(fd({ ingredient: "Frobnitz blend #4" }), cosmeticsPack)).toHaveProperty("error");
+    const ok = readSupplyForm(fd({ ingredient: "Frobnitz blend #4", description: "Supplier's fragrance oil blend, skin-safe" }), cosmeticsPack);
+    expect("row" in ok && ok.row.description).toBe("Supplier's fragrance oil blend, skin-safe");
   });
 
   it("describes a lot", () => {

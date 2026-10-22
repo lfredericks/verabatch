@@ -161,6 +161,13 @@ Parked for later:
   layout was measured from Avery's own template PDF; third-party template sites were off by up
   to 3 mm, so never add one from them. Still to do: OnlineLabels, SheetLabels and other brands;
   printing whole sheets (pairs with printer profiles).
+- **Pricing tiers (Leslie, Oct 22):** supplier management and inventory (supplier lots, cost,
+  invoice reading, amounts on hand) belong in Pro, or a higher tier above it. Decide with Free/Pro limits.
+- **IN PROGRESS, branch `supplies-cost-invoices` (Oct 22, not on main, not live):** supply cost and
+  cost per unit, recognized ingredient names with a required description when not recognized,
+  invoice photo/PDF upload read by Claude (`lib/invoiceReader.ts`, needs ANTHROPIC_API_KEY in
+  Vercel) with a review step. Still to do: the `/app/supplies/invoice` page (upload + review
+  form), run migration 0011, tests, browser check, then merge. Leslie needs to create the API key.
 - **Supply amounts on hand (Leslie, Oct 22):** optionally subtract what each batch used from a
   supply lot's amount, with low-stock hints. Needs unit conversion between recipe and supply units.
 - **Makers' own flag list:** let a maker add brand names or words to flag (the built-in brand

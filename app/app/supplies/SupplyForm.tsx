@@ -1,7 +1,10 @@
 "use client";
 
 import { startTransition, useActionState, useEffect, useState } from "react";
-import { amountText, SUPPLY_UNITS, type Supply } from "@/lib/supplies";
+import type { NamePick } from "@/lib/core";
+import { activePack } from "@/lib/packs";
+import { amountText, costPerUnit, money, recognize, SUPPLY_UNITS, type Supply } from "@/lib/supplies";
+import { IngredientCheck } from "./IngredientCheck";
 import { saveSupply, type SupplyFormState } from "./actions";
 
 function today(): string {
@@ -16,10 +19,13 @@ function dateText(d: string | null): string {
 /**
  * Add a supply lot, or show one locked behind Edit. New lots start with today's date.
  */
-export function SupplyForm({ supply, onCancel }: { supply: Supply | null; onCancel?: () => void }) {
+export function SupplyForm({ supply, onCancel, invoiceUrl }: { supply: Supply | null; onCancel?: () => void; invoiceUrl?: string | null }) {
   const [editing, setEditing] = useState(!supply);
   const [state, action, saving] = useActionState<SupplyFormState, FormData>(saveSupply, {});
   const [received, setReceived] = useState(supply?.received_on ?? "");
+  const [ingredient, setIngredient] = useState(supply?.ingredient ?? "");
+  const [pick, setPick] = useState<NamePick | null>(supply?.name_pick ?? null);
+  const [description, setDescription] = useState(supply?.description ?? "");
 
   useEffect(() => {
     if (!supply && !received) setReceived(today());
@@ -29,6 +35,8 @@ export function SupplyForm({ supply, onCancel }: { supply: Supply | null; onCanc
   }, [state, supply]);
 
   if (supply && !editing) {
+    const known = recognize(supply.ingredient, supply.name_pick, activePack());
+    const perUnit = costPerUnit(supply);
     return (
       <section className="card" aria-label="Supply details">
         <dl className="facts">
@@ -36,6 +44,22 @@ export function SupplyForm({ supply, onCancel }: { supply: Supply | null; onCanc
             <dt>Ingredient</dt>
             <dd>{supply.ingredient}</dd>
           </div>
+          <div>
+            <dt>Ingredient name</dt>
+            <dd>
+              {known.status === "unknown" ? (
+                <span className="warn-text">Not recognized</span>
+              ) : (
+                known.name ?? "Recognized"
+              )}
+            </dd>
+          </div>
+          {supply.description && (
+            <div>
+              <dt>Description</dt>
+              <dd>{supply.description}</dd>
+            </div>
+          )}
           <div>
             <dt>Supplier</dt>
             <dd>{supply.supplier || <i className="hint">not set</i>}</dd>
@@ -47,6 +71,19 @@ export function SupplyForm({ supply, onCancel }: { supply: Supply | null; onCanc
           <div>
             <dt>Amount received</dt>
             <dd>{amountText(supply) || <i className="hint">not set</i>}</dd>
+          </div>
+          <div>
+            <dt>Cost</dt>
+            <dd>
+              {supply.cost !== null && supply.cost !== undefined && supply.cost !== "" ? (
+                <>
+                  {money(supply.cost)}
+                  {perUnit && <span className="hint"> ({perUnit})</span>}
+                </>
+              ) : (
+                <i className="hint">not set</i>
+              )}
+            </dd>
           </div>
           <div>
             <dt>Received</dt>
@@ -65,6 +102,11 @@ export function SupplyForm({ supply, onCancel }: { supply: Supply | null; onCanc
             </div>
           )}
         </dl>
+        {invoiceUrl && (
+          <a href={invoiceUrl} target="_blank" rel="noopener" className="btn ghost sm cta">
+            View the invoice
+          </a>
+        )}
         {state.saved && (
           <p className="ok" role="status">
             Saved.
@@ -88,10 +130,20 @@ export function SupplyForm({ supply, onCancel }: { supply: Supply | null; onCanc
       }}
     >
       {supply && <input type="hidden" name="id" value={supply.id} />}
+      <input type="hidden" name="name_pick" value={JSON.stringify(pick)} />
+      <input type="hidden" name="description" value={description} />
       <label className="fld">
         <span>Ingredient</span>
-        <input name="ingredient" defaultValue={supply?.ingredient ?? ""} placeholder="Chamomile flower" required maxLength={120} />
+        <input
+          name="ingredient"
+          value={ingredient}
+          onChange={(e) => (setIngredient(e.target.value), setPick(null))}
+          placeholder="Chamomile flower"
+          required
+          maxLength={120}
+        />
       </label>
+      <IngredientCheck ingredient={ingredient} pick={pick} description={description} onPick={setPick} onDescription={setDescription} />
       <div className="pair">
         <label className="fld">
           <span>Supplier</span>
@@ -115,6 +167,10 @@ export function SupplyForm({ supply, onCancel }: { supply: Supply | null; onCanc
           </select>
         </div>
       </div>
+      <label className="fld narrow-fld">
+        <span>Cost (what you paid for this lot)</span>
+        <input name="cost" defaultValue={supply?.cost != null && supply.cost !== "" ? Number(supply.cost).toFixed(2) : ""} inputMode="decimal" placeholder="$24.50" maxLength={20} />
+      </label>
       <div className="pair">
         <label className="fld">
           <span>Date received</span>
