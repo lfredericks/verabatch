@@ -15,7 +15,9 @@ Read first:
 - `lib/packs/cosmetics`: the first market pack. Ingredient and variety names are drafts (`source: "draft"`) until checked against CosIng.
 - `app/`: Next.js 15 App Router. `/login` (email code sign-in), `/app` (signed-in area, product list), `/app/products/new` and `/app/products/[id]` (product editor + sizes), `/app/products/[id]/label` (front/back label text; `?batch=` for a lot), `/app/products/[id]/batches/new|[batchId]` (optional batch log), `/auth/confirm` (email link).
 - `lib/packs/index.ts`: `activePack()` picks the market. Screens use it, never a pack directly.
-- `lib/label.ts`: `buildLabel()` turns product + size + business into label text and print blockers. `lib/sizes.ts`: sizes, net contents, lettering.
+- `lib/label.ts`: `buildLabel()` turns product + size + business into label text and print blockers.
+- `lib/labelPdf.ts`: the label as an exact-size PDF (front page, back page) for printing and Canva import. Only two font families, both in Canva: Libre Baskerville and Lato (`lib/labelFonts/`, OFL). Letter sizes never go below the FDA minimums. Served at `/app/products/[id]/label/pdf`.
+- `lib/sizes.ts`: sizes, net contents, lettering.
 - `lib/batches.ts`: batches are OPTIONAL. The label defaults to the usual recipe with no lot; a batch adds its own recipe copy and lot.
 - `app/app/products/RecipeLines.tsx`: shared recipe list; saved lines are locked behind a per-line Edit.
 - `lib/variations.ts`: recipe variations. A variation (products.parent_id) stores only `changes` (remove/replace/add by line key) and follows its parent otherwise. Always get a product's real recipe with `effectiveRecipe()` in `lib/productData.ts`. Saving a changed recipe asks: update master, save as variation, or save as a new standalone product.

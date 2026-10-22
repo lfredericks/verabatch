@@ -2,19 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { pageTitle } from "@/lib/brand";
-import { buildLabel } from "@/lib/label";
-import { activePack } from "@/lib/packs";
-import { effectiveRecipe } from "@/lib/productData";
-import { cleanRecipe } from "@/lib/products";
-import type { Size } from "@/lib/sizes";
-import { createClient } from "@/lib/supabase/server";
 import { BrandMark } from "../../../../BrandMark";
 import { CopyButtons } from "./CopyButtons";
+import { labelPdfFor, loadLabel } from "./data";
 
 export const metadata: Metadata = { title: pageTitle("Label") };
 export const dynamic = "force-dynamic";
-
-const UUID = /^[0-9a-f-]{36}$/i;
 
 export default async function LabelPage({
   params,
@@ -25,33 +18,11 @@ export default async function LabelPage({
 }) {
   const { id } = await params;
   const { size: sizeId, batch: batchParam } = await searchParams;
-  if (!UUID.test(id)) notFound();
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const [{ data: product }, { data: sizeRows }, { data: biz }, { data: batchRows }] = await Promise.all([
-    supabase.from("products").select("id, name, type_key, identity, makes, recipe, parent_id, changes").eq("id", id).maybeSingle(),
-    supabase.from("sizes").select("*").eq("product_id", id).order("position").order("created_at"),
-    supabase.from("businesses").select("name, city_state_zip, contact").limit(1).maybeSingle(),
-    supabase
-      .from("batches")
-      .select("id, lot, made_on, recipe")
-      .eq("product_id", id)
-      .order("made_on", { ascending: false })
-      .order("created_at", { ascending: false })
-      .limit(50),
-  ]);
-  if (!product) notFound();
-
-  const { lines: recipeLines } = await effectiveRecipe(supabase, product);
-  const sizes = (sizeRows ?? []) as Size[];
-  const size = sizes.find((s) => s.id === sizeId) ?? sizes[0] ?? null;
-  const batches = batchRows ?? [];
-  // Batches are optional: the label is the usual recipe with no lot unless a batch is picked.
-  const batch = batches.find((b) => b.id === batchParam) ?? null;
+  const loaded = await loadLabel(id, sizeId, batchParam);
+  if (!loaded) notFound();
+  if (loaded.signedOut) redirect("/login");
+  const { product, sizes, size, batches, batch, label } = loaded;
+  const made = await labelPdfFor(loaded);
   const link = (o: { size?: string | undefined; batch?: string | undefined }) => {
     const q = new URLSearchParams();
     const sz = o.size ?? size?.id;
@@ -60,14 +31,10 @@ export default async function LabelPage({
     if (bt) q.set("batch", bt);
     return `/app/products/${id}/label?${q}`;
   };
-  const pack = activePack();
-  const label = buildLabel({
-    product: { ...product, recipe: recipeLines },
-    business: { name: biz?.name ?? "", cityStateZip: biz?.city_state_zip ?? "", contact: biz?.contact ?? "" },
-    size,
-    pack,
-    batch: batch ? { lot: batch.lot as string, recipe: cleanRecipe(batch.recipe) } : null,
-  });
+  const pdfQuery = new URLSearchParams();
+  if (size) pdfQuery.set("size", size.id);
+  if (batch) pdfQuery.set("batch", batch.id);
+  const pdfHref = `/app/products/${id}/label/pdf?${pdfQuery}`;
   const frontText = label.front.join("\n");
   const backText = label.back.join("\n");
 
@@ -172,9 +139,41 @@ export default async function LabelPage({
         </div>
       </section>
 
+      <section className="card" aria-labelledby="pdf">
+        <h2 id="pdf">Print-ready PDF</h2>
+        {"pdf" in made ? (
+          <>
+            <p className="hint">
+              Front on page 1, back on page 2, each at your label&rsquo;s exact size ({label.size?.labelText}). Two fonts
+              only, Libre Baskerville and Lato, both in Canva, so the text stays editable when you upload it there.
+            </p>
+            {made.pdf.warnings.length > 0 && (
+              <div className="note">
+                <ul className="tight">
+                  {made.pdf.warnings.map((w) => (
+                    <li key={w}>{w}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <div className="row">
+              <a href={pdfHref} target="_blank" rel="noopener" className="btn pri cta">
+                Open the PDF
+              </a>
+              <a href={`${pdfHref}&download=1`} className="btn cta">
+                Download
+              </a>
+            </div>
+            {label.blockers.length > 0 && <p className="hint">Fix the items under &ldquo;Before you print&rdquo; first.</p>}
+          </>
+        ) : (
+          <p className="hint">{made.missing}</p>
+        )}
+      </section>
+
       <section className="card">
         <CopyButtons front={frontText} back={backText} />
-        <p className="hint">Paste into Canva or your label app. Check every label before you print.</p>
+        <p className="hint">Or paste the text into Canva or your label app. Check every label before you print.</p>
       </section>
 
       <div className="row">

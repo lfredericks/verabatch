@@ -57,14 +57,19 @@ To do: USPTO search, buy verabatch.com and veribatch.com (redirect).
 - **Integrations (Enterprise, later):** Squarespace (Extensions route works on any plan; API
   keys need Commerce Advanced), Etsy (app approval ~30 days), Shopify, Square, Canva Apps SDK
   sidebar, Faire, WooCommerce, Wix, Zapier, Clover, QuickBooks, label printers.
-- **Canva:** build a Verabatch app inside Canva (Apps SDK) rather than the Autofill API, which
-  needs Canva Pro. Print through Canva or a printer partner later.
-  **Goal (Leslie, Oct 20):** an "Open this label in Canva" button on the label page, so the
-  label text (and later the design) lands in Canva without copy-paste. How it gets there
-  (Canva app/plugin, Connect API, or the sidebar app pulling from Verabatch) is still to be
-  worked out; check what Canva currently allows before building. Until then, keep label
-  output structured (`buildLabel()` in `lib/label.ts` returns front, back, net, lot as
-  separate fields) so any Canva route can fill named text boxes.
+- **Canva (decided Oct 22):** Autofill is out (every user would need Canva Enterprise).
+  Route 1, building now: Verabatch makes the label as an exact-size PDF, and an "Open this
+  label in Canva" button imports it into the maker's own Canva through the Connect API
+  (design import, then return navigation back to Verabatch). Connect APIs are free for public
+  integrations; Leslie's Canva Pro is enough; Canva reviews the integration before other
+  makers can use it. Route 2, later: a Canva sidebar app (Apps SDK) that fills text into a
+  design the maker already has.
+  **Fonts (Leslie, Oct 22):** the label PDF uses only two font families, both standard in
+  Canva, so text stays editable after import: Libre Baskerville (product name) and Lato
+  (everything else, bold for the net weight). Makers restyle in Canva. Each label part is
+  one paragraph in one font and size, so it should import as one text box.
+  **To test first on Leslie's Canva:** upload the PDF by hand and check the text is editable,
+  in single boxes, in the right fonts.
 - **Ingredient data:** EU CosIng (free) as the base, US name corrections, a curated maker layer;
   license PCPC's wINCI later. Supplier documents: extract facts, link to sources, don't host
   their PDFs; pitch suppliers on a "document drop" portal.
@@ -101,7 +106,9 @@ Verabatch is a product for any small-batch maker. Liminalia is only the first te
    recipe lines, variations (linked or standalone), sizes, label page (front/back, net
    contents, lettering minimum, claims flag on name, copy buttons), Manage page with typed
    DELETE. Description check built (Oct 22): descriptions per channel (Etsy, website, Amazon, other)
-   with risky words highlighted live. Not done: label sign-off
+   with risky words highlighted live. Label PDF built (Oct 22): front and back at the label's
+   exact size, FDA letter minimums measured on the lowercase "o", two Canva fonts
+   (`lib/labelPdf.ts`). Not done: label sign-off
    against a real printed label. Free plan limits deferred until payments.
 5. **Batches: built, optional by design.** Not done: sign-off with a real logged batch.
 6. **Real-world run, then five outside makers: not started.** Run a full product line through
@@ -119,7 +126,9 @@ Parked for later:
   a one-time calibration page (shift, scale, drift, measured at two corners), every sheet is
   pre-corrected; bleed on round/square designs. First version could correct existing Canva
   PDFs. Color matching on home inkjets is limited.
-- **"Open this label in Canva" button** (see Canva note above).
+- **"Open this label in Canva" button** (see Canva note above). Done: the label PDF (Oct 22).
+  To do: Canva developer account (Leslie signs in), Connect integration keys in Vercel,
+  "Connect your Canva" sign-in, the import button, return navigation, Canva review.
 - **"Write this for me" descriptions (Leslie, Oct 22).** AI drafts per channel from the product's
   info, following each platform's format and current length limits (look them up when building),
   told to avoid drug/advertising/brand claims, then run through the claims check; lands in the
