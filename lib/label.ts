@@ -1,6 +1,32 @@
-import { checkClaims, computeRecipe, labelIngredients, netContentsFromBatch } from "./core";
+import { checkClaims, computeRecipe, labelIngredients, netContentsFromBatch, type ComputedRecipe } from "./core";
 import type { BusinessInfo, ClaimHit, MarketPack, ProductType, RecipeLine } from "./core/types";
 import { sizeFacts, type Size, type SizeFacts } from "./sizes";
+
+/**
+ * The ingredient list as printed: the pack's label form of each name (US: common name
+ * first), the maker's own names as typed, and which plant names still need an everyday name.
+ */
+export function printedIngredients(recipe: ComputedRecipe, pack: MarketPack): { names: string[]; needsCommon: string[] } {
+  const custom = new Set(recipe.custom.map((l) => (l.resolution.status === "known" ? l.resolution.labelName : "")));
+  const everyday = new Map<string, string>();
+  for (const l of recipe.lines) {
+    const r = l.resolution;
+    if (r.status !== "known" || !l.line.common?.trim()) continue;
+    for (const n of r.parts ? r.parts.map((p) => p.labelName) : [r.labelName]) everyday.set(n, l.line.common.trim());
+  }
+  const names: string[] = [];
+  const needsCommon: string[] = [];
+  for (const i of labelIngredients(recipe, pack)) {
+    if (custom.has(i.name) || i.unresolved || !pack.printName) {
+      names.push(i.name);
+      continue;
+    }
+    const p = pack.printName(i.name, everyday.get(i.name));
+    names.push(p.text);
+    if (p.needsCommon) needsCommon.push(i.name);
+  }
+  return { names, needsCommon };
+}
 
 export interface LabelInput {
   product: { name: string; type_key: string; identity: string; makes: number | null; recipe: RecipeLine[] };
@@ -36,7 +62,8 @@ export function buildLabel({ product, business, size, pack, batch }: LabelInput)
   const productType = pack.productTypes.find((t) => t.key === product.type_key);
   const recipe = computeRecipe(batch ? batch.recipe : product.recipe, pack);
   const list = labelIngredients(recipe, pack);
-  const ingredients = list.length ? `Ingredients: ${list.map((i) => i.name).join(", ")}.` : "";
+  const printed = printedIngredients(recipe, pack);
+  const ingredients = list.length ? `Ingredients: ${printed.names.join(", ")}.` : "";
   const facts = size ? sizeFacts(size, pack.lettering) : null;
 
   let net = facts?.net ?? null;
@@ -60,6 +87,8 @@ export function buildLabel({ product, business, size, pack, batch }: LabelInput)
     blockers.push("\"What it is\" repeats the name. Describe the product instead, like Botanical Skin Balm.");
   if (!net) blockers.push(size ? "Check this size's fill amount." : "Add a size, or how many one batch makes, for the net weight.");
   if (!business.name.trim()) blockers.push("Add your business name in your business details.");
+  if (printed.needsCommon.length)
+    blockers.push(`US labels need the everyday name of each plant. Add one for: ${printed.needsCommon.join(", ")}.`);
 
   return {
     front,

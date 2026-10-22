@@ -16,6 +16,20 @@ checked against CosIng, the EU's free official ingredient list, by `tests/cosing
   Then run `npm test`: the CosIng test lists any name that no longer matches, and flags
   exceptions that are no longer needed.
 
+## How names print on US labels (Oct 22)
+
+FDA: cosmetic ingredients are listed by their **common or usual English name**; Latin names
+are not accepted as a substitute, but may follow in brackets. FDA's own example:
+"Sweet Almond (Prunus Amygdalus Dulcis) Oil" (fda.gov, "Cosmetic Ingredient Names").
+FDA has also said the industry dictionary's Latin-first style ("Prunus Amygdalus Dulcis
+(Sweet Almond) Oil") doesn't meet that requirement.
+
+So the app stores official (INCI) names and prints them common-first:
+"Simmondsia Chinensis (Jojoba) Seed Oil" -> "Jojoba (Simmondsia Chinensis) Seed Oil".
+Common names come from the brackets, or from `lib/packs/cosmetics/commonNames.ts` (draft).
+A plant with no known common name blocks the label until the maker types an everyday name
+on that recipe line. Non-plant names (Water, Tocopherol, Glycerin) print as they are.
+
 ## Unknown ingredients and makers' own names (Oct 22)
 
 - An ingredient we don't know shows "Did you mean...?" with official names from the list

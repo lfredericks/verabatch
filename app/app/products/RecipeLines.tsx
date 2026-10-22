@@ -179,7 +179,30 @@ export function RecipeLines({
                   ⚠ {r.labelName}: your own name, <b>not an official ingredient name</b>.
                 </p>
               )}
-              {r?.status === "known" && r.pick !== "custom" && <p className="rstatus ok-soft">{r.labelName}</p>}
+              {r?.status === "known" &&
+                r.pick !== "custom" &&
+                (() => {
+                  const names = r.parts ? r.parts.map((p) => p.labelName) : [r.labelName];
+                  const printed = names.map((n) => pack.printName?.(n, row.common) ?? { text: n, needsCommon: false });
+                  const missing = printed.some((p) => p.needsCommon);
+                  return (
+                    <>
+                      <p className={`rstatus ${missing ? "warn-text" : "ok-soft"}`}>{printed.map((p) => p.text).join(", ")}</p>
+                      {(missing || (editing && row.common !== undefined)) && (
+                        <label className="fld">
+                          <span>Everyday name for customers (required on US labels)</span>
+                          <input
+                            value={row.common ?? ""}
+                            // Typing opens the line, so the box stays put until Done.
+                            onChange={(e) => (update(row.id, { common: e.target.value }), toggle(row.id, true))}
+                            placeholder="Mugwort"
+                            maxLength={60}
+                          />
+                        </label>
+                      )}
+                    </>
+                  );
+                })()}
               {r?.status === "unknown" && row.text.trim() && (
                 <>
                   <p className="rstatus warn-text">&ldquo;{row.text}&rdquo; isn&rsquo;t in our list yet.</p>

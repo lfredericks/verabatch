@@ -24,7 +24,8 @@ describe("Relief Balm 2 oz label (milestone 4 target)", () => {
     expect(label.size?.lettering?.minHeight).toBe("1/16 in");
   });
   it("back: ingredients, who made it, reactions contact", () => {
-    expect(label.back[0]).toMatch(/^Ingredients: Simmondsia Chinensis \(Jojoba\) Seed Oil, /);
+    // US form: common name first, Latin in brackets (FDA, "Cosmetic Ingredient Names").
+    expect(label.back[0]).toMatch(/^Ingredients: Jojoba \(Simmondsia Chinensis\) Seed Oil, /);
     expect(label.back[1]).toBe("Made by Liminalia, Anderson, IN 46016, USA.");
     expect(label.back[2]).toBe("Questions or reactions: liminalia.co");
   });

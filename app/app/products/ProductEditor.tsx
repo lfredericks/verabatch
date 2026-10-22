@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { startTransition, useActionState, useEffect, useMemo, useRef, useState } from "react";
-import { computeRecipe, labelIngredients, type RecipeLine } from "@/lib/core";
+import { computeRecipe, type RecipeLine } from "@/lib/core";
+import { printedIngredients } from "@/lib/label";
 import { activePack } from "@/lib/packs";
 import type { Product } from "@/lib/products";
 import { recipesDiffer } from "@/lib/variations";
@@ -44,8 +45,8 @@ export function ProductEditor({
 
   const lines: RecipeLine[] = useMemo(() => rowsToLines(rows), [rows]);
   const recipe = useMemo(() => computeRecipe(lines, pack), [lines]);
-  const ingredients = useMemo(() => labelIngredients(recipe, pack), [recipe]);
-  const ingredientText = ingredients.map((i) => i.name).join(", ");
+  const printed = useMemo(() => printedIngredients(recipe, pack), [recipe]);
+  const ingredientText = printed.names.join(", ");
   const recipeChanged = Boolean(product) && recipesDiffer(product!.recipe, lines);
   const perUnit = makes && Number(makes) > 0 ? recipe.totalGrams / Number(makes) : 0;
   const waiting = recipe.needsChoice.length;

@@ -27,7 +27,7 @@ export function ensureKeys(lines: RecipeLine[]): RecipeLine[] {
 }
 
 function sameLine(a: RecipeLine, b: RecipeLine): boolean {
-  const v = (l: RecipeLine) => JSON.stringify([l.variety ?? null, l.pick ?? null]);
+  const v = (l: RecipeLine) => JSON.stringify([l.variety ?? null, l.pick ?? null, l.common ?? null]);
   return a.amount.trim() === b.amount.trim() && a.unit === b.unit && a.text.trim() === b.text.trim() && v(a) === v(b);
 }
 

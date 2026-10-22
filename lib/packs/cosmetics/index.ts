@@ -1,6 +1,7 @@
 import { hasWords, normalize } from "../../core/text";
 import type { BusinessInfo, Choice, Ingredient, LetteringStep, MarketPack, ProductType, RecipeLine, Resolution } from "../../core/types";
 import { CLAIM_RULES } from "./claims";
+import { printName } from "./commonNames";
 import { INGREDIENTS } from "./ingredients";
 import { CARRIERS, FORM_DETECT_ORDER, FORMS, VARIETY_GROUPS, type FormKey, type VarietyGroup } from "./varieties";
 
@@ -201,6 +202,7 @@ export const cosmeticsPack: MarketPack = {
   choices: choicesFor,
   backPanel,
   guessDensity,
+  printName,
 };
 
 /** Every label name this pack can produce, with where it comes from. For checks against CosIng. */

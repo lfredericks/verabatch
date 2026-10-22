@@ -49,7 +49,8 @@ export function cleanLine(raw: unknown): RecipeLine | null {
   const pk = o.pick as Record<string, unknown> | undefined;
   const pickName = pk && typeof pk === "object" ? str(pk.name, 160).trim() : "";
   const pick = pickName && (pk!.kind === "official" || pk!.kind === "custom") ? { kind: pk!.kind as "official" | "custom", name: pickName } : undefined;
-  return { amount, unit, text, ...(variety ? { variety } : {}), ...(key ? { key } : {}), ...(pick ? { pick } : {}) };
+  const common = str(o.common, 60).trim();
+  return { amount, unit, text, ...(variety ? { variety } : {}), ...(key ? { key } : {}), ...(pick ? { pick } : {}), ...(common ? { common } : {}) };
 }
 
 /**

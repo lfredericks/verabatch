@@ -29,6 +29,8 @@ export interface RecipeLine {
    * their own name (printed as typed and flagged as not official).
    */
   pick?: NamePick;
+  /** The maker's everyday name for a plant ingredient whose common name we don't know. */
+  common?: string;
 }
 
 export interface NamePick {
@@ -160,6 +162,11 @@ export interface MarketPack {
    * where, and how to reach them. Wording is the pack's, so each market can differ.
    */
   backPanel?(ctx: { business: BusinessInfo; productType?: ProductType }): string[];
+  /**
+   * The label form of an official name (e.g. US: common name first, Latin in brackets).
+   * needsCommon: the maker must supply an everyday name before printing.
+   */
+  printName?(labelName: string, common?: string): { text: string; needsCommon: boolean };
   /** Rough grams per mL for a name the maker picked (by its last word: oil, butter, water...). */
   guessDensity?(labelName: string): number;
   /** The options to show for a "which one?" question from resolve(). */
