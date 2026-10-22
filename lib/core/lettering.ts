@@ -2,11 +2,13 @@ import type { LetteringStep } from "./types";
 
 export type LabelShape =
   | { shape: "rect"; widthIn: number; heightIn: number }
-  | { shape: "round"; diameterIn: number };
+  | { shape: "round"; diameterIn: number }
+  | { shape: "oval"; widthIn: number; heightIn: number };
 
 /** Front label area in square inches. */
 export function labelArea(label: LabelShape): number {
   if (label.shape === "round") return (Math.PI * label.diameterIn ** 2) / 4;
+  if (label.shape === "oval") return (Math.PI * label.widthIn * label.heightIn) / 4;
   return label.widthIn * label.heightIn;
 }
 

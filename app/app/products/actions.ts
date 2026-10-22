@@ -68,7 +68,7 @@ function withKeys(lines: RecipeLine[]): RecipeLine[] {
 async function copySizes(supabase: SupabaseClient, fromId: string, toId: string) {
   const { data: sizes } = await supabase
     .from("sizes")
-    .select("name, fill_amount, fill_unit, label_shape, width_in, height_in, diameter_in, position")
+    .select("name, fill_amount, fill_unit, label_shape, width_in, height_in, diameter_in, label_template, position")
     .eq("product_id", fromId);
   if (sizes?.length) await supabase.from("sizes").insert(sizes.map((s) => ({ ...s, product_id: toId })));
 }

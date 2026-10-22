@@ -43,6 +43,7 @@ Run each new file in `supabase/migrations` in the SQL Editor, in order.
 - `0006_descriptions.sql`: run Oct 22, 2026.
 - `0007_logos.sql`: run Oct 22, 2026 (logo columns, private `logos` storage bucket and its rules).
 - `0008_warnings.sql`: run Oct 22, 2026 (warnings picked per product).
+- `0009_label_templates.sql`: run Oct 22, 2026 (oval labels, label sheet a size was picked from).
 
 ## Before launch
 

@@ -50,10 +50,10 @@ describe("label PDF", () => {
     expect([...families].sort()).toEqual([...LABEL_FONT_FAMILIES].sort());
   });
 
-  it("letters meet the FDA minimums, measured on the lowercase o", async () => {
-    // Lato's x-height is about 0.506 of the point size.
+  it("letters meet the FDA minimums: capitals for the net weight, lowercase o for the rest", async () => {
+    // Lato Bold's capitals are about 0.72 of the point size; Lato's x-height about 0.506.
     const out = await buildLabelPdf({ ...base, shape: { shape: "rect", widthIn: 3, heightIn: 2 }, netMinIn: 1 / 8 }, await loadLabelFonts());
-    expect(out.sizes.net * 0.506).toBeGreaterThanOrEqual(72 / 8);
+    expect(out.sizes.net * 0.716).toBeGreaterThanOrEqual(72 / 8);
     expect(out.sizes.back * 0.506).toBeGreaterThanOrEqual(72 / 16);
   });
 

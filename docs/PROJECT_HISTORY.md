@@ -76,6 +76,10 @@ To do: USPTO search, buy verabatch.com and veribatch.com (redirect).
   its parent's). The product logo overrides the business logo on the front by default; checkboxes
   on the label page pick either or both (both: side by side at the top of the front). Logos never
   go on the back (ingredient) label.
+  **Net weight on the PDF (Oct 22):** printed in capitals (701.13(h): all caps are measured on
+  the capitals, so it stays legal smaller), in the bottom 30% of the front by AREA (701.13(f):
+  34% of the height on round and oval labels); fronts of 5 sq in or less are exempt from the
+  30% rule. Oval labels added (migration 0009).
   **Warnings (Leslie, Oct 22):** standard warning statements per product (`lib/packs/cosmetics/warnings.ts`):
   FDA-required wording when it applies (21 CFR 740.17 foaming bath products, 740.11 aerosols),
   common skin cautions, room-spray cautions, candle safety (ASTM F2058 style), plus up to five of
@@ -146,9 +150,11 @@ Parked for later:
   told to avoid drug/advertising/brand claims, then run through the claims check; lands in the
   edit box, never auto-saved. Needs an Anthropic API key (Console account, pay-as-you-go) in
   Vercel. Likely a Pro feature.
-- **Standard label size templates (Leslie, Oct 22).** Pick a common label (for example a 2 in
-  round or 3 x 2 in rectangle, by label-sheet brand and number) instead of typing dimensions.
-  Ties into printer profiles: the sheet number also gives the print layout.
+- **Label sheet templates: started Oct 22.** Sizes can be picked from 15 Avery sheets (round,
+  square, oval, rectangle) or by typing the number on the box (`lib/labelTemplates.ts`). Every
+  layout was measured from Avery's own template PDF; third-party template sites were off by up
+  to 3 mm, so never add one from them. Still to do: OnlineLabels, SheetLabels and other brands;
+  printing whole sheets (pairs with printer profiles).
 - **Makers' own flag list:** let a maker add brand names or words to flag (the built-in brand
   list in `lib/packs/cosmetics/brands.ts` is a starting point, not every trademark).
 - **Ingredient list upkeep (Leslie, Oct 22).** Update the official list automatically, and flag

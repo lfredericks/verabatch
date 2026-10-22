@@ -19,7 +19,8 @@ Read first:
 - `lib/labelPdf.ts`: the label as an exact-size PDF (front page, back page) for printing and Canva import. Only two font families, both in Canva: Libre Baskerville and Lato (`lib/labelFonts/`, OFL). Letter sizes never go below the FDA minimums. Served at `/app/products/[id]/label/pdf`.
 - `lib/logos.ts` + `app/app/LogoField.tsx`: business and product logos (private `logos` bucket, folder = business id). Product logo overrides the business logo on the label front unless the label page's checkboxes say otherwise (both = side by side on the front). Never on the back.
 - `lib/warnings.ts` + `lib/packs/cosmetics/warnings.ts` + `app/app/products/Warnings.tsx`: standard label warnings per product (products.warnings = {keys, custom}). Required FDA wording prints as written; the rest join after "Caution:". Warnings print in bold.
-- `lib/sizes.ts`: sizes, net contents, lettering.
+- `lib/sizes.ts`: sizes, net contents, lettering. Label shapes: rect, round, oval.
+- `lib/labelTemplates.ts`: Avery label sheets (layouts measured from Avery's own template PDFs only). A size remembers its sheet in `sizes.label_template`.
 - `lib/batches.ts`: batches are OPTIONAL. The label defaults to the usual recipe with no lot; a batch adds its own recipe copy and lot.
 - `app/app/products/RecipeLines.tsx`: shared recipe list; saved lines are locked behind a per-line Edit.
 - `lib/variations.ts`: recipe variations. A variation (products.parent_id) stores only `changes` (remove/replace/add by line key) and follows its parent otherwise. Always get a product's real recipe with `effectiveRecipe()` in `lib/productData.ts`. Saving a changed recipe asks: update master, save as variation, or save as a new standalone product.

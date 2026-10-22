@@ -2,9 +2,18 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
+import type React from "react";
 import type { FillUnit } from "@/lib/core";
 import { activePack } from "@/lib/packs";
 import { FILL_UNITS, sizeFacts, type Size } from "@/lib/sizes";
+import { findTemplate, LABEL_TEMPLATES, type TemplateShape } from "@/lib/labelTemplates";
+
+const SHAPE_GROUPS: { shape: TemplateShape; square?: boolean; label: string }[] = [
+  { shape: "round", label: "Round" },
+  { shape: "rect", square: true, label: "Square" },
+  { shape: "oval", label: "Oval" },
+  { shape: "rect", square: false, label: "Rectangle" },
+];
 import { deleteSize, saveSize, type SizeFormState } from "./sizeActions";
 
 const pack = activePack();
@@ -25,13 +34,38 @@ function SizeForm({
     if (r.saved) onDone();
     return r;
   }, {});
-  const [shape, setShape] = useState<"rect" | "round">(size?.label_shape ?? "rect");
+  const [shape, setShape] = useState<TemplateShape>(size?.label_shape ?? "rect");
   const n = (v: number | null | undefined) => (v ? String(Number(v)) : "");
+  const [templateId, setTemplateId] = useState(size?.label_template ?? "");
+  const [width, setWidth] = useState(n(size?.width_in));
+  const [height, setHeight] = useState(n(size?.height_in));
+  const [diameter, setDiameter] = useState(n(size?.diameter_in));
+  const [lookup, setLookup] = useState("");
+  const template = findTemplate(templateId);
+  const looked = lookup.trim() ? findTemplate(lookup) : null;
+
+  function pick(id: string) {
+    setTemplateId(id);
+    const tp = findTemplate(id);
+    if (!tp) return;
+    setShape(tp.shape);
+    if (tp.shape === "round") setDiameter(String(tp.widthIn));
+    else {
+      setWidth(String(tp.widthIn));
+      setHeight(String(tp.heightIn));
+    }
+  }
+  // Typing dimensions by hand means it's no longer that sheet.
+  const typed = (set: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    set(e.target.value);
+    setTemplateId("");
+  };
 
   return (
     <form action={action} className="form sizeform">
       {size && <input type="hidden" name="id" value={size.id} />}
       <input type="hidden" name="product_id" value={productId} />
+      <input type="hidden" name="label_template" value={templateId} />
       <label className="fld">
         <span>Size name</span>
         <input name="name" defaultValue={size?.name ?? ""} placeholder="2 oz jar" required maxLength={60} />
@@ -50,28 +84,71 @@ function SizeForm({
         </div>
       </div>
       <p className="hint">Balms and butters are sold by weight (oz). Sprays and oils by liquid (fl oz).</p>
+      <div className="sub">
+        <label className="fld">
+          <span>Label sheet you buy (optional)</span>
+          <select value={templateId} onChange={(e) => pick(e.target.value)} aria-label="Label sheet">
+            <option value="">None, or I&rsquo;ll type the size</option>
+            {SHAPE_GROUPS.map((g) => (
+              <optgroup key={g.label} label={g.label}>
+                {LABEL_TEMPLATES.filter((tp) => tp.shape === g.shape && (g.square === undefined || (tp.widthIn === tp.heightIn) === g.square)).map((tp) => (
+                  <option key={tp.id} value={tp.id}>
+                    {tp.brand} {tp.id}: {tp.label}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </label>
+        <label className="fld narrow-fld">
+          <span>Or type the number on your box</span>
+          <input value={lookup} onChange={(e) => setLookup(e.target.value)} inputMode="numeric" placeholder="22807" maxLength={10} aria-label="Avery number" />
+        </label>
+        {lookup.trim() &&
+          (looked ? (
+            looked.id !== templateId ? (
+              <button type="button" className="btn sm cta" onClick={() => (pick(looked.id), setLookup(""))}>
+                Use {looked.brand} {looked.id}: {looked.label}
+              </button>
+            ) : null
+          ) : (
+            <p className="hint">We don&rsquo;t have that one yet. Type the label size below instead.</p>
+          ))}
+        {template && (
+          <p className="ok-soft rstatus">
+            {template.brand} {template.id}: {template.label}
+            {template.alsoFits.length > 0 && ` (same sheet as ${template.alsoFits.slice(0, 4).join(", ")}${template.alsoFits.length > 4 ? "…" : ""})`}
+          </p>
+        )}
+      </div>
       <fieldset className="fld">
         <span>Front label shape</span>
         <div className="row">
-          <label className="radio">
-            <input type="radio" name="label_shape" value="rect" checked={shape === "rect"} onChange={() => setShape("rect")} /> Rectangle
-          </label>
-          <label className="radio">
-            <input type="radio" name="label_shape" value="round" checked={shape === "round"} onChange={() => setShape("round")} /> Round
-          </label>
+          {(["rect", "round", "oval"] as const).map((k) => (
+            <label className="radio" key={k}>
+              <input
+                type="radio"
+                name="label_shape"
+                value={k}
+                checked={shape === k}
+                onChange={() => (setShape(k), setTemplateId(""))}
+              />{" "}
+              {k === "rect" ? "Rectangle or square" : k === "round" ? "Round" : "Oval"}
+            </label>
+          ))}
         </div>
       </fieldset>
       {shape === "round" ? (
         <label className="fld">
           <span>Width across (inches)</span>
-          <input name="diameter_in" defaultValue={n(size?.diameter_in)} inputMode="decimal" placeholder="2" maxLength={10} />
+          <input name="diameter_in" value={diameter} onChange={typed(setDiameter)} inputMode="decimal" placeholder="2" maxLength={10} />
         </label>
       ) : (
         <div className="fld">
           <span>Width and height (inches)</span>
           <div className="pair">
-            <input name="width_in" defaultValue={n(size?.width_in)} inputMode="decimal" placeholder="3" maxLength={10} aria-label="Width in inches" />
-            <input name="height_in" defaultValue={n(size?.height_in)} inputMode="decimal" placeholder="2" maxLength={10} aria-label="Height in inches" />
+            <input name="width_in" value={width} onChange={typed(setWidth)} inputMode="decimal" placeholder="3" maxLength={10} aria-label="Width in inches" />
+            <input name="height_in" value={height} onChange={typed(setHeight)} inputMode="decimal" placeholder="2" maxLength={10} aria-label="Height in inches" />
           </div>
         </div>
       )}
@@ -115,6 +192,7 @@ export function SizesEditor({ productId, sizes, defaultUnit }: { productId: stri
                     <span>
                       {f.net ?? "Check the fill amount"}
                       {f.labelText && ` · label ${f.labelText}`}
+                      {s.label_template && ` (Avery ${s.label_template})`}
                     </span>
                   </div>
                   <div className="row">

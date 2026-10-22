@@ -1,6 +1,6 @@
 import * as fontkitModule from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
-import type { LabelShape } from "./core/lettering";
+import { labelArea, type LabelShape } from "./core/lettering";
 
 /**
  * The label as a print-ready PDF: page 1 is the front, page 2 the back, each at the
@@ -11,7 +11,8 @@ import type { LabelShape } from "./core/lettering";
  * - Each part of the label (name, what it is, net weight, ingredients, made-by line, lot)
  *   is one paragraph with one font and one size, so it imports as one text box.
  * - Letter sizes are measured the FDA way, on the lowercase "o" (x-height), never below
- *   the minimums: net weight from the front panel's area, ingredients 1/16 in.
+ *   the minimums: net weight from the front panel's area (printed in capitals, measured on
+ *   the capitals), ingredients 1/16 in.
  */
 
 // The font reader ships as one bundled object; bundlers expose it as the default export.
@@ -87,6 +88,25 @@ interface Frame {
 }
 
 function frameFor(shape: LabelShape): Frame {
+  if (shape.shape === "oval") {
+    const W = shape.widthIn * PT;
+    const H = shape.heightIn * PT;
+    const m = Math.min(0.1 * PT, Math.min(W, H) * 0.06);
+    const a = W / 2 - m;
+    const b = H / 2 - m;
+    return {
+      W,
+      H,
+      top: H / 2 - b,
+      bottom: H / 2 + b,
+      across(top, bottom) {
+        const dy = Math.max(Math.abs(top - H / 2), Math.abs(bottom - H / 2));
+        if (dy >= b) return null;
+        const half = a * Math.sqrt(1 - (dy * dy) / (b * b));
+        return [W / 2 - half, W / 2 + half];
+      },
+    };
+  }
   if (shape.shape === "rect") {
     const W = shape.widthIn * PT;
     const H = shape.heightIn * PT;
@@ -116,10 +136,10 @@ const NBSP = "\u00a0";
 export function keepTogether(text: string): string {
   return text
     .replace(/\(([^()]{1,12})\)/g, (m) => m.replace(/ /g, NBSP))
-    .replace(/(\d) (?=(fl\.? oz|oz|g|mL|ml|L|lb)\b)/g, `$1${NBSP}`)
-    .replace(/\b(fl\.?) (?=oz\b)/g, `$1${NBSP}`)
-    .replace(/\bNet (?=(Wt|Vol)\.)/g, `Net${NBSP}`)
-    .replace(/\b(Wt\.|Vol\.|Net) (?=\d)/g, `$1${NBSP}`);
+    .replace(/(\d) (?=(fl\.? oz|oz|g|mL|ml|L|lb)\b)/gi, `$1${NBSP}`)
+    .replace(/\b(fl\.?) (?=oz\b)/gi, `$1${NBSP}`)
+    .replace(/\bNet (?=(Wt|Vol)\.)/gi, (m) => `${m.trim()}${NBSP}`)
+    .replace(/\b(Wt\.|Vol\.|Net) (?=\d)/gi, `$1${NBSP}`);
 }
 
 /** Lay paragraphs out from `start` downwards. Every line is wrapped to the width at its own height. */
@@ -175,6 +195,24 @@ function centerIn(paras: Para[], frame: Frame, top: number, bottom: number, alig
   return { ...out, fits: !out.overflow && start >= top - 0.01 && out.end <= bottom + 0.01 };
 }
 
+/**
+ * Share of the label's height that holds its bottom 30% by area. 0.3 for a rectangle;
+ * taller for round and oval labels, which are narrow at the bottom.
+ */
+export function bottomBandShare(shape: LabelShape): number {
+  if (shape.shape === "rect") return 0.3;
+  // Circle segment of height h (radius 1) has area acos(1-h) - (1-h)·sqrt(2h-h²); find 30% of π.
+  const seg = (h: number) => (Math.acos(1 - h) - (1 - h) * Math.sqrt(2 * h - h * h)) / Math.PI;
+  let lo = 0;
+  let hi = 2;
+  for (let i = 0; i < 50; i++) {
+    const mid = (lo + hi) / 2;
+    if (seg(mid) < 0.3) lo = mid;
+    else hi = mid;
+  }
+  return lo / 2; // An oval is a stretched circle, so the share is the same.
+}
+
 function draw(page: PDFPage, H: number, lines: PlacedLine[]) {
   for (const l of lines) {
     // Baseline sits inside the band: ascent of roughly 0.8 em below the band's top, plus half the leading.
@@ -186,6 +224,11 @@ function draw(page: PDFPage, H: number, lines: PlacedLine[]) {
 function xHeightRatio(bytes: Uint8Array): number {
   const f = fontkit.create(bytes);
   return f.xHeight / f.unitsPerEm;
+}
+
+function capHeightRatio(bytes: Uint8Array): number {
+  const f = fontkit.create(bytes);
+  return f.capHeight / f.unitsPerEm;
 }
 
 /** Point size whose lowercase "o" is at least `inches` tall, rounded up to a tenth. */
@@ -203,7 +246,9 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
   const sans = await pdf.embedFont(files.sans, { subset: true, customName: "VBLAAB+Lato-Regular" });
   const sansBold = await pdf.embedFont(files.sansBold, { subset: true, customName: "VBLAAC+Lato-Bold" });
   const xSans = xHeightRatio(files.sans);
-  const xBold = xHeightRatio(files.sansBold);
+  // The net weight prints in capitals. FDA 701.13(h): all-caps text is measured on the capitals,
+  // mixed case on the lowercase "o", so capitals stay legal at a smaller point size.
+  const capBold = capHeightRatio(files.sansBold);
 
   const frame = frameFor(input.shape);
   const { W, H } = frame;
@@ -212,25 +257,38 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
 
   // ---- Front ----
   const front = pdf.addPage([W, H]);
-  // Net weight: a hair over the legal minimum, in the bottom 30% of the panel.
-  const netSize = sizeForXHeight(input.netMinIn * 1.05, xBold);
+  // Net weight: a hair over the legal minimum, in the bottom 30% of the panel's AREA
+  // (21 CFR 701.13(f)). Panels of 5 sq in or less are exempt from the 30% rule (f)(1),
+  // so there it just goes as low as it fits.
+  const netMin = sizeForXHeight(input.netMinIn * 1.05, capBold);
+  // Comfortable size first; the legal minimum only when space is tight.
+  let netSize = Math.max(netMin, Math.round(short * 0.065 * 10) / 10);
+  const netText = input.net ? input.net.toUpperCase() : null;
+  const bandTop = H * (1 - bottomBandShare(input.shape));
+  const placementRule = labelArea(input.shape) > 5;
+  const highestStart = placementRule ? bandTop : frame.top;
   let netTop = frame.bottom;
   if (input.net) {
-    const netPara: Para[] = [{ text: input.net, font: sansBold, size: netSize, gap: 0 }];
     let placed: ReturnType<typeof flow> | null = null;
-    // Start as low as possible and move up until it fits the shape (round labels narrow at the bottom).
-    for (let start = frame.bottom - netSize * LEADING; start >= H * 0.7 - 0.01; start -= 1) {
-      const tried = flow(netPara, frame, start, "center");
-      if (!tried.overflow && tried.end <= frame.bottom + 0.01) {
-        placed = tried;
-        netTop = start;
-        break;
+    for (const size of netSize > netMin ? [netSize, netMin] : [netMin]) {
+      const netPara: Para[] = [{ text: netText!, font: sansBold, size, gap: 0 }];
+      // Start as low as possible and move up until it fits the shape (round labels narrow at the bottom).
+      for (let start = frame.bottom - size * LEADING; start >= highestStart - 0.01; start -= 1) {
+        const tried = flow(netPara, frame, start, "center");
+        if (!tried.overflow && tried.end <= frame.bottom + 0.01) {
+          placed = tried;
+          netTop = start;
+          netSize = size;
+          break;
+        }
       }
+      if (placed) break;
     }
     if (!placed) {
       // Doesn't fit in the bottom 30%: still print it at legal size, and say so.
-      placed = flow(netPara, frame, H * 0.7, "center");
-      netTop = H * 0.7;
+      netSize = netMin;
+      placed = flow([{ text: netText!, font: sansBold, size: netMin, gap: 0 }], frame, bandTop, "center");
+      netTop = bandTop;
       warnings.push("The net weight doesn't fit in the bottom 30% of the front at the legal letter size. Use a bigger label.");
     }
     draw(front, H, placed.lines);
@@ -309,7 +367,7 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
 
   // ---- Back ----
   const backPage = pdf.addPage([W, H]);
-  const align = input.shape.shape === "round" ? "center" : "left";
+  const align = input.shape.shape === "rect" ? "left" : "center";
   const minBack = sizeForXHeight(ING_MIN_IN, xSans);
   const smallBack = sizeForXHeight(ING_SMALL_PACKAGE_IN, xSans);
   const backParas = (size: number): Para[] =>
@@ -381,7 +439,7 @@ export function labelFileName(parts: {
   const dims = parts.shape
     ? parts.shape.shape === "round"
       ? `${inch(parts.shape.diameterIn)}-round`
-      : `${inch(parts.shape.widthIn)}x${inch(parts.shape.heightIn)}`
+      : `${inch(parts.shape.widthIn)}x${inch(parts.shape.heightIn)}${parts.shape.shape === "oval" ? "-oval" : ""}`
     : "";
   const name = [parts.business, parts.product, parts.lot ? `Lot ${parts.lot}` : "", parts.size, dims]
     .map(word)
