@@ -191,3 +191,21 @@ export const cosmeticsPack: MarketPack = {
   choices: choicesFor,
   backPanel,
 };
+
+/** Every label name this pack can produce, with where it comes from. For checks against CosIng. */
+export function allLabelNames(): Map<string, string> {
+  const names = new Map<string, string>();
+  for (const i of INGREDIENTS) names.set(i.labelName, `ingredient ${i.key}`);
+  for (const c of CARRIERS) names.set(c.labelName, `carrier ${c.key}`);
+  for (const g of VARIETY_GROUPS)
+    for (const v of g.varieties)
+      for (const f of v.only ?? g.forms) {
+        const n =
+          f === "eo" ? (v.eo ?? `${v.base} Oil`)
+          : f === "hydrosol" ? `${v.base} Water`
+          : f === "extract" || f === "infused" ? `${v.base} Extract`
+          : v.base;
+        names.set(n, `${g.key}/${v.key}/${f}`);
+      }
+  return names;
+}

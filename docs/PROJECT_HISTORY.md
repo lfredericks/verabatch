@@ -92,8 +92,10 @@ Verabatch is a product for any small-batch maker. Liminalia is only the first te
 1. **Sign-in and business details: done.**
 2. **Recipe math: done.** Every spec test case passes.
 3. **Ingredient database: partly done.** Curated draft list covers common maker
-   ingredients, with "which one?" questions for multi-species botanicals. Not done: CosIng
-   import, US name corrections, the ~300-name curated layer, hand checks against CosIng.
+   ingredients, with "which one?" questions for multi-species botanicals. CosIng names are in
+   the repo and every label name is checked against them in tests (`docs/INGREDIENTS.md`);
+   the copy is from 2016 and must be refreshed before launch. Not done: using CosIng to
+   suggest names for ingredients we don't know, the ~300-name curated layer, hand checks.
 4. **Products, sizes, labels: almost done.** Built: products and recipes, locked info and
    recipe lines, variations (linked or standalone), sizes, label page (front/back, net
    contents, lettering minimum, claims flag on name, copy buttons), Manage page with typed

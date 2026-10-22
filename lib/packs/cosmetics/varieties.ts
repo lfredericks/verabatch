@@ -82,11 +82,11 @@ export const VARIETY_GROUPS: VarietyGroup[] = [
   { key: "lavender", triggers: ["lavender", "lavandin"], question: "Which lavender?", forms: ["eo", "flower", "infused", "hydrosol"], varieties: [
     { key: "true", label: "True lavender", latin: "Lavandula angustifolia", keywords: ["true", "angustifolia", "officinalis", "fine", "bulgarian", "high altitude"], base: "Lavandula Angustifolia (Lavender) Flower", eo: "Lavandula Angustifolia (Lavender) Oil", note: "The classic. Most bottles labeled just \"lavender\" are this." },
     { key: "lavandin", label: "Lavandin", latin: "Lavandula × intermedia", keywords: ["lavandin", "grosso", "intermedia", "hybrida"], base: "Lavandula Hybrida Flower", eo: "Lavandula Hybrida Oil", note: "A sharper, cheaper hybrid. Sometimes sold as plain \"lavender.\"" },
-    { key: "spike", label: "Spike lavender", latin: "Lavandula latifolia", keywords: ["spike", "latifolia"], base: "Lavandula Latifolia Flower", eo: "Lavandula Latifolia (Spike Lavender) Oil", note: "Camphor-like, more medicinal smell." },
+    { key: "spike", label: "Spike lavender", latin: "Lavandula latifolia", keywords: ["spike", "latifolia"], base: "Lavandula Latifolia Herb", eo: "Lavandula Latifolia (Spike Lavender) Herb Oil", only: ["eo"], note: "Camphor-like, more medicinal smell. Sold as essential oil." },
   ] },
   { key: "eucalyptus", triggers: ["eucalyptus"], question: "Which eucalyptus?", forms: ["eo"], varieties: [
     { key: "globulus", label: "Eucalyptus globulus", latin: "Eucalyptus globulus", keywords: ["globulus", "blue gum"], base: "Eucalyptus Globulus Leaf", eo: "Eucalyptus Globulus Leaf Oil", note: "The common, strong one." },
-    { key: "radiata", label: "Eucalyptus radiata", latin: "Eucalyptus radiata", keywords: ["radiata", "narrow"], base: "Eucalyptus Radiata Leaf", eo: "Eucalyptus Radiata Leaf Oil", note: "Softer and gentler." },
+    { key: "radiata", label: "Eucalyptus radiata", latin: "Eucalyptus radiata", keywords: ["radiata", "narrow"], base: "Eucalyptus Radiata Leaf", eo: "Eucalyptus Radiata Leaf/Stem Oil", note: "Softer and gentler." },
     { key: "lemon", label: "Lemon eucalyptus", latin: "Corymbia citriodora", keywords: ["lemon", "citriodora"], base: "Eucalyptus Citriodora", eo: "Eucalyptus Citriodora Oil", note: "Lemony. Calling it a bug repellent is an EPA claim." },
   ] },
   { key: "frankincense", triggers: ["frankincense", "boswellia", "olibanum"], question: "Which frankincense?", forms: ["eo"], varieties: [

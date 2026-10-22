@@ -10,6 +10,7 @@ Read first:
 ## Code layout
 
 - `lib/core`: market-agnostic engine (units, recipe math, ingredient order, net contents, lettering, lots, claims, quick entry). Never put cosmetics rules here.
+- `data/cosing-inci-names.txt` + `tests/cosing.test.ts`: every label name must be an official CosIng name or a listed exception (`docs/INGREDIENTS.md`).
 - `lib/packs/cosmetics`: the first market pack. Ingredient and variety names are drafts (`source: "draft"`) until checked against CosIng.
 - `app/`: Next.js 15 App Router. `/login` (email code sign-in), `/app` (signed-in area, product list), `/app/products/new` and `/app/products/[id]` (product editor + sizes), `/app/products/[id]/label` (front/back label text; `?batch=` for a lot), `/app/products/[id]/batches/new|[batchId]` (optional batch log), `/auth/confirm` (email link).
 - `lib/packs/index.ts`: `activePack()` picks the market. Screens use it, never a pack directly.

@@ -48,7 +48,7 @@ const ROWS: Row[] = [
   ["teatree", "Tea tree essential oil", ["tea tree"], "Melaleuca Alternifolia (Tea Tree) Leaf Oil", 0.89],
   ["rosemary", "Rosemary essential oil", ["rosemary", "rosemary essential oil", "rosemary eo"], "Rosmarinus Officinalis (Rosemary) Leaf Oil", 0.91],
   ["lemongrass", "Lemongrass essential oil", ["lemongrass"], "Cymbopogon Flexuosus Oil", 0.89],
-  ["patchouli", "Patchouli essential oil", ["patchouli"], "Pogostemon Cablin Oil", 0.96],
+  ["patchouli", "Patchouli essential oil", ["patchouli"], "Pogostemon Cablin Leaf Oil", 0.96],
   ["ylang", "Ylang ylang essential oil", ["ylang ylang", "ylang"], "Cananga Odorata Flower Oil", 0.95],
   ["bergamot", "Bergamot essential oil", ["bergamot", "bergamot fcf", "bergaptene free bergamot"], "Citrus Aurantium Bergamia (Bergamot) Fruit Oil", 0.88,
     "Cold-pressed bergamot can make skin sun-sensitive. Bottles marked FCF or bergaptene-free don't."],
