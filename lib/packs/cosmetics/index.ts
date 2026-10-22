@@ -180,6 +180,16 @@ export function backPanel({ business, productType }: { business: BusinessInfo; p
   return lines;
 }
 
+/** Rough density for a name the maker picked, from its last word. Marked approximate anyway. */
+export function guessDensity(labelName: string): number {
+  const n = labelName.toUpperCase();
+  if (/\b(BUTTER|OIL|OLEORESIN)\b/.test(n)) return 0.91;
+  if (/\b(WAX|CERA)\b/.test(n)) return 0.96;
+  if (/\b(POWDER|FLOWER|LEAF|ROOT|BARK|HERB|PETALS?)$/.test(n)) return 0.4;
+  if (/\bGLYCERIN\b/.test(n)) return 1.26;
+  return 1.0;
+}
+
 export const cosmeticsPack: MarketPack = {
   id: "cosmetics",
   name: "Cosmetics and home fragrance",
@@ -190,6 +200,7 @@ export const cosmeticsPack: MarketPack = {
   resolve: resolveLine,
   choices: choicesFor,
   backPanel,
+  guessDensity,
 };
 
 /** Every label name this pack can produce, with where it comes from. For checks against CosIng. */

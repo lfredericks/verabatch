@@ -167,3 +167,6 @@ fieldset.fld .radio + .radio { margin-top: 4px; }
 .choice { display: flex; flex-direction: column; gap: 4px; }
 .choice .btn { align-self: flex-start; }
 .plist a.variation { padding: 6px 0 6px 16px; border-left: 2px solid var(--line); margin-left: 4px; }
+.finder { gap: 10px; }
+.picks { display: flex; flex-wrap: wrap; gap: 6px; }
+.picks .btn { text-align: left; }

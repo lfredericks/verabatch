@@ -21,6 +21,8 @@ export interface ComputedRecipe {
   needsChoice: ComputedLine[];
   /** Lines the pack doesn't recognise; shown as typed with a warning. */
   unknown: ComputedLine[];
+  /** Lines using the maker's own name, not an official one. */
+  custom: ComputedLine[];
   anyApproximate: boolean;
 }
 
@@ -36,7 +38,16 @@ export function computeRecipe(lines: RecipeLine[], pack: MarketPack): ComputedRe
       skipped.push(line);
       continue;
     }
-    const resolution = pack.resolve(line);
+    // A name the maker picked wins over the pack's own lookup.
+    const resolution: Resolution = line.pick?.name.trim()
+      ? {
+          status: "known",
+          labelName: line.pick.name.trim(),
+          density: pack.guessDensity?.(line.pick.name) ?? FALLBACK_DENSITY,
+          displayName: line.pick.name.trim(),
+          pick: line.pick.kind,
+        }
+      : pack.resolve(line);
     const density = resolution.status === "known" ? resolution.density : FALLBACK_DENSITY;
     const c = convert(amount, line.unit, density);
     out.push({ line, resolution, grams: c.grams, ml: c.ml, approximate: c.approximate, pct: 0 });
@@ -51,6 +62,7 @@ export function computeRecipe(lines: RecipeLine[], pack: MarketPack): ComputedRe
     totalMl,
     needsChoice: out.filter((l) => l.resolution.status === "needsChoice"),
     unknown: out.filter((l) => l.resolution.status === "unknown"),
+    custom: out.filter((l) => l.resolution.status === "known" && l.resolution.pick === "custom"),
     anyApproximate: out.some((l) => l.approximate),
   };
 }

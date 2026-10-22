@@ -22,6 +22,8 @@ export interface Label {
   blockers: string[];
   /** Risky words in the name or "what it is" line. */
   claims: ClaimHit[];
+  /** Ingredient names the maker typed themselves, not from the official list. */
+  customNames: string[];
   approximate: boolean;
   productType?: ProductType;
 }
@@ -67,6 +69,7 @@ export function buildLabel({ product, business, size, pack, batch }: LabelInput)
     size: facts,
     blockers,
     claims: checkClaims(`${product.name} ${product.identity}`, pack.claimRules),
+    customNames: recipe.custom.map((l) => (l.resolution.status === "known" ? l.resolution.labelName : l.line.text)),
     approximate: !size && recipe.anyApproximate,
     ...(productType ? { productType } : {}),
   };

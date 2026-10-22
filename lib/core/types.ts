@@ -24,6 +24,16 @@ export interface RecipeLine {
   variety?: VarietyChoice;
   /** Stable id for the line, so variations can say which parent line they change. */
   key?: string;
+  /**
+   * A name the maker chose for this line: an official name from the market's list, or
+   * their own name (printed as typed and flagged as not official).
+   */
+  pick?: NamePick;
+}
+
+export interface NamePick {
+  kind: "official" | "custom";
+  name: string;
 }
 
 /** The business details that go on labels. */
@@ -82,6 +92,8 @@ export type Resolution =
        * A share of 0 means "a trace": listed among the under-1% ingredients.
        */
       parts?: { labelName: string; share: number }[];
+      /** Set when the maker picked the name: "custom" names aren't official and get flagged. */
+      pick?: NamePick["kind"];
     }
   | {
       status: "needsChoice";
@@ -148,6 +160,8 @@ export interface MarketPack {
    * where, and how to reach them. Wording is the pack's, so each market can differ.
    */
   backPanel?(ctx: { business: BusinessInfo; productType?: ProductType }): string[];
+  /** Rough grams per mL for a name the maker picked (by its last word: oil, butter, water...). */
+  guessDensity?(labelName: string): number;
   /** The options to show for a "which one?" question from resolve(). */
   choices?(question: Extract<Resolution, { status: "needsChoice" }>): Choice[];
 }

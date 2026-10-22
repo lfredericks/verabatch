@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { computeRecipe, parseQuickEntry, UNIT_LABELS, type RecipeLine, type Resolution, type Unit } from "@/lib/core";
+import { computeRecipe, parseQuickEntry, UNIT_LABELS, type NamePick, type RecipeLine, type Resolution, type Unit } from "@/lib/core";
 import { activePack } from "@/lib/packs";
 import { compareToParent } from "@/lib/variations";
+import { NameFinder } from "./NameFinder";
 
 export type Row = RecipeLine & { id: number };
 type Question = Extract<Resolution, { status: "needsChoice" }>;
@@ -50,6 +51,8 @@ export function RecipeLines({
 }) {
   const [open, setOpen] = useState<Set<number>>(() => new Set(startOpen ? rows.map((r) => r.id) : []));
   const [paste, setPaste] = useState("");
+  /** Lines where the maker chose "Mine isn't listed" on a which-one question. */
+  const [finding, setFinding] = useState<Set<number>>(() => new Set());
   const [pasteOpen, setPasteOpen] = useState(false);
 
   const lines = useMemo(() => rowsToLines(rows), [rows]);
@@ -66,16 +69,44 @@ export function RecipeLines({
     });
 
   function update(id: number, patch: Partial<RecipeLine>) {
-    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+    setRows((rs) =>
+      rs.map((r) => {
+        if (r.id !== id) return r;
+        const next = { ...r, ...patch };
+        // A different ingredient needs its name picked again.
+        if (patch.text !== undefined && patch.text !== r.text) delete next.pick;
+        return next;
+      }),
+    );
     onChange();
   }
   function answer(row: Row, q: Question, key: string) {
     const prior = row.variety?.group === q.group ? row.variety : undefined;
     update(row.id, { variety: { ...q.known, ...prior, group: q.group, [q.missing]: key } });
   }
+  /** Forget "which one" answers and picked names (keeps the line's key for variations). */
   function clearAnswer(row: Row) {
-    setRows((rs) => rs.map((r) => (r.id === row.id ? { id: r.id, amount: r.amount, unit: r.unit, text: r.text } : r)));
+    setRows((rs) => rs.map((r) => (r.id === row.id ? { id: r.id, amount: r.amount, unit: r.unit, text: r.text, ...(r.key ? { key: r.key } : {}) } : r)));
     onChange();
+  }
+  function pickName(row: Row, pick: NamePick) {
+    setRows((rs) =>
+      rs.map((r) => (r.id === row.id ? { id: r.id, amount: r.amount, unit: r.unit, text: r.text, ...(r.key ? { key: r.key } : {}), pick } : r)),
+    );
+    setFinding((s) => {
+      const n = new Set(s);
+      n.delete(row.id);
+      return n;
+    });
+    onChange();
+  }
+  function startFinding(row: Row, on: boolean) {
+    setFinding((s) => {
+      const n = new Set(s);
+      if (on) n.add(row.id);
+      else n.delete(row.id);
+      return n;
+    });
   }
   function addLine() {
     const b = blankRow();
@@ -143,31 +174,50 @@ export function RecipeLines({
                 </div>
               )}
 
-              {r?.status === "known" && <p className="rstatus ok-soft">{r.labelName}</p>}
-              {r?.status === "unknown" && (
-                <p className="rstatus warn-text">Not in our list yet. It will show as typed; check the name before printing.</p>
+              {r?.status === "known" && r.pick === "custom" && (
+                <p className="rstatus warn-text">
+                  ⚠ {r.labelName}: your own name, <b>not an official ingredient name</b>.
+                </p>
               )}
-              {r?.status === "needsChoice" && (
-                <div className="ask">
-                  <label className="fld">
-                    <span>{r.question}</span>
-                    <select value="" onChange={(e) => e.target.value && answer(row, r, e.target.value)}>
-                      <option value="">Choose (check your bottle)</option>
-                      {(pack.choices?.(r) ?? []).map((ch) => (
-                        <option key={ch.key} value={ch.key}>
-                          {ch.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  {r.note && <p className="hint">{r.note}</p>}
-                </div>
+              {r?.status === "known" && r.pick !== "custom" && <p className="rstatus ok-soft">{r.labelName}</p>}
+              {r?.status === "unknown" && row.text.trim() && (
+                <>
+                  <p className="rstatus warn-text">&ldquo;{row.text}&rdquo; isn&rsquo;t in our list yet.</p>
+                  <NameFinder typed={row.text} onPick={(p) => pickName(row, p)} />
+                </>
               )}
+              {r?.status === "needsChoice" &&
+                (finding.has(row.id) ? (
+                  <NameFinder typed={row.text} onPick={(p) => pickName(row, p)} onCancel={() => startFinding(row, false)} />
+                ) : (
+                  <div className="ask">
+                    <label className="fld">
+                      <span>{r.question}</span>
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (v === "__mine") startFinding(row, true);
+                          else if (v) answer(row, r, v);
+                        }}
+                      >
+                        <option value="">Choose (check your bottle)</option>
+                        {(pack.choices?.(r) ?? []).map((ch) => (
+                          <option key={ch.key} value={ch.key}>
+                            {ch.label}
+                          </option>
+                        ))}
+                        <option value="__mine">Mine isn&rsquo;t listed</option>
+                      </select>
+                    </label>
+                    {r.note && <p className="hint">{r.note}</p>}
+                  </div>
+                ))}
               {editing && (
                 <div className="row">
-                  {row.variety && (
+                  {(row.variety || row.pick) && (
                     <button type="button" className="btn ghost sm" onClick={() => clearAnswer(row)}>
-                      Change which one
+                      {row.pick ? "Change the name" : "Change which one"}
                     </button>
                   )}
                   <button

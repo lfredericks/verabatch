@@ -46,7 +46,10 @@ export function cleanLine(raw: unknown): RecipeLine | null {
   const unit = UNITS.includes(o.unit as Unit) ? (o.unit as Unit) : "g";
   const variety = cleanVariety(o.variety);
   const key = typeof o.key === "string" && /^[a-z0-9]{1,12}$/.test(o.key) ? o.key : undefined;
-  return { amount, unit, text, ...(variety ? { variety } : {}), ...(key ? { key } : {}) };
+  const pk = o.pick as Record<string, unknown> | undefined;
+  const pickName = pk && typeof pk === "object" ? str(pk.name, 160).trim() : "";
+  const pick = pickName && (pk!.kind === "official" || pk!.kind === "custom") ? { kind: pk!.kind as "official" | "custom", name: pickName } : undefined;
+  return { amount, unit, text, ...(variety ? { variety } : {}), ...(key ? { key } : {}), ...(pick ? { pick } : {}) };
 }
 
 /**

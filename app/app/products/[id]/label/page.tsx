@@ -123,6 +123,13 @@ export default async function LabelPage({
         </div>
       )}
 
+      {label.customNames.length > 0 && (
+        <div className="note">
+          <b>Not official ingredient names:</b> {label.customNames.join(", ")}. You entered these yourself. Check them
+          before you print.
+        </div>
+      )}
+
       {label.claims.length > 0 && (
         <div className="note">
           <b>Wording to check:</b>

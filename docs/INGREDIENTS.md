@@ -16,6 +16,14 @@ checked against CosIng, the EU's free official ingredient list, by `tests/cosing
   Then run `npm test`: the CosIng test lists any name that no longer matches, and flags
   exceptions that are no longer needed.
 
+## Unknown ingredients and makers' own names (Oct 22)
+
+- An ingredient we don't know shows "Did you mean...?" with official names from the list
+  (common plant names like "mugwort" are translated to Latin first: `aliases.ts`).
+- A "which one?" question (lavender) also offers "Mine isn't listed".
+- Either way the maker can use their own name instead. It prints exactly as typed and is
+  flagged on the line and on the label page as not an official ingredient name.
+
 ## Later (Leslie, Oct 22)
 
 - **Automatic updates.** Refresh the official list on a schedule instead of by hand.
