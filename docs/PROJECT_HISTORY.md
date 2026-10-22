@@ -120,6 +120,8 @@ Parked for later:
   PDFs. Color matching on home inkjets is limited.
 - **"Open this label in Canva" button** (see Canva note above).
 - **Help writing descriptions for each channel's audience (Leslie, Oct 22).**
+- **Makers' own flag list:** let a maker add brand names or words to flag (the built-in brand
+  list in `lib/packs/cosmetics/brands.ts` is a starting point, not every trademark).
 - **Ingredient list upkeep (Leslie, Oct 22).** Update the official list automatically, and flag
   makers' saved recipes when a name they use changes or is removed (`docs/INGREDIENTS.md`).
 - **Country choice in setup.** v1 is US/FDA only; `BusinessInfo.country` exists for later.
