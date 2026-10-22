@@ -12,9 +12,9 @@ lavender, makes 4"), and Verabatch handles unit conversions, official ingredient
 (INCI), ingredient order, net contents, lettering size, claims checks and lot numbers,
 and keeps a record of every batch.
 
-It started as a "$10M company idea" exercise. Leslie (founder, also runs the Liminalia
-botanical brand) is customer zero: v1 is done when it produces correct labels for every
-Liminalia product.
+It started as a "$10M company idea" exercise. Leslie is the founder. Her own botanical
+brand, Liminalia, is used only as a test case (real recipes to run through the app); the
+product is built for small-batch makers in general, not for Liminalia (Leslie, Oct 22).
 
 ## How the idea evolved
 
@@ -84,44 +84,45 @@ $10M a year could come from ~25,000 Pro makers at ~$20/mo ($6M) + 400 Enterprise
 | Starter prototype (simple version, varieties, sizes) | https://claude.ai/artifact/35KkBi6xWmsYtc3JvRRz2Y |
 | Canva sidebar mockup | https://claude.ai/artifact/Xqhk5ZY6SAvhnDwTfudpX6 |
 
-## Build status (as of Oct 20, 2026)
+## Build status (as of Oct 22, 2026)
 
-Build order from the spec: 1 skeleton and sign-in, 2 math core, 3 ingredient database,
-4 products/sizes/labels, 5 batches, 6 Liminalia run then five outside makers.
+Verabatch is a product for any small-batch maker. Liminalia is only the first test case
+(its recipes: `docs/test-cases/liminalia.md`); nothing in the app is built for it.
 
-- **Milestone 1 (skeleton): done.** Sign-in works (Supabase's default email link; custom
-  email waits on SMTP). Leslie signed up on her phone and saved Liminalia's details.
-- **Milestone 2 (math core): done.** Every spec test case passes.
-- **Milestone 3 (ingredients): partly done.** Every ingredient in Leslie's materials sheet
-  resolves or asks "which one?" (`tests/liminalia.test.ts`). Still drafts: CosIng import and
-  hand checks not done; bottle photos pending to confirm species.
-- **Milestone 4 (products, sizes, labels): working.** Leslie built the Relief Balm 2 oz
-  label on her phone (Oct 20): front, back, lettering minimum, claims flag, copy buttons.
-  Not done: product description field and its claims check, Free plan limits (deferred
-  until payments).
-- **Theming:** name and look live in `lib/brand` (`docs/BRANDING.md`).
-- **Milestone 5 (batches): built Oct 20, optional by design.** Label defaults to the usual
-  recipe with no lot; logging a batch gives that run its own label and lot.
-- **Variations and locked product info: working on Leslie's iPhone (Oct 22).** Lesson: React 19
-  resets forms after an action, which snapped the type dropdown back; product forms now submit
-  by hand (startTransition). Test on her real phone flow, not just Chromium.
-- Later: "Open this label in Canva" button (see Canva note above).
-- **Printer profiles (Leslie, Oct 22) — PARKED, do later.** Goal in her words: "hit a button and
-  print it right every time." Needs: her printer model and label sheet product numbers.
-  Details: home printers keep wrecking label designs. Idea:
-  Verabatch makes the print-ready sheet itself (exact-size PDF on a chosen label sheet
-  template), and each printer gets a saved profile from a one-time calibration page:
-  measured left/right and up/down shift, scale correction, safe margins. Every sheet for
-  that printer is pre-corrected. Color matching on home inkjets is limited; a proof page
-  helps but can't promise exact color. Main pain (Oct 22): labels print off-center, worst on square and round labels. Calibrate
-  at two corners (catches shift, scale and drift down the sheet). First version could correct
-  her existing Canva PDFs: upload PDF + pick sheet + printer profile, get a corrected PDF.
-- **Countries (Leslie, Oct 20):** v1 follows US FDA labeling only, and every label says USA.
-  Later, setup asks for the maker's country and the matching rules apply (another market
-  pack per country or region; `BusinessInfo.country` already exists for the made-by line).
-- Next: milestone 5 check, then the rest of Liminalia's products
-  (sprays: `docs/LIMINALIA.md`).
-- Live: https://verabatch-six.vercel.app
+1. **Sign-in and business details: done.**
+2. **Recipe math: done.** Every spec test case passes.
+3. **Ingredient database: partly done.** Curated draft list covers common maker
+   ingredients, with "which one?" questions for multi-species botanicals. Not done: CosIng
+   import, US name corrections, the ~300-name curated layer, hand checks against CosIng.
+4. **Products, sizes, labels: almost done.** Built: products and recipes, locked info and
+   recipe lines, variations (linked or standalone), sizes, label page (front/back, net
+   contents, lettering minimum, claims flag on name, copy buttons), Manage page with typed
+   DELETE. Not done: description check (paste listing copy, flag risky words); label sign-off
+   against a real printed label. Free plan limits deferred until payments.
+5. **Batches: built, optional by design.** Not done: sign-off with a real logged batch.
+6. **Real-world run, then five outside makers: not started.** Run a full product line through
+   the app (test case: Liminalia's balm and sprays), fix what trips it up, then the
+   Five-Maker Test Plan.
+
+Product questions open: should the claims check cover product names (yes so far), how to
+handle pesticide claims (bug repellents are EPA, not FDA), whether "air purifying" needs a
+claims rule, domain purchase, pricing after the five-maker round.
+
+Parked for later:
+- **Printer profiles (Leslie, Oct 22).** Goal: "hit a button and print it right every time."
+  Off-center prints are the main pain, worst on round and square labels. Verabatch makes the
+  print-ready sheet (exact-size PDF on a chosen label sheet), each printer gets a profile from
+  a one-time calibration page (shift, scale, drift, measured at two corners), every sheet is
+  pre-corrected; bleed on round/square designs. First version could correct existing Canva
+  PDFs. Color matching on home inkjets is limited.
+- **"Open this label in Canva" button** (see Canva note above).
+- **Country choice in setup.** v1 is US/FDA only; `BusinessInfo.country` exists for later.
+- **Custom email sender (SMTP)** before real users; then switch sign-in back to a typed code.
+
+Lessons: React 19 resets forms after an action (it snapped a dropdown back after "Saved.");
+product forms submit by hand. Test real phone flows, not only Chromium.
+
+- Theming: `docs/BRANDING.md`. Live: https://verabatch-six.vercel.app
 
 ## Why a new session (Oct 20)
 

@@ -1,7 +1,10 @@
-# Liminalia: customer zero recipes
+# Test case: Liminalia
+
+One real maker's recipes, used to test Verabatch. Liminalia is test data only: nothing in
+the app is built for it, and it never appears in app code.
 
 Source: Leslie's "2025 materials cost master" sheet (Oct 20, 2026). These seed the
-milestone 3 ingredient check (`tests/liminalia.test.ts`) and the milestone 4 label test.
+ingredient check (`tests/test-case-liminalia.test.ts`) and the milestone 4 label test.
 Amounts as Leslie wrote them; "oz" in her sheet is fluid ounces (her cup column matches).
 
 ## Relief Balm (same product as "Tiger Balm" in the sheet, confirmed by Leslie; that name is a trademark, internal only)

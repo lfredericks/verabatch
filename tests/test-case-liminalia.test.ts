@@ -1,6 +1,6 @@
 /**
- * Milestone 3 check: every ingredient Liminalia uses (from Leslie's 2025
- * materials cost sheet) must resolve to a label name, or ask the right question.
+ * Test case, not product logic: one real maker's ingredient list (Liminalia,
+ * docs/test-cases/liminalia.md) must resolve to label names or ask the right question.
  * Varieties marked TODO wait on what's printed on Leslie's bottles.
  */
 import { describe, expect, it } from "vitest";

@@ -3,7 +3,7 @@ import { computeRecipe, labelIngredients, parseQuickEntry } from "../lib/core";
 import { cosmeticsPack } from "../lib/packs/cosmetics";
 import { cleanRecipe } from "../lib/products";
 
-/** The Relief Balm recipe as Leslie would paste it (docs/LIMINALIA.md). */
+/** The Relief Balm recipe as Leslie would paste it (docs/test-cases/liminalia.md). */
 const RELIEF_BALM = `1/4 cup avocado oil
 1/2 cup jojoba oil
 1/4 cup coconut oil

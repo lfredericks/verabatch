@@ -20,7 +20,7 @@ export function DangerDelete({
   fields: Record<string, string>;
   /** Button text, e.g. "Delete this product". */
   label: string;
-  /** What is being deleted, e.g. "Relief Balm". */
+  /** What is being deleted, e.g. "Lavender Body Butter". */
   what: string;
   consequences: string[];
 }) {

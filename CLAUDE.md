@@ -24,6 +24,8 @@ Read first:
 
 ## Rules
 
+- Verabatch is a product for any small-batch maker. Liminalia (Leslie's brand) is only a test case: its recipes live in `docs/test-cases/` and tests, never in app code or product decisions.
+
 - v1 is US-only: FDA cosmetic labeling rules, "USA" on the made-by line. Country choice in setup comes later.
 
 - Run `npm test` and `npm run build` before every push. Pushes to `main` deploy to Vercel.

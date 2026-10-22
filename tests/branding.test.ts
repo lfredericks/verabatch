@@ -25,6 +25,11 @@ describe("branding stays in lib/brand", () => {
     expect(hits).toEqual([]);
   });
 
+  it("no test-case maker names in app/ (Liminalia is test data only)", () => {
+    const hits = app.filter((f) => /liminalia|relief balm/i.test(readFileSync(f, "utf8")));
+    expect(hits).toEqual([]);
+  });
+
   it("every theme defines every color in light and dark", () => {
     const keys = Object.keys(THEMES[0]!.colors.light).sort() as (keyof ColorTokens)[];
     for (const t of THEMES) {

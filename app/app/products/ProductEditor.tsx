@@ -112,7 +112,7 @@ export function ProductEditor({
             name="name"
             value={name}
             onChange={(e) => (setName(e.target.value), touch())}
-            placeholder="Relief Balm"
+            placeholder="Lavender Body Butter"
             required
             maxLength={120}
           />
