@@ -223,6 +223,11 @@ product forms submit by hand. Test real phone flows, not only Chromium.
 - Descriptions, first try (Leslie, Oct 23): a big "Copy for Etsy" button per channel, and "Paste from
   Etsy" to bring in an existing description (then claims-checked). Pulling listings from Etsy
   automatically needs the Etsy API, so it belongs with store sync (Supply & Inventory phase).
+- Label preview now drawn from the PDF's own layout (`LabelPdf.preview`, SVG in
+  LabelPreview.tsx): true shape and proportions, same line breaks and letter sizes, logos in
+  place. Leslie found the old HTML preview didn't match a 6.25 x 1.375 wraparound. Wraps get a
+  "Zoom in to read it" button (scrolls sideways). Hover styles only apply with a real mouse
+  (stuck hover look on phones).
 - Children warning is now "Keep out of reach of children and pets." (Leslie). When required
   FDA wording already says children, it prints "Keep away from pets." instead.
 

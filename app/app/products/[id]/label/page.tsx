@@ -6,7 +6,8 @@ import { BrandMark } from "../../../../BrandMark";
 import { CopyButtons } from "./CopyButtons";
 import { labelPdfFor, loadLabel, readLogoChoice } from "./data";
 import { LabelPreview } from "./LabelPreview";
-import { labelShapeOf } from "@/lib/sizes";
+import { LABEL_FONTS_WEB } from "@/lib/labelFonts/web";
+import { logoUrl } from "@/lib/logos";
 
 export const metadata: Metadata = { title: pageTitle("Label") };
 export const dynamic = "force-dynamic";
@@ -36,6 +37,8 @@ export default async function LabelPage({
     if (logos.business) q.append("logo", "business");
   };
   const made = await labelPdfFor(loaded);
+  // Logo links for the preview, in the same order the PDF placed them.
+  const logoLinks = (await Promise.all(loaded.frontLogos.map((p) => logoUrl(loaded.supabase, p)))).filter((u): u is string => Boolean(u));
   const link = (o: { size?: string | undefined; batch?: string | undefined }) => {
     const q = new URLSearchParams();
     const sz = o.size ?? size?.id;
@@ -51,12 +54,6 @@ export default async function LabelPage({
   logoQuery(pdfQuery);
   const pdfHref = `/app/products/${id}/label/pdf/${encodeURIComponent(fileName ?? "Label.pdf")}?${pdfQuery}`;
   const frontText = label.front.join("\n");
-  const ls = size ? labelShapeOf(size) : null;
-  const previewShape = ls
-    ? ls.shape === "round"
-      ? { kind: "round" as const, w: ls.diameterIn, h: ls.diameterIn }
-      : { kind: ls.shape, w: ls.widthIn, h: ls.heightIn }
-    : null;
   const ready = label.blockers.length === 0;
   const backText = label.back.join("\n");
 
@@ -128,17 +125,22 @@ export default async function LabelPage({
         </div>
       )}
 
-      <LabelPreview
-        shape={previewShape}
-        name={product.name}
-        identity={product.identity ?? ""}
-        net={label.net}
-        back={label.back}
-        bold={label.warnings}
-        sizeText={label.size?.labelText ?? null}
-        wrap={Boolean(size?.label_wrap && previewShape?.kind === "rect")}
-        cutOff={"pdf" in made ? made.pdf.backCutOff : ""}
-      />
+      {"pdf" in made ? (
+        <>
+          <link rel="stylesheet" href={LABEL_FONTS_WEB.css} />
+          <LabelPreview
+            preview={made.pdf.preview}
+            fonts={{ serif: LABEL_FONTS_WEB.serif, sans: LABEL_FONTS_WEB.sans }}
+            logos={logoLinks}
+            sizeText={label.size?.labelText ?? null}
+            cutOff={made.pdf.backCutOff}
+          />
+        </>
+      ) : (
+        <div className="note">
+          <pre className="label-text">{label.front.join("\n")}</pre>
+        </div>
+      )}
       {label.size?.lettering && (
         <p className="hint center">
           Net weight letters at least <b>{label.size.lettering.minHeight}</b> tall ({label.size.areaSqIn!.toFixed(1)} sq in front panel).

@@ -266,6 +266,8 @@ a.status { text-decoration: none; }
 .paper-id { font-size: 0.9rem; }
 .paper-net { margin-top: 14px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.02em; }
 .paper-bold { font-weight: 700; }
+.label-zoom { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 6px; }
+.label-svg { display: block; margin: 0 auto; }
 .paper-cut { color: var(--danger); text-decoration: line-through; }
 .paper-wrap { flex-direction: row; align-items: stretch; padding: 0; border-radius: var(--radius-small); gap: 0; }
 .paper-wrap-front { flex: 0 0 40%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 10px 8px; border-right: 1px dashed var(--line); }

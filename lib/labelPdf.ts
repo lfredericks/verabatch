@@ -73,6 +73,22 @@ export interface LabelPdf {
   backFits: boolean;
   /** Back text that didn't fit, if any. */
   backCutOff: string;
+  /** The exact layout, for drawing an on-screen preview that matches the PDF. */
+  preview: LabelPreviewData;
+}
+
+/** One thing drawn on a label page, in points from the page's top-left. */
+export type PreviewItem =
+  | { kind: "text"; text: string; x: number; baseline: number; size: number; font: "serif" | "sans" | "sansBold" }
+  | { kind: "image"; logo: number; x: number; top: number; w: number; h: number };
+
+export interface LabelPreviewData {
+  shape: "rect" | "round" | "oval";
+  /** One wraparound page instead of front + back. */
+  wrap: boolean;
+  /** Where the back starts on a wraparound, in points from the left. */
+  splitX: number;
+  pages: { w: number; h: number; items: PreviewItem[] }[];
 }
 
 const PT = 72;
@@ -235,10 +251,12 @@ export function bottomBandShare(shape: LabelShape): number {
   return lo / 2; // An oval is a stretched circle, so the share is the same.
 }
 
+const baselineOf = (l: PlacedLine) => l.top + l.size * (LEADING - 1) / 2 + l.size * 0.8;
+
 function draw(page: PDFPage, H: number, lines: PlacedLine[], dx = 0) {
   for (const l of lines) {
     // Baseline sits inside the band: ascent of roughly 0.8 em below the band's top, plus half the leading.
-    const baseline = l.top + l.size * (LEADING - 1) / 2 + l.size * 0.8;
+    const baseline = baselineOf(l);
     page.drawText(l.text, { x: l.x + dx, y: H - baseline, size: l.size, font: l.font, color: rgb(0, 0, 0), lineHeight: l.size * LEADING });
   }
 }
@@ -268,6 +286,15 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
   const sans = await pdf.embedFont(files.sans, { subset: true, customName: "VBLAAB+Lato-Regular" });
   const sansBold = await pdf.embedFont(files.sansBold, { subset: true, customName: "VBLAAC+Lato-Bold" });
   const xSans = xHeightRatio(files.sans);
+  // Everything drawn, per page, for the on-screen preview.
+  const drawn = new Map<PDFPage, PreviewItem[]>();
+  const fontKey = (f: PDFFont) => (f === serif ? "serif" : f === sansBold ? "sansBold" : "sans") as "serif" | "sans" | "sansBold";
+  const put = (page: PDFPage, lines: PlacedLine[], dx = 0) => {
+    draw(page, H, lines, dx);
+    const list = drawn.get(page) ?? [];
+    for (const l of lines) list.push({ kind: "text", text: l.text, x: l.x + dx, baseline: baselineOf(l), size: l.size, font: fontKey(l.font) });
+    drawn.set(page, list);
+  };
   // The net weight prints in capitals. FDA 701.13(h): all-caps text is measured on the capitals,
   // mixed case on the lowercase "o", so capitals stay legal at a smaller point size.
   const capBold = capHeightRatio(files.sansBold);
@@ -315,7 +342,7 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
       netTop = bandTop;
       warnings.push("The net weight doesn't fit in the bottom 30% of the front at the FDA minimum letter size. Use a bigger label.");
     }
-    draw(front, H, placed.lines);
+    put(front, placed.lines);
   }
 
   // Logo (if any) at the top, then the name and "what it is", as big as fits above the net weight.
@@ -369,13 +396,16 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
     if (!out) continue;
     if (box) {
       let x = box.x;
-      for (const img of logoImgs) {
+      const list = drawn.get(front) ?? [];
+      logoImgs.forEach((img, i) => {
         const w = (img.width / img.height) * box.h;
         front.drawImage(img, { x, y: H - box.y - box.h, width: w, height: box.h });
+        list.push({ kind: "image", logo: i, x, top: box.y, w, h: box.h });
         x += w + box.gap;
-      }
+      });
+      drawn.set(front, list);
     }
-    draw(front, H, out.lines);
+    put(front, out.lines);
     frontDone = true;
   }
   if (!frontDone) {
@@ -386,7 +416,7 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
     );
     const paras: Para[] = [{ text: input.name, font: serif, size: nameSize, gap: 0 }];
     if (input.identity.trim()) paras.push({ text: input.identity, font: sans, size: identitySize, gap: 2 });
-    draw(front, H, flow(paras, frame, frame.top, "center").lines);
+    put(front, flow(paras, frame, frame.top, "center").lines);
   }
 
   // ---- Back ----
@@ -398,7 +428,7 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
       `The back doesn't fit on this label at the FDA minimum letter size (${input.smallPackage ? "1/32" : "1/16"} in). This part is cut off: "${back.cutOff}". Use a bigger label, or untick optional warnings.`,
     );
   }
-  draw(backPage, H, back.lines, parts.frontW);
+  put(backPage, back.lines, parts.frontW);
   const backSize = back.size;
 
   const bytes = await pdf.save();
@@ -408,6 +438,12 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
     sizes: { name: nameSize, identity: identitySize, net: input.net ? netSize : 0, back: backSize },
     backFits: back.fits,
     backCutOff: back.cutOff,
+    preview: {
+      shape: input.shape.shape,
+      wrap: wrapped,
+      splitX: parts.frontW,
+      pages: pdf.getPages().map((pg) => ({ w: pg.getWidth(), h: pg.getHeight(), items: drawn.get(pg) ?? [] })),
+    },
   };
 }
 

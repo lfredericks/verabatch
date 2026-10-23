@@ -161,3 +161,19 @@ describe("back label fitting", () => {
     expect(fit.map((f) => f.id)).toEqual(["big"]);
   });
 });
+
+describe("on-screen preview", () => {
+  it("matches the PDF: same pages, same sizes, every line placed", async () => {
+    const out = await buildLabelPdf({ ...base, shape: { shape: "rect", widthIn: 3, heightIn: 2 }, netMinIn: 1 / 8 }, await loadLabelFonts());
+    expect(out.preview.pages.map((p) => [p.w, p.h])).toEqual([[216, 144], [216, 144]]);
+    const frontText = out.preview.pages[0]!.items.filter((i) => i.kind === "text").map((i) => (i as { text: string }).text).join(" ");
+    expect(frontText).toContain("Garden Balm");
+    expect(out.preview.pages[1]!.items.length).toBeGreaterThan(0);
+  });
+  it("a wraparound previews as one strip split at the front panel", async () => {
+    const out = await buildLabelPdf({ ...base, wrap: true, shape: { shape: "rect", widthIn: 6.25, heightIn: 1.375 }, netMinIn: 1 / 16 }, await loadLabelFonts());
+    expect(out.preview.wrap).toBe(true);
+    expect(out.preview.pages).toHaveLength(1);
+    expect(out.preview.splitX).toBeCloseTo(6.25 * 0.4 * 72, 0);
+  });
+});
