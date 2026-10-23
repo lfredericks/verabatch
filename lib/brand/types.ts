@@ -33,6 +33,8 @@ export interface ColorTokens {
   line: string;
   /** Brand color: main buttons, links, focus rings, the logo mark. */
   accent: string;
+  /** Darker accent for the pressable edge under big main buttons. */
+  accentDeep: string;
   /** Pale accent for highlights and focus glow. */
   accentSoft: string;
   /** Text on top of the accent color (main button text). */

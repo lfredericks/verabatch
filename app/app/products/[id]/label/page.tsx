@@ -5,6 +5,8 @@ import { pageTitle } from "@/lib/brand";
 import { BrandMark } from "../../../../BrandMark";
 import { CopyButtons } from "./CopyButtons";
 import { labelPdfFor, loadLabel, readLogoChoice } from "./data";
+import { LabelPreview } from "./LabelPreview";
+import { labelShapeOf } from "@/lib/sizes";
 
 export const metadata: Metadata = { title: pageTitle("Label") };
 export const dynamic = "force-dynamic";
@@ -49,16 +51,38 @@ export default async function LabelPage({
   logoQuery(pdfQuery);
   const pdfHref = `/app/products/${id}/label/pdf/${encodeURIComponent(fileName ?? "Label.pdf")}?${pdfQuery}`;
   const frontText = label.front.join("\n");
+  const ls = size ? labelShapeOf(size) : null;
+  const previewShape = ls
+    ? ls.shape === "round"
+      ? { kind: "round" as const, w: ls.diameterIn, h: ls.diameterIn }
+      : { kind: ls.shape, w: ls.widthIn, h: ls.heightIn }
+    : null;
+  const ready = label.blockers.length === 0;
   const backText = label.back.join("\n");
 
   return (
     <main className="wrap narrow">
       <BrandMark href="/app" />
-      <div>
-        <p className="eyebrow">Label</p>
-        <h1>{product.name}</h1>
+      <Link href={`/app/products/${id}`} className="backlink">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M15 5l-7 7 7 7" />
+        </svg>
+        {product.name}
+        {size ? ` · ${size.name}` : ""}
+      </Link>
+      <div className="win">
+        {ready ? (
+          <span className="win-mark" aria-hidden="true">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12l4 4 10-10" />
+            </svg>
+          </span>
+        ) : null}
+        <h1>{ready ? "Your label is ready" : "Almost ready"}</h1>
+        <p className="hint">
+          {ready ? "Ingredient names, net weight size and warnings all checked." : "Fix these before you print. Everything else checks out."}
+        </p>
       </div>
-
       {sizes.length > 1 && (
         <nav className="tabs" aria-label="Sizes">
           {sizes.map((s) => (
@@ -92,9 +116,8 @@ export default async function LabelPage({
         </nav>
       )}
 
-      {label.blockers.length > 0 && (
+      {!ready && (
         <div className="note" role="status">
-          <b>Before you print:</b>
           <ul className="tight">
             {label.blockers.map((b) => (
               <li key={b}>{b}</li>
@@ -103,6 +126,43 @@ export default async function LabelPage({
         </div>
       )}
 
+      <LabelPreview
+        shape={previewShape}
+        name={product.name}
+        identity={product.identity ?? ""}
+        net={label.net}
+        back={label.back}
+        bold={label.warnings}
+        sizeText={label.size?.labelText ?? null}
+      />
+      {label.size?.lettering && (
+        <p className="hint center">
+          Net weight letters at least <b>{label.size.lettering.minHeight}</b> tall ({label.size.areaSqIn!.toFixed(1)} sq in front panel).
+        </p>
+      )}
+      {label.approximate && (
+        <p className="hint">No size yet, so the net weight is the batch divided by how many it makes, from typical values. Add a size for an exact one.</p>
+      )}
+
+      {"pdf" in made ? (
+        <div className="bigbtns">
+          <a href={`${pdfHref}&download=1`} className="bigbtn bigbtn-pri">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+            </svg>
+            Download PDF
+          </a>
+          <a href={pdfHref} target="_blank" rel="noopener" className="bigbtn">
+            Open the PDF
+          </a>
+          <Link href={`/app/products/${id}/batches/new`} className="bigbtn">
+            I made a batch
+          </Link>
+        </div>
+      ) : (
+        <p className="note">{made.missing}</p>
+      )}
+      <p className="hint center">One-click Open in Canva is coming before launch. For now, upload the PDF in Canva.</p>
       {label.customNames.length > 0 && (
         <div className="note">
           <b>Not official ingredient names:</b> {label.customNames.join(", ")}. You entered these yourself. Check them
@@ -123,99 +183,49 @@ export default async function LabelPage({
         </div>
       )}
 
-      <section className="card" aria-labelledby="front">
-        <h2 id="front">Front{size ? ` · ${size.name}` : ""}</h2>
-        <div className="lbl">
-          <div className="nm">{product.name}</div>
-          {product.identity && <div>{product.identity}</div>}
-          {label.net && <div className="net">{label.net}</div>}
+      {"pdf" in made && made.pdf.warnings.length > 0 && (
+        <div className="note">
+          <ul className="tight">
+            {made.pdf.warnings.map((w) => (
+              <li key={w}>{w}</li>
+            ))}
+          </ul>
         </div>
-        {label.size?.lettering ? (
-          <p className="hint">
-            Front label {label.size.labelText} ({label.size.areaSqIn!.toFixed(1)} sq in): net weight letters at least{" "}
-            <b>{label.size.lettering.minHeight}</b> tall, in the bottom third of the front.
-          </p>
-        ) : (
-          size && <p className="hint">Add this size&rsquo;s label dimensions to see the smallest letter size allowed.</p>
-        )}
-        {label.approximate && (
-          <p className="hint">No size yet, so the net weight is the batch divided by how many it makes, from typical values. Add a size for an exact one.</p>
-        )}
-      </section>
+      )}
 
-      <section className="card" aria-labelledby="back">
-        <h2 id="back">Back</h2>
-        <div className="lbl">
-          {label.back.map((line) => (
-            <div key={line}>{label.warnings.includes(line) ? <b>{line}</b> : line}</div>
-          ))}
-        </div>
-      </section>
-
-      <section className="card" aria-labelledby="pdf">
-        <h2 id="pdf">Print-ready PDF</h2>
-        {"pdf" in made ? (
-          <>
-            <p className="hint">
-              Front on page 1, back on page 2, each at your label&rsquo;s exact size ({label.size?.labelText}). Two fonts
-              only, Libre Baskerville and Lato, both in Canva, so the text stays editable when you upload it there.
-            </p>
-            {(has.product || has.business) && (
-              <form method="get" className="fld">
-                <span>Logos on the front (both ticked: side by side)</span>
-                {size && <input type="hidden" name="size" value={size.id} />}
-                <input type="hidden" name="batch" value={batch ? batch.id : "standard"} />
-                <input type="hidden" name="ls" value="1" />
-                {has.product && (
-                  <label className="radio">
-                    <input type="checkbox" name="logo" value="product" defaultChecked={logos.product} /> Product logo
-                  </label>
-                )}
-                {has.business && (
-                  <label className="radio">
-                    <input type="checkbox" name="logo" value="business" defaultChecked={logos.business} /> Business logo
-                  </label>
-                )}
-                <button className="btn sm cta">Update the PDF</button>
-              </form>
+      {"pdf" in made && (has.product || has.business) && (
+        <details className="card">
+          <summary>
+            <b>Logos on the front</b>
+          </summary>
+          <form method="get" className="fld">
+            {size && <input type="hidden" name="size" value={size.id} />}
+            <input type="hidden" name="batch" value={batch ? batch.id : "standard"} />
+            <input type="hidden" name="ls" value="1" />
+            {has.product && (
+              <label className="radio">
+                <input type="checkbox" name="logo" value="product" defaultChecked={logos.product} /> Product logo
+              </label>
             )}
-            {made.pdf.warnings.length > 0 && (
-              <div className="note">
-                <ul className="tight">
-                  {made.pdf.warnings.map((w) => (
-                    <li key={w}>{w}</li>
-                  ))}
-                </ul>
-              </div>
+            {has.business && (
+              <label className="radio">
+                <input type="checkbox" name="logo" value="business" defaultChecked={logos.business} /> Business logo
+              </label>
             )}
-            <div className="row">
-              <a href={pdfHref} target="_blank" rel="noopener" className="btn pri cta">
-                Open the PDF
-              </a>
-              <a href={`${pdfHref}&download=1`} className="btn cta">
-                Download
-              </a>
-            </div>
-            {label.blockers.length > 0 && <p className="hint">Fix the items under &ldquo;Before you print&rdquo; first.</p>}
-          </>
-        ) : (
-          <p className="hint">{made.missing}</p>
-        )}
-      </section>
+            <p className="hint">Both ticked: side by side at the top.</p>
+            <button className="btn sm cta">Update the label</button>
+          </form>
+        </details>
+      )}
 
       <section className="card">
         <CopyButtons front={frontText} back={backText} />
         <p className="hint">Or paste the text into Canva or your label app. Check every label before you print.</p>
       </section>
 
-      <div className="row">
-        <Link href={`/app/products/${id}/batches/new`} className="btn cta">
-          Log a batch (optional)
-        </Link>
-        <Link href={`/app/products/${id}`} className="btn ghost cta">
-          Back to {product.name}
-        </Link>
-      </div>
+      <Link href={`/app/products/${id}`} className="btn ghost cta">
+        Back to {product.name}
+      </Link>
     </main>
   );
 }

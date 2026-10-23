@@ -13,6 +13,7 @@ const COLOR_NOTES: Record<keyof ColorTokens, string> = {
   muted: "Secondary text",
   line: "Borders",
   accent: "Brand color",
+  accentDeep: "Big button edge",
   accentSoft: "Accent highlight",
   onAccent: "Text on accent",
   warn: "Warning",

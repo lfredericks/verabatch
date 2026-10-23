@@ -1,7 +1,7 @@
 /*
  * Layout and component styles. NO raw colors, fonts or corner sizes here:
  * use the var(--...) values, which come from the theme in lib/brand/themes/.
- * Color names: --paper --surface --sunk --ink --muted --line --accent --accent-soft
+ * Color names: --paper --surface --sunk --ink --muted --line --accent --accent-deep --accent-soft
  * --on-accent --warn --warn-soft --danger --success --label --label-ink --label-accent
  * Fonts: --display --body --mono. Corners: --radius-card --radius-control --radius-small.
  */
@@ -190,3 +190,52 @@ details.card > summary { cursor: pointer; list-style: none; }
 details.card > summary::-webkit-details-marker { display: none; }
 .inline-h2 { display: inline; }
 .lot-row { display: flex; gap: 6px; align-items: center; }
+
+/* Product page top: hero, status, big buttons (Etsy-style), section list (Shopify-style) */
+.anchor, [id] { scroll-margin-top: 16px; }
+.stack { display: flex; flex-direction: column; gap: 24px; }
+.hero { display: flex; gap: 14px; align-items: center; }
+.hero-art { width: 72px; height: 72px; flex-shrink: 0; border-radius: var(--radius-card); background: var(--sunk); color: var(--ink); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.hero-art img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+.hero-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hero-text h1 { font-size: clamp(1.7rem, 6vw, 2.4rem); }
+.hero-text span { color: var(--muted); }
+.status { display: flex; align-items: center; gap: 10px; margin: 0; padding: 12px 14px; border-radius: var(--radius-card); background: var(--sunk); color: var(--success); font-weight: 700; }
+.status svg { flex-shrink: 0; }
+a.status { text-decoration: none; }
+.status-warn { background: var(--warn-soft); color: var(--warn); }
+.bigbtns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.bigbtn { min-height: 88px; padding: 10px; border-radius: var(--radius-card); border: 2px solid var(--line); border-bottom-width: 4px; background: var(--surface); color: var(--ink); font-weight: 800; text-decoration: none; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+.bigbtn:hover { border-color: var(--muted); }
+.bigbtn:active { transform: translateY(2px); border-bottom-width: 2px; }
+.bigbtn-pri { grid-column: 1 / 3; min-height: 64px; flex-direction: row; font-size: 1.15rem; background: var(--accent); color: var(--on-accent); border: 0; border-bottom: 4px solid var(--accent-deep); }
+.bigbtn-pri:hover { border-color: var(--accent-deep); filter: brightness(1.05); }
+.navlist { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-card); display: flex; flex-direction: column; }
+.navlist a { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; color: var(--ink); text-decoration: none; min-height: 44px; }
+.navlist a + a { border-top: 1px solid var(--line); }
+.navlist a > span { display: flex; flex-direction: column; min-width: 0; }
+.navlist a > span span { color: var(--muted); font-size: 0.9rem; }
+.navlist svg { color: var(--muted); flex-shrink: 0; }
+.navlist a:hover b { color: var(--accent); }
+
+/* Label page: win moment, real-shape preview, Front/Back switch */
+.backlink { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; color: var(--muted); font-weight: 700; text-decoration: none; align-self: flex-start; }
+.win { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+.win h1 { font-size: clamp(1.8rem, 7vw, 2.4rem); }
+.win .hint { margin: 0; }
+.win-mark { width: 56px; height: 56px; border-radius: 50%; background: var(--sunk); color: var(--success); display: flex; align-items: center; justify-content: center; }
+.center { text-align: center; }
+.preview { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.preview .hint { margin: 0; }
+.seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; padding: 4px; border-radius: var(--radius-control); background: var(--sunk); }
+.seg button { min-height: 40px; border: 0; border-radius: var(--radius-small); background: transparent; font: inherit; font-weight: 700; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 800; }
+.paper { box-sizing: border-box; background: var(--label); color: var(--label-ink); border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; padding: 18px; max-width: 100%; }
+.paper-round, .paper-oval { border-radius: 50%; padding: 24px; }
+.paper-rect { border-radius: var(--radius-small); }
+.paper-back { border-radius: var(--radius-small); align-items: flex-start; justify-content: flex-start; text-align: left; font-size: 0.85rem; line-height: 1.45; gap: 8px; }
+.paper-name { font-family: var(--display); font-size: 1.7rem; line-height: 1.05; color: var(--label-accent); }
+.paper-id { font-size: 0.9rem; }
+.paper-net { margin-top: 14px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.02em; }
+.paper-bold { font-weight: 700; }
+details.card summary { min-height: 28px; }

@@ -17,7 +17,9 @@ import { cleanDescriptions } from "@/lib/channels";
 import { logoUrl } from "@/lib/logos";
 import { LogoField } from "../../LogoField";
 import { Warnings } from "../Warnings";
-import { cleanWarnings } from "@/lib/warnings";
+import { cleanWarnings, warningLines } from "@/lib/warnings";
+import { buildLabel } from "@/lib/label";
+import { ProductHero } from "../ProductHero";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +77,17 @@ export default async function EditProduct({
   const defaultUnit = type?.declareBy === "volume" ? "floz" : "oz";
   const ownLogo = (product as Product & { logo_path?: string | null }).logo_path ?? null;
   const productLogo = await logoUrl(supabase, ownLogo);
+  const pack = activePack();
+  const warnings = cleanWarnings((product as Product & { warnings?: unknown }).warnings, pack);
+  // Is the label ready? Checked against the first size, the same way the label page does.
+  const { data: biz } = await supabase.from("businesses").select("name, city_state_zip, contact").limit(1).maybeSingle();
+  const label = buildLabel({
+    product: { ...product, warnings },
+    business: { name: biz?.name ?? "", cityStateZip: biz?.city_state_zip ?? "", contact: biz?.contact ?? "" },
+    size: sizes[0] ?? null,
+    pack,
+  });
+  const printedWarnings = warningLines(warnings, pack);
   let logoNote = "Optional. Without one, the label uses your business logo.";
   if (!ownLogo && parent) {
     const { data: p } = await supabase.from("products").select("logo_path").eq("id", parent.id).maybeSingle();
@@ -84,14 +97,31 @@ export default async function EditProduct({
   return (
     <main className="wrap narrow">
       <BrandMark href="/app" />
-      <div>
-        {parent && (
-          <p className="eyebrow">
-            Variation of <Link href={`/app/products/${parent.id}`}>{parent.name}</Link>
-          </p>
-        )}
-        <h1>{product.name}</h1>
-      </div>
+      {parent && (
+        <p className="eyebrow">
+          Variation of <Link href={`/app/products/${parent.id}`}>{parent.name}</Link>
+        </p>
+      )}
+      <ProductHero
+        productId={product.id}
+        name={product.name}
+        subtitle={[product.identity, sizes[0]?.name].filter(Boolean).join(" · ")}
+        logoUrl={productLogo}
+        blockers={label.blockers}
+        rows={[
+          { href: "#recipe", title: "Recipe", detail: `${product.recipe.length} ingredient${product.recipe.length === 1 ? "" : "s"}${product.makes ? ` · makes ${product.makes}` : ""}` },
+          { href: "#sizes", title: "Sizes", detail: sizes.length ? sizes.map((s) => s.name).join(", ") : "None yet" },
+          {
+            href: "#batches",
+            title: "Batches",
+            detail: batches?.length
+              ? `${batches.length} logged · last made ${new Date(`${batches[0]!.made_on}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+              : "None yet (optional)",
+          },
+          { href: "#warnings", title: "Warnings", detail: printedWarnings.length ? `${printedWarnings.length === 1 ? "1 statement" : `${printedWarnings.length} statements`} on the back` : "None yet" },
+          { href: "#info", title: "Product info and logo", detail: product.identity || "Name, kind, what it is" },
+        ]}
+      />
       {kids && kids.length > 0 && (
         <p className="hint">
           Variations:{" "}
@@ -103,16 +133,21 @@ export default async function EditProduct({
           ))}
         </p>
       )}
+      <div id="info" className="anchor stack">
       <ProductInfo product={product} />
       <LogoField title="Product logo" url={productLogo} productId={product.id} note={logoNote} />
-      <ProductEditor product={product} parent={parent} justSaved={saved === "1"} />
-      <Warnings productId={product.id} typeKey={product.type_key} warnings={cleanWarnings((product as Product & { warnings?: unknown }).warnings, activePack())} />
-      <SizesEditor productId={product.id} sizes={sizes} defaultUnit={defaultUnit} />
-      <Link href={`/app/products/${product.id}/label`} className="btn pri cta">
-        See the label
-      </Link>
+      </div>
+      <div id="recipe" className="anchor stack">
+        <ProductEditor product={product} parent={parent} justSaved={saved === "1"} />
+      </div>
+      <div className="anchor">
+        <Warnings productId={product.id} typeKey={product.type_key} warnings={warnings} />
+      </div>
+      <div className="anchor">
+        <SizesEditor productId={product.id} sizes={sizes} defaultUnit={defaultUnit} />
+      </div>
       <Descriptions productId={product.id} descriptions={descriptions} />
-      <section className="card" aria-labelledby="batches">
+      <section className="card anchor" aria-labelledby="batches">
         <h2 id="batches">Batches (optional)</h2>
         {batches && batches.length > 0 ? (
           <ul className="plist">
