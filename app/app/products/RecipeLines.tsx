@@ -176,7 +176,7 @@ export function RecipeLines({
 
               {r?.status === "known" && r.pick === "custom" && (
                 <p className="rstatus warn-text">
-                  ⚠ {r.labelName}: your own name, <b>not an official ingredient name</b>.
+                  {r.labelName}: your own name, <b>not an official ingredient name</b>.
                 </p>
               )}
               {r?.status === "known" &&

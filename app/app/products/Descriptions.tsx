@@ -90,40 +90,44 @@ function Channel({ productId, channel, saved }: { productId: string; channel: (t
     return (
       <div className="form">
         {"hint" in channel && <p className="hint">{channel.hint}</p>}
-        {saved ? <Highlighted text={saved} matches={matches} /> : <p className="hint">No {channel.label} description yet.</p>}
+        {saved && <Highlighted text={saved} matches={matches} />}
         {saved && <ClaimList matches={matches} />}
         {state.saved && (
           <p className="ok" role="status">
             Saved.
           </p>
         )}
-        {saved ? (
-          <div className="row">
-            <button type="button" className="btn pri" onClick={copy}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <rect x="8" y="8" width="12" height="12" rx="2" />
-                <path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2" />
-              </svg>{" "}
-              {copied ? "Copied!" : channel.key === "other" ? "Copy" : `Copy for ${channel.label}`}
-            </button>
-            <button type="button" className="btn sm" onClick={() => (setText(saved), setEditing(true))}>
-              Edit
-            </button>
-          </div>
-        ) : (
-          <div className="row">
-            <button type="button" className="btn pri" onClick={paste}>
-              {channel.key === "other" ? "Paste" : `Paste from ${channel.label}`}
-            </button>
-            <button type="button" className="btn sm" onClick={() => (setText(""), setEditing(true))}>
-              Write one
-            </button>
-          </div>
-        )}
         {!saved && (
           <p className="hint">
             Already have one{channel.key === "other" ? "" : ` on ${channel.label}`}? Copy it there, then tap Paste. We&rsquo;ll check it for risky words.
           </p>
+        )}
+        {saved ? (
+          <div className="desc-actions">
+            <button type="button" className="bigbtn bigbtn-pri" onClick={copy}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="8" y="8" width="12" height="12" rx="2" />
+                <path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2" />
+              </svg>
+              {copied ? "Copied!" : channel.key === "other" ? "Copy" : `Copy for ${channel.label}`}
+            </button>
+            <button type="button" className="linkbtn" onClick={() => (setText(saved), setEditing(true))}>
+              Edit this description
+            </button>
+          </div>
+        ) : (
+          <div className="desc-actions">
+            <button type="button" className="bigbtn bigbtn-pri" onClick={paste}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="6" y="4" width="12" height="17" rx="2" />
+                <path d="M9 4V3h6v1M9 11h6M9 15h4" />
+              </svg>
+              {channel.key === "other" ? "Paste" : `Paste from ${channel.label}`}
+            </button>
+            <button type="button" className="linkbtn" onClick={() => (setText(""), setEditing(true))}>
+              Or write one here
+            </button>
+          </div>
         )}
         {pasteNote && <p className="hint">{pasteNote}</p>}
       </div>
@@ -159,11 +163,11 @@ function Channel({ productId, channel, saved }: { productId: string; channel: (t
           {state.error}
         </p>
       )}
-      <div className="row">
-        <button className="btn pri" disabled={saving}>
+      <div className="desc-actions">
+        <button className="bigbtn bigbtn-pri" disabled={saving}>
           {saving ? "Saving..." : "Save"}
         </button>
-        <button type="button" className="btn ghost" onClick={() => setEditing(false)}>
+        <button type="button" className="linkbtn" onClick={() => setEditing(false)}>
           Cancel
         </button>
       </div>
@@ -181,20 +185,16 @@ export function Descriptions({ productId, descriptions }: { productId: string; d
       <p className="hint">
         What you say about the product where you sell it. The FDA counts these claims too, not just the label.
       </p>
-      <div className="tabs" role="tablist">
+      <div className="seg seg-4" role="tablist" aria-label="Where you sell">
         {CHANNELS.map((c) => {
           const n = flagged(c.key);
+          const has = Boolean(descriptions[c.key]);
           return (
-            <button
-              key={c.key}
-              type="button"
-              role="tab"
-              aria-selected={tab === c.key}
-              className={`btn sm${tab === c.key ? " pri" : ""}`}
-              onClick={() => setTab(c.key)}
-            >
+            <button key={c.key} type="button" role="tab" aria-selected={tab === c.key} aria-pressed={tab === c.key} onClick={() => setTab(c.key)}>
               {c.label}
-              {descriptions[c.key] ? (n ? ` ⚠ ${n}` : " ✓") : ""}
+              {has && (
+                <span className={`dot ${n ? "dot-warn" : "dot-ok"}`} aria-label={n ? `${n} word${n === 1 ? "" : "s"} to check` : "No risky words"} />
+              )}
             </button>
           );
         })}
