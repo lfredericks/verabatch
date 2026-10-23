@@ -217,6 +217,9 @@ product forms submit by hand. Test real phone flows, not only Chromium.
   sources and the small-container rule stay behind the scenes. Next (agreed): let makers pick
   labels by label maker (Avery, OnlineLabels, roll printers) or type a custom size, and mark
   container sizes that aren't a stock product.
+- Descriptions (Leslie, Oct 23): a big "Copy for Etsy" button per channel, and "Paste from
+  Etsy" to bring in an existing description (then claims-checked). Pulling listings from Etsy
+  automatically needs the Etsy API, so it belongs with store sync (Supply & Inventory phase).
 - Children warning is now "Keep out of reach of children and pets." (Leslie). When required
   FDA wording already says children, it prints "Keep away from pets." instead.
 

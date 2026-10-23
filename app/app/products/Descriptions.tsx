@@ -55,12 +55,34 @@ function Channel({ productId, channel, saved }: { productId: string; channel: (t
   const shown = editing ? text : saved;
   const matches = useMemo(() => findClaimMatches(shown, pack.claimRules), [shown]);
 
+  const [pasteNote, setPasteNote] = useState("");
+
   async function copy() {
     try {
       await navigator.clipboard.writeText(saved);
       setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
     } catch {
       setCopied(false);
+    }
+  }
+
+  /** Bring in a description copied from the shop (Etsy, website...). */
+  async function paste() {
+    try {
+      const got = await navigator.clipboard.readText();
+      if (got.trim()) {
+        setText(got.slice(0, MAX_DESCRIPTION));
+        setEditing(true);
+        setPasteNote("");
+        return;
+      }
+      setPasteNote(`Nothing copied yet. Open your ${channel.label} listing, copy the description, then tap Paste again.`);
+    } catch {
+      // Some browsers don't allow reading the clipboard: open the box so they can paste by hand.
+      setText("");
+      setEditing(true);
+      setPasteNote("Press and hold (or Ctrl+V / Cmd+V) in the box to paste.");
     }
   }
 
@@ -75,16 +97,35 @@ function Channel({ productId, channel, saved }: { productId: string; channel: (t
             Saved.
           </p>
         )}
-        <div className="row">
-          <button type="button" className="btn sm" onClick={() => (setText(saved), setEditing(true))}>
-            {saved ? "Edit" : `Write the ${channel.label} description`}
-          </button>
-          {saved && (
-            <button type="button" className="btn ghost sm" onClick={copy}>
-              {copied ? "Copied" : "Copy"}
+        {saved ? (
+          <div className="row">
+            <button type="button" className="btn pri" onClick={copy}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <rect x="8" y="8" width="12" height="12" rx="2" />
+                <path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2" />
+              </svg>{" "}
+              {copied ? "Copied!" : channel.key === "other" ? "Copy" : `Copy for ${channel.label}`}
             </button>
-          )}
-        </div>
+            <button type="button" className="btn sm" onClick={() => (setText(saved), setEditing(true))}>
+              Edit
+            </button>
+          </div>
+        ) : (
+          <div className="row">
+            <button type="button" className="btn pri" onClick={paste}>
+              {channel.key === "other" ? "Paste" : `Paste from ${channel.label}`}
+            </button>
+            <button type="button" className="btn sm" onClick={() => (setText(""), setEditing(true))}>
+              Write one
+            </button>
+          </div>
+        )}
+        {!saved && (
+          <p className="hint">
+            Already have one{channel.key === "other" ? "" : ` on ${channel.label}`}? Copy it there, then tap Paste. We&rsquo;ll check it for risky words.
+          </p>
+        )}
+        {pasteNote && <p className="hint">{pasteNote}</p>}
       </div>
     );
   }
@@ -102,9 +143,10 @@ function Channel({ productId, channel, saved }: { productId: string; channel: (t
       <input type="hidden" name="channel" value={channel.key} />
       <label className="fld">
         <span>{channel.label} description</span>
-        <textarea name="text" rows={8} value={text} onChange={(e) => setText(e.target.value)} maxLength={MAX_DESCRIPTION} />
+        <textarea name="text" rows={8} value={text} onChange={(e) => setText(e.target.value)} maxLength={MAX_DESCRIPTION} autoFocus />
       </label>
       <p className="hint">{text.length.toLocaleString()} characters</p>
+      {pasteNote && <p className="hint">{pasteNote}</p>}
       {text.trim() && (
         <>
           <p className="hint">Checked as you type:</p>
