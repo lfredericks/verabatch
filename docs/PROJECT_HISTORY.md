@@ -210,6 +210,7 @@ product forms submit by hand. Test real phone flows, not only Chromium.
 - Then rebuilt to the approved Container concept (Leslie: "the bubbles are unnecessary, we
   lost something in the UX/UI decisions"): one question per step, picture tiles under Jars /
   Tins / Bottles / Tubes / Candles tabs, a big "Use 4 oz jar" button, Back links.
+  Leslie approved it (Oct 23). Later: add more standard containers to the tiles.
 - First simplification (Leslie: the container list made her head explode): three steps,
   "1. What's it in?" (plain chips: 2 oz jar, 4 oz jar, 1 oz tin...), "2. How much goes in
   one?", "3. Pick a label" (Front + back, Wraparound, Lid, or My own size). Supplier variants,
