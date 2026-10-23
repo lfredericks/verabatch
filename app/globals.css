@@ -32,7 +32,6 @@ body {
 
 /* Links: brand color everywhere (classes like .btn set their own). */
 a { color: var(--accent); text-underline-offset: 2px; }
-a:hover { color: var(--accent-deep); }
 
 /* Logo */
 .brand { display: flex; align-items: center; gap: 10px; }
@@ -87,7 +86,6 @@ input.code { font-family: var(--mono); font-size: 1.4rem; letter-spacing: 0.2em;
   appearance: none; font: inherit; font-weight: 600; cursor: pointer; border-radius: var(--radius-control);
   border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 11px 18px; min-height: 46px;
 }
-.btn:hover { border-color: var(--muted); }
 .btn:disabled { opacity: 0.6; cursor: default; }
 .btn.pri { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .btn.ghost { background: none; border-color: transparent; color: var(--muted); }
@@ -132,7 +130,6 @@ select:focus, textarea:focus { outline: none; border-color: var(--accent); box-s
 .plist li + li { border-top: 1px solid var(--line); }
 .plist a { display: flex; flex-direction: column; padding: 10px 0; color: inherit; text-decoration: none; }
 .plist a span { color: var(--muted); font-size: 0.9rem; }
-.plist a:hover b { color: var(--accent); }
 
 /* Sizes and label page */
 .step-q { font-family: var(--display); font-size: 1.6rem; line-height: 1.15; margin: 0; text-wrap: balance; }
@@ -148,7 +145,6 @@ select:focus, textarea:focus { outline: none; border-color: var(--accent); box-s
 .desc-box { position: relative; }
 .desc-box .desc-text { padding-right: 84px; }
 .copy-icon { position: absolute; top: 8px; right: 8px; display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 10px; border-radius: var(--radius-small); border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
-.copy-icon:hover { border-color: var(--accent); color: var(--accent); }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-left: 6px; vertical-align: middle; }
 .dot-ok { background: var(--success); }
 .dot-warn { background: var(--warn); }
@@ -241,17 +237,14 @@ a.status { text-decoration: none; }
 .status-warn { background: var(--warn-soft); color: var(--warn); }
 .bigbtns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .bigbtn { min-height: 88px; padding: 10px; border-radius: var(--radius-card); border: 2px solid var(--line); border-bottom-width: 4px; background: var(--surface); color: var(--ink); font-weight: 800; text-decoration: none; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
-.bigbtn:hover { border-color: var(--muted); }
 .bigbtn:active { transform: translateY(2px); border-bottom-width: 2px; }
 .bigbtn-pri { grid-column: 1 / 3; min-height: 64px; flex-direction: row; font-size: 1.15rem; background: var(--accent); color: var(--on-accent); border: 0; border-bottom: 4px solid var(--accent-deep); }
-.bigbtn-pri:hover { border-color: var(--accent-deep); filter: brightness(1.05); }
 .navlist { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-card); display: flex; flex-direction: column; }
 .navlist a { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; color: var(--ink); text-decoration: none; min-height: 44px; }
 .navlist a + a { border-top: 1px solid var(--line); }
 .navlist a > span { display: flex; flex-direction: column; min-width: 0; }
 .navlist a > span span { color: var(--muted); font-size: 0.9rem; }
 .navlist svg { color: var(--muted); flex-shrink: 0; }
-.navlist a:hover b { color: var(--accent); }
 
 /* Label page: win moment, real-shape preview, Front/Back switch */
 .backlink { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; color: var(--muted); font-weight: 700; text-decoration: none; align-self: flex-start; }
@@ -281,3 +274,15 @@ a.status { text-decoration: none; }
 .paper-wrap-front .paper-net { margin-top: 6px; font-size: 0.6rem; }
 .paper-wrap-back { flex: 1; display: flex; flex-direction: column; align-items: flex-start; text-align: left; gap: 4px; padding: 8px 10px; font-size: 0.62rem; line-height: 1.35; }
 details.card summary { min-height: 28px; }
+
+/* Hover looks only where there is a real mouse: on phones a tap leaves the next page
+   "hovered" at that spot, so a button there would keep its hover look. */
+@media (hover: hover) {
+  a:hover { color: var(--accent-deep); }
+  .btn:hover { border-color: var(--muted); }
+  .plist a:hover b { color: var(--accent); }
+  .copy-icon:hover { border-color: var(--accent); color: var(--accent); }
+  .bigbtn:hover { border-color: var(--muted); }
+  .bigbtn-pri:hover { border-color: var(--accent-deep); filter: brightness(1.05); }
+  .navlist a:hover b { color: var(--accent); }
+}
