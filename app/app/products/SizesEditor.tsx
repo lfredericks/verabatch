@@ -7,6 +7,14 @@ import type { FillUnit } from "@/lib/core";
 import { activePack } from "@/lib/packs";
 import { FILL_UNITS, sizeFacts, type Size } from "@/lib/sizes";
 import { findTemplate, LABEL_TEMPLATES, type TemplateShape } from "@/lib/labelTemplates";
+import { CONTAINER_GROUPS, CONTAINERS, findContainer, labelOptions, labelRoomSqIn, type Container, type LabelOption } from "@/lib/containers";
+
+/** "2 oz jar" from a container, for the size name. */
+function shortName(c: Container): string {
+  const noun =
+    c.group === "Jars" ? "jar" : c.group === "Tins" ? "tin" : c.group === "Bottles" ? "bottle" : c.group === "Droppers" ? "dropper bottle" : c.group === "Tubes" ? "tube" : c.key.includes("tin") ? "candle tin" : "candle jar";
+  return `${c.holds.replace(" fl oz", " oz")} ${noun}`;
+}
 
 const SHAPE_GROUPS: { shape: TemplateShape; square?: boolean; label: string }[] = [
   { shape: "round", label: "Round" },
@@ -41,6 +49,10 @@ function SizeForm({
   const [height, setHeight] = useState(n(size?.height_in));
   const [diameter, setDiameter] = useState(n(size?.diameter_in));
   const [lookup, setLookup] = useState("");
+  const [name, setName] = useState(size?.name ?? "");
+  const [containerKey, setContainerKey] = useState("");
+  const container = findContainer(containerKey);
+  const options = container ? labelOptions(container) : [];
   const template = findTemplate(templateId);
   const looked = lookup.trim() ? findTemplate(lookup) : null;
 
@@ -53,6 +65,16 @@ function SizeForm({
     else {
       setWidth(String(tp.widthIn));
       setHeight(String(tp.heightIn));
+    }
+  }
+  function applyOption(o: LabelOption) {
+    const exact = o.avery.find((a) => a.shape === o.shape && a.widthIn === o.widthIn && a.heightIn === o.heightIn);
+    setTemplateId(exact?.id ?? "");
+    setShape(o.shape);
+    if (o.shape === "round") setDiameter(String(o.widthIn));
+    else {
+      setWidth(String(o.widthIn));
+      setHeight(String(o.heightIn));
     }
   }
   // Typing dimensions by hand means it's no longer that sheet.
@@ -68,8 +90,58 @@ function SizeForm({
       <input type="hidden" name="label_template" value={templateId} />
       <label className="fld">
         <span>Size name</span>
-        <input name="name" defaultValue={size?.name ?? ""} placeholder="2 oz jar" required maxLength={60} />
+        <input name="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="2 oz jar" required maxLength={60} />
       </label>
+      <div className="sub">
+        <label className="fld">
+          <span>What container? (optional)</span>
+          <select
+            value={containerKey}
+            onChange={(e) => {
+              setContainerKey(e.target.value);
+              const c = findContainer(e.target.value);
+              if (c && !name.trim()) setName(shortName(c));
+            }}
+            aria-label="Container"
+          >
+            <option value="">Pick one to see the labels that fit</option>
+            {CONTAINER_GROUPS.map((g) => (
+              <optgroup key={g} label={g}>
+                {CONTAINERS.filter((c) => c.group === g).map((c) => (
+                  <option key={c.key} value={c.key}>
+                    {c.name}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </select>
+        </label>
+        {container && (
+          <>
+            <p className="hint">
+              Tap a label size to use it.{container.note ? ` ${container.note}` : ""}
+            </p>
+            <div className="stack">
+              {options.map((o) => (
+                <button type="button" key={o.text} className="btn sm cta" onClick={() => applyOption(o)}>
+                  {o.text}
+                  {o.avery.length > 0 ? ` (Avery ${o.avery.map((a) => a.id).join(", ")} fits)` : ""}
+                </button>
+              ))}
+            </div>
+            <p className="hint">
+              {labelRoomSqIn(container) < 12
+                ? "Small container: under 12 sq in of label room on the sides, so smaller ingredient letters are allowed. "
+                : ""}
+              Sizes from{" "}
+              <a href={container.source.url} target="_blank" rel="noopener">
+                {container.source.name}
+              </a>
+              . Yours may differ, so measure the flat band where the label goes.
+            </p>
+          </>
+        )}
+      </div>
       <div className="fld">
         <span>How much goes in one</span>
         <div className="pair">

@@ -36,7 +36,7 @@ export const WARNINGS: WarningOption[] = [
   { key: "irritation", group: "Skin and body", text: "Discontinue use if irritation occurs.", suggestFor: ["butter", "lotion", "balm", "salve", "oil", "face", "hair", "scrub", "salts", "bomb", "soap", "shampoo", "conditioner", "deodorant", "perfume", "mist"] },
   { key: "broken-skin", group: "Skin and body", text: "Do not use on broken or irritated skin.", suggestFor: ["salve", "scrub", "deodorant"] },
   { key: "patch", group: "Skin and body", text: "Patch test before first use.", suggestFor: ["face", "perfume", "deodorant"] },
-  { key: "children", group: "Skin and body", text: "Keep out of reach of children.", suggestFor: ["salve", "oil", "perfume", "salts", "bomb", "room", "candle"] },
+  { key: "children", group: "Skin and body", text: "Keep out of reach of children and pets.", ifCovered: { phrase: "keep out of reach of children", text: "Keep away from pets." }, suggestFor: ["salve", "oil", "perfume", "salts", "bomb", "room", "candle"] },
   { key: "pregnant", group: "Skin and body", text: "Consult a doctor before use if pregnant or nursing.", note: "Common on products with essential oils." },
   { key: "sun", group: "Skin and body", text: "May increase sensitivity to sunlight.", note: "For citrus oils like bergamot, lemon or lime on skin." },
   { key: "slippery", group: "Skin and body", text: "Tub and floor may be slippery after use.", suggestFor: ["oil", "scrub", "salts", "bomb"] },

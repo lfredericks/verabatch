@@ -20,6 +20,7 @@ Read first:
 - `lib/logos.ts` + `app/app/LogoField.tsx`: business and product logos (private `logos` bucket, folder = business id). Product logo overrides the business logo on the label front unless the label page's checkboxes say otherwise (both = side by side on the front). Never on the back.
 - `lib/warnings.ts` + `lib/packs/cosmetics/warnings.ts` + `app/app/products/Warnings.tsx`: standard label warnings per product (products.warnings = {keys, custom}). Required FDA wording prints as written; the rest join after "Caution:". Warnings print in bold.
 - `lib/sizes.ts`: sizes, net contents, lettering. Label shapes: rect, round, oval.
+- `lib/containers.ts`: common containers (supplier-measured, each with its source) and the label sizes that fit them (front/back pair, wrap, lid, matching Avery sheets). The size form's "What container?" picker uses it. Only add measurements from a supplier page or a maker's ruler.
 - `lib/labelTemplates.ts`: Avery label sheets (layouts measured from Avery's own template PDFs only). A size remembers its sheet in `sizes.label_template`.
 - `lib/supplies.ts` + `app/app/supplies/`: supplier lots. `batch_supplies` links a batch's recipe line (by line key) to the lots it used; used lots can't be deleted (keeps the recall trace).
 - `lib/batches.ts`: batches are OPTIONAL. The label defaults to the usual recipe with no lot; a batch adds its own recipe copy and lot.

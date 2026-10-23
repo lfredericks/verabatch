@@ -13,7 +13,12 @@ describe("warnings", () => {
   it("prints required FDA wording on its own, and doesn't repeat 'keep out of reach'", () => {
     const lines = warningLines({ keys: ["children", "bubble-bath", "slippery"], custom: [] }, cosmeticsPack);
     expect(lines[0]).toMatch(/^Caution: Use only as directed\. Excessive use/);
-    expect(lines[1]).toBe("Caution: Tub and floor may be slippery after use.");
+    expect(lines[1]).toBe("Caution: Keep away from pets. Tub and floor may be slippery after use.");
+  });
+  it("keeps children and pets together", () => {
+    expect(warningLines({ keys: ["external", "children"], custom: [] }, cosmeticsPack)).toEqual([
+      "Caution: For external use only. Keep out of reach of children and pets.",
+    ]);
   });
   it("drops unknown keys and trims the maker's own", () => {
     expect(cleanWarnings({ keys: ["eyes", "nope", "eyes"], custom: ["  Keep   dry ", "", 4] }, cosmeticsPack)).toEqual({

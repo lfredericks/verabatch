@@ -178,6 +178,21 @@ product forms submit by hand. Test real phone flows, not only Chromium.
 
 - Theming: `docs/BRANDING.md`. Live: https://verabatch-six.vercel.app
 
+### Oct 23: label fit, containers, pets
+
+- Relief Balm's back (12 ingredients, 6 warnings) only fits a 3x2 label below the legal
+  1/16 in letter size (about 9 pt Lato). As written it needs about 3x3; tightened, 3x2.5 or 4x2.
+  Back text size also varies label to label today (it grows to fill space).
+  Recommended to Leslie, awaiting her pick: one fixed text size everywhere, never shrink
+  below legal, and offer fixes in order (tighten, bigger back label, wraparound, lid + side).
+  Asked for her 2 oz cobalt jar's label band height and width.
+- Container presets (`lib/containers.ts`): 32 common jars, tins, bottles, droppers, lip tubes
+  and candle containers from supplier pages, with front/back, wrap and lid label sizes and
+  matching Avery sheets. Picker in the size form. Finding: most 2 oz jars have a side band
+  only 1 to 1.6 in tall, so a 3x2 label can't go on the side.
+- Children warning is now "Keep out of reach of children and pets." (Leslie). When required
+  FDA wording already says children, it prints "Keep away from pets." instead.
+
 ## Why a new session (Oct 20)
 
 This session's network allowlist was fixed at start, so it couldn't reach supabase.co even

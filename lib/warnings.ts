@@ -32,9 +32,12 @@ export function warningLines(w: ProductWarnings | null | undefined, pack: Market
   const chosen = new Set(w.keys);
   const options = (pack.warnings ?? []).filter((o) => chosen.has(o.key));
   const required = options.filter((o) => o.required).map((o) => o.text);
-  const rest = [...options.filter((o) => !o.required).map((o) => o.text), ...w.custom.map(sentence)];
-  // "Keep out of reach of children." once, even if a required warning already says it.
+  // "Keep out of reach of children" once, even if a required warning already says it.
   const said = required.join(" ").toLowerCase();
+  const rest = [
+    ...options.filter((o) => !o.required).map((o) => (o.ifCovered && said.includes(o.ifCovered.phrase) ? o.ifCovered.text : o.text)),
+    ...w.custom.map(sentence),
+  ];
   const cautions = rest.filter((t) => !said.includes(t.toLowerCase().replace(/\.$/, "")));
   return [...required, ...(cautions.length ? [`Caution: ${cautions.join(" ")}`] : [])];
 }

@@ -162,6 +162,8 @@ export interface WarningOption {
   required?: boolean;
   /** Product type keys it's suggested for. */
   suggestFor?: string[];
+  /** If required wording already says `phrase`, print `text` instead (so nothing repeats). */
+  ifCovered?: { phrase: string; text: string };
 }
 
 /** The warnings chosen for one product: standard ones by key, plus the maker's own. */
