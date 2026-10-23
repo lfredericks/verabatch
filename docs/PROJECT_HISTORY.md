@@ -112,7 +112,7 @@ $10M a year could come from ~25,000 Pro makers at ~$20/mo ($6M) + 400 Enterprise
 | Starter prototype (simple version, varieties, sizes) | https://claude.ai/artifact/35KkBi6xWmsYtc3JvRRz2Y |
 | Canva sidebar mockup | https://claude.ai/artifact/Xqhk5ZY6SAvhnDwTfudpX6 |
 
-## Build status (as of Oct 22, 2026)
+## Build status (as of Oct 22, 2026; Oct 23 changes in the next section)
 
 Verabatch is a product for any small-batch maker. Liminalia is only the first test case
 (its recipes: `docs/test-cases/liminalia.md`); nothing in the app is built for it.
@@ -178,58 +178,55 @@ product forms submit by hand. Test real phone flows, not only Chromium.
 
 - Theming: `docs/BRANDING.md`. Live: https://verabatch-six.vercel.app
 
-### Oct 23: label fit, containers, pets
+### Oct 23: new look, label fit, containers, disclaimer
 
-- Relief Balm's back (12 ingredients, 6 warnings) only fits a 3x2 label below the legal
-  1/16 in letter size (about 9 pt Lato). As written it needs about 3x3; tightened, 3x2.5 or 4x2.
-  Back text size also varies label to label today (it grows to fill space).
-  Recommended to Leslie, awaiting her pick: one fixed text size everywhere, never shrink
-  below legal, and offer fixes in order (tighten, bigger back label, wraparound, lid + side).
-  Asked for her 2 oz cobalt jar's label band height and width.
-- Container presets (`lib/containers.ts`): 32 common jars, tins, bottles, droppers, lip tubes
-  and candle containers from supplier pages, with front/back, wrap and lid label sizes and
-  matching Avery sheets. Picker in the size form. Finding: most 2 oz jars have a side band
-  only 1 to 1.6 in tall, so a 3x2 label can't go on the side.
-- Back label rules (Leslie, Oct 23): all back text ONE size; combine lines when that keeps
-  text bigger (made-by, questions and lot on one line; then all warnings in one bold
-  paragraph); shrink to the legal minimum and no further; past that, show what's cut off and
-  suggest labels that fit (Avery sheets and container wraparounds).
-- Wraparound labels (Leslie: better for long text on a 2 oz jar): `sizes.label_wrap`, one
-  page, front panel the left 40%, back text the right 60%. Net weight lettering uses the
-  front panel's area.
-- Small container setting (`sizes.label_small`): under 12 sq in of label room, so ingredient
-  letters may be 1/32 in (21 CFR 701.3(b)). The container picker ticks it from the side band
-  area (lids not counted). Relief Balm fits a 2 oz thin-wall jar wraparound with it on.
-  Migration 0011_label_wrap.sql adds both columns (the WIP branch's 0011 becomes 0012).
-- Disclaimer (Leslie, Oct 23): the maker is responsible for everything; the app is a drafting
-  tool, not legal/regulatory advice, not FDA-affiliated, promises no compliance. Text lives in
-  `lib/brand/brand.ts` (`disclaimer`, `disclaimerShort`); full page at /disclaimer, a line at
-  the bottom of every page, and a notice above the label download. Wording that sounded like a
-  guarantee ("Correct labels", "all check out") was softened. Still needed for launch: a
-  lawyer-reviewed terms of service with an "I agree" at sign-up.
-- Then rebuilt to the approved Container concept (Leslie: "the bubbles are unnecessary, we
-  lost something in the UX/UI decisions"): one question per step, picture tiles under Jars /
-  Tins / Bottles / Tubes / Candles tabs, a big "Use 4 oz jar" button, Back links.
-  Leslie approved it (Oct 23). Later: add more standard containers to the tiles.
-- First simplification (Leslie: the container list made her head explode): three steps,
-  "1. What's it in?" (plain chips: 2 oz jar, 4 oz jar, 1 oz tin...), "2. How much goes in
-  one?", "3. Pick a label" (Front + back, Wraparound, Lid, or My own size). Supplier variants,
-  sources and the small-container rule stay behind the scenes. Next (agreed): let makers pick
-  labels by label maker (Avery, OnlineLabels, roll printers) or type a custom size, and mark
-  container sizes that aren't a stock product.
-- Descriptions, final (Leslie: big buttons were "too loud"): a small Copy icon button in the
-  corner of each saved description, regular small Edit / Paste buttons, styleguide pieces only.
-  Big plum buttons are for a screen's one main action, not secondary actions like copy.
-- Descriptions, first try (Leslie, Oct 23): a big "Copy for Etsy" button per channel, and "Paste from
-  Etsy" to bring in an existing description (then claims-checked). Pulling listings from Etsy
-  automatically needs the Etsy API, so it belongs with store sync (Supply & Inventory phase).
-- Label preview now drawn from the PDF's own layout (`LabelPdf.preview`, SVG in
-  LabelPreview.tsx): true shape and proportions, same line breaks and letter sizes, logos in
-  place. Leslie found the old HTML preview didn't match a 6.25 x 1.375 wraparound. Wraps get a
-  "Zoom in to read it" button (scrolls sideways). Hover styles only apply with a real mouse
-  (stuck hover look on phones).
-- Children warning is now "Keep out of reach of children and pets." (Leslie). When required
-  FDA wording already says children, it prints "Keep away from pets." instead.
+Decisions (Leslie) and what's live, in the order they matter:
+
+- **Redesign, step 1 of 4: live.** Product page: status bar ("Label ready to review" or "N
+  things to fix"), big buttons (Get my label, I made a batch, Shop description), section list.
+  Label page: "Your label is ready" header, true-shape preview, big Download PDF. Plan: 2. recipe
+  screen (Paprika-style paste, "Which lavender?" on the line), 3. onboarding (Duolingo-style),
+  4. container picker (done early, below). Approved screens: Screen Concepts artifact.
+- **Style rules learned today.** Follow the approved Screen Concepts and `/styleguide`. Big plum
+  buttons only for a screen's one main action; secondary actions (copy, edit, paste) stay small
+  and quiet. No walls of chips, no emoji in the UI. Links use the brand color. Hover styles only
+  with a real mouse (phones left buttons stuck in hover).
+- **Back label rules.** All back text one size; combine lines before shrinking (made-by,
+  questions and lot on one line, then all warnings in one bold paragraph); shrink to the FDA
+  minimum and no further; past that, show the cut-off text and suggest labels that fit (Avery
+  sheets and container wraparounds).
+- **Wraparound labels** (`sizes.label_wrap`): one strip, front the left 40%, back the right 60%.
+  Net weight lettering uses the front panel's area. Better for long recipes on small jars.
+- **Small container setting** (`sizes.label_small`): under 12 sq in of label room, so
+  ingredient letters may be 1/32 in (21 CFR 701.3(b)). Set from the container's side band (lids
+  not counted, the cautious reading; whether lids count is a question for a reviewer). Relief
+  Balm fits a 2 oz thin-wall jar wraparound with it on.
+- **Container picker** (`lib/containers.ts`): 32 supplier-measured containers behind 18
+  picture tiles (Jars, Tins, Bottles, Tubes, Candles), matching the approved Container screen:
+  pick a container, pick a label (front + back, wraparound, lid), enter how much goes in. "My
+  container isn't here" types a size or Avery box number. Finding: most 2 oz jars have a side
+  band only 1 to 1.6 in tall, so a 3x2 label can't go on the side. Later: more containers; labels
+  from other makers (OnlineLabels, roll printers) and marking sizes that aren't a stock product.
+- **Label preview = the PDF's own layout** (`LabelPdf.preview`, SVG): true shape, line breaks
+  and letter sizes, logos in place; "Zoom in to read it" on wraparounds.
+- **Disclaimer:** the maker is responsible for everything; the app is a drafting tool, not
+  legal or regulatory advice, not FDA-affiliated, promises no compliance. Text in
+  `lib/brand/brand.ts`; full page at /disclaimer, a line on every page, a notice above the label
+  download. Guarantee-sounding wording softened. Launch still needs lawyer-reviewed terms with an
+  "I agree" at sign-up.
+- **Warnings:** "Keep out of reach of children and pets." When required FDA wording already says
+  children, it prints "Keep away from pets." instead.
+- **Descriptions:** a small Copy button in the corner of each saved description; "Paste from
+  Etsy" brings an existing description in to be checked. Pulling listings from Etsy
+  automatically needs the Etsy API (store sync, Supply & Inventory phase).
+- **Plans (Master Plan):** Free = one product, fully functional, up to 3 batches, Open in Canva
+  included; three-strikes rule for workarounds. Pro at launch. AI is never a separate cost: it
+  comes with Pro and up. Supply & Inventory is a bolt-on to Pro. Business = Pro + Supply &
+  Inventory for bigger teams, possibly CRM integrations (HubSpot).
+- **Database:** migration 0011_label_wrap.sql (label_wrap, label_small) was run Oct 23. The
+  WIP branch `supplies-cost-invoices` has its own 0011; renumber it to 0012 before merging.
+- **Links page** pinned in Leslie's Claude sidebar: "Verabatch Links" artifact
+  (https://claude.ai/artifact/6wsUHpKaacBpPnTW6EDKbj).
 
 ## Why a new session (Oct 20)
 
@@ -238,15 +235,16 @@ after Leslie added the domains. A new session should be able to use the Supabase
 API directly. Leslie generated a project-scoped Supabase access token named "Claude"
 (30 days or less); it is NOT stored in the repo. Ask her for it or have her generate a new one.
 
-## Next steps
+## Next steps (as of Oct 23)
 
-1. Finish milestone 1 setup (docs/SETUP.md) and test sign-in end to end.
-2. Collect Liminalia recipes: exact amounts, units, jar sizes, label dimensions, label photos.
-   Known products: Relief Balm (2 oz cobalt jar), Air Purifying Puck, aromatherapy cleaning
-   spray, Bug Off spray.
-3. Milestone 3: ingredient database (CosIng import, curation starting with Liminalia).
-4. Open questions in the spec: product-name claims check ("Relief Balm" flags "relief"),
-   whether v1 excludes pesticide-claim products like Bug Off, domain purchase, Pro name and price.
+1. Redesign step 2: the recipe screen (Paprika-style paste, "Which lavender?" answers on the
+   line, makes-N stepper). Then step 3: onboarding, one question per screen.
+2. Launch must-haves (Master Plan, Phase 2): Open in Canva (Leslie creates a Canva developer
+   account), Stripe for Pro, Free limits and the three-strikes rule, terms and privacy (lawyer),
+   custom sign-in email, domain, paid hosting, CosIng refresh.
+3. Leslie's sign-offs: a printed Relief Balm label (2 oz jar wraparound), a real batch with
+   supplier lots, the sprays decision (room/linen only or skin too).
+4. Parked: printer specs list, invoice reading and costs (WIP branch), recall engine, store sync.
 
 ## Working with Leslie
 
