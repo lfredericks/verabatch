@@ -161,6 +161,9 @@ Parked for later:
   layout was measured from Avery's own template PDF; third-party template sites were off by up
   to 3 mm, so never add one from them. Still to do: OnlineLabels, SheetLabels and other brands;
   printing whole sheets (pairs with printer profiles).
+- **Product inventory with store sync (Leslie, Oct 23):** count finished products on hand (from
+  batches made minus sold) and keep it in sync with Shopify, Squarespace and other popular
+  platforms (Etsy, Square, Wix, WooCommerce). Likely Pro or a higher tier, with supplier management.
 - **Supply amounts on hand (Leslie, Oct 22):** optionally subtract what each batch used from a
   supply lot's amount, with low-stock hints. Needs unit conversion between recipe and supply units.
 - **Makers' own flag list:** let a maker add brand names or words to flag (the built-in brand
