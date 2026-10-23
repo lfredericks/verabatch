@@ -131,9 +131,21 @@ select:focus, textarea:focus { outline: none; border-color: var(--accent); box-s
 .plist a:hover b { color: var(--accent); }
 
 /* Sizes and label page */
-.chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
-.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.step-q { font-family: var(--display); font-size: 1.6rem; line-height: 1.15; margin: 0; text-wrap: balance; }
+.seg.seg-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.seg.seg-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.seg.seg-5 button { font-size: 0.85rem; padding: 0 2px; }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tile { display: flex; flex-direction: column; text-align: left; padding: 0 0 12px; border-radius: var(--radius-control); border: 2px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; overflow: hidden; cursor: pointer; }
+.tile-art { height: 104px; background: var(--sunk); display: flex; align-items: center; justify-content: center; }
+.tile b { padding: 10px 12px 2px; font-size: 1rem; }
+.tile > span:last-child { padding: 0 12px; font-size: 0.82rem; color: var(--muted); }
+.tile[aria-pressed="true"] { border-color: var(--accent); }
+.linkbtn { background: none; border: 0; padding: 6px 0; font: inherit; font-weight: 700; color: var(--accent); cursor: pointer; text-align: center; }
+.bigbtn:disabled { opacity: 0.5; cursor: default; }
+button.bigbtn { font: inherit; font-weight: 800; cursor: pointer; width: 100%; }
+button.bigbtn-pri { font-size: 1.15rem; }
+button.backlink { background: none; border: 0; padding: 0; font: inherit; font-weight: 700; cursor: pointer; }
 .labelpicks { display: flex; flex-direction: column; gap: 8px; }
 .labelpick { display: flex; align-items: center; gap: 12px; text-align: left; padding: 10px 12px; border-radius: var(--radius-small); border: 2px solid var(--line); border-bottom-width: 4px; background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
 .labelpick > svg { flex: none; color: var(--muted); }

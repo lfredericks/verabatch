@@ -310,27 +310,34 @@ export function labelRoomSqIn(c: Container): number {
 
 export const CONTAINER_GROUPS: ContainerGroup[] = ["Jars", "Tins", "Bottles", "Droppers", "Tubes", "Candles"];
 
+/** What a container looks like, for its picture on the picker. */
+export type ContainerLook = "jar" | "tin" | "bottle" | "dropper" | "tube" | "candle-tin" | "candle-jar";
+
+/** The picker's tabs. */
+export const PICK_TABS = ["Jars", "Tins", "Bottles", "Tubes", "Candles"] as const;
+export type PickTab = (typeof PICK_TABS)[number];
+
 /**
  * The short menu makers see: one plain name per common container, mapped to the measured
- * container behind it. Everything else is "Something else" (type your own label size).
+ * container behind it. Anything else is "My container isn't here" (type your own label size).
  */
-export const EASY_PICKS: { label: string; key: string }[] = [
-  { label: "2 oz jar", key: "jar-2oz-thin" },
-  { label: "4 oz jar", key: "jar-4oz" },
-  { label: "8 oz jar", key: "pet-jar-8oz" },
-  { label: "16 oz jar", key: "jar-16oz" },
-  { label: "1/2 oz tin", key: "tin-0.5oz" },
-  { label: "1 oz tin", key: "tin-1oz" },
-  { label: "2 oz tin", key: "tin-2oz" },
-  { label: "4 oz tin", key: "tin-4oz" },
-  { label: "1 oz bottle", key: "boston-1oz" },
-  { label: "2 oz bottle", key: "boston-2oz" },
-  { label: "4 oz bottle", key: "boston-4oz" },
-  { label: "8 oz bottle", key: "boston-8oz" },
-  { label: "10 mL dropper", key: "euro-10ml" },
-  { label: "1 oz dropper", key: "euro-30ml" },
-  { label: "Lip balm tube", key: "lip-tube" },
-  { label: "4 oz candle tin", key: "candle-tin-4oz" },
-  { label: "8 oz candle tin", key: "candle-tin-8oz" },
-  { label: "8 oz candle jar", key: "candle-jelly-8oz" },
+export const EASY_PICKS: { label: string; key: string; tab: PickTab; look: ContainerLook }[] = [
+  { label: "2 oz jar", key: "jar-2oz-thin", tab: "Jars", look: "jar" },
+  { label: "4 oz jar", key: "jar-4oz", tab: "Jars", look: "jar" },
+  { label: "8 oz jar", key: "pet-jar-8oz", tab: "Jars", look: "jar" },
+  { label: "16 oz jar", key: "jar-16oz", tab: "Jars", look: "jar" },
+  { label: "1/2 oz tin", key: "tin-0.5oz", tab: "Tins", look: "tin" },
+  { label: "1 oz tin", key: "tin-1oz", tab: "Tins", look: "tin" },
+  { label: "2 oz tin", key: "tin-2oz", tab: "Tins", look: "tin" },
+  { label: "4 oz tin", key: "tin-4oz", tab: "Tins", look: "tin" },
+  { label: "1 oz bottle", key: "boston-1oz", tab: "Bottles", look: "bottle" },
+  { label: "2 oz bottle", key: "boston-2oz", tab: "Bottles", look: "bottle" },
+  { label: "4 oz bottle", key: "boston-4oz", tab: "Bottles", look: "bottle" },
+  { label: "8 oz bottle", key: "boston-8oz", tab: "Bottles", look: "bottle" },
+  { label: "10 mL dropper", key: "euro-10ml", tab: "Bottles", look: "dropper" },
+  { label: "1 oz dropper", key: "euro-30ml", tab: "Bottles", look: "dropper" },
+  { label: "Lip balm tube", key: "lip-tube", tab: "Tubes", look: "tube" },
+  { label: "4 oz candle tin", key: "candle-tin-4oz", tab: "Candles", look: "candle-tin" },
+  { label: "8 oz candle tin", key: "candle-tin-8oz", tab: "Candles", look: "candle-tin" },
+  { label: "8 oz candle jar", key: "candle-jelly-8oz", tab: "Candles", look: "candle-jar" },
 ];
