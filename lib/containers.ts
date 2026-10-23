@@ -309,3 +309,28 @@ export function labelRoomSqIn(c: Container): number {
 }
 
 export const CONTAINER_GROUPS: ContainerGroup[] = ["Jars", "Tins", "Bottles", "Droppers", "Tubes", "Candles"];
+
+/**
+ * The short menu makers see: one plain name per common container, mapped to the measured
+ * container behind it. Everything else is "Something else" (type your own label size).
+ */
+export const EASY_PICKS: { label: string; key: string }[] = [
+  { label: "2 oz jar", key: "jar-2oz-thin" },
+  { label: "4 oz jar", key: "jar-4oz" },
+  { label: "8 oz jar", key: "pet-jar-8oz" },
+  { label: "16 oz jar", key: "jar-16oz" },
+  { label: "1/2 oz tin", key: "tin-0.5oz" },
+  { label: "1 oz tin", key: "tin-1oz" },
+  { label: "2 oz tin", key: "tin-2oz" },
+  { label: "4 oz tin", key: "tin-4oz" },
+  { label: "1 oz bottle", key: "boston-1oz" },
+  { label: "2 oz bottle", key: "boston-2oz" },
+  { label: "4 oz bottle", key: "boston-4oz" },
+  { label: "8 oz bottle", key: "boston-8oz" },
+  { label: "10 mL dropper", key: "euro-10ml" },
+  { label: "1 oz dropper", key: "euro-30ml" },
+  { label: "Lip balm tube", key: "lip-tube" },
+  { label: "4 oz candle tin", key: "candle-tin-4oz" },
+  { label: "8 oz candle tin", key: "candle-tin-8oz" },
+  { label: "8 oz candle jar", key: "candle-jelly-8oz" },
+];

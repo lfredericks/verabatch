@@ -207,6 +207,12 @@ product forms submit by hand. Test real phone flows, not only Chromium.
   the bottom of every page, and a notice above the label download. Wording that sounded like a
   guarantee ("Correct labels", "all check out") was softened. Still needed for launch: a
   lawyer-reviewed terms of service with an "I agree" at sign-up.
+- Size form simplified (Leslie: the container list made her head explode): three steps,
+  "1. What's it in?" (plain chips: 2 oz jar, 4 oz jar, 1 oz tin...), "2. How much goes in
+  one?", "3. Pick a label" (Front + back, Wraparound, Lid, or My own size). Supplier variants,
+  sources and the small-container rule stay behind the scenes. Next (agreed): let makers pick
+  labels by label maker (Avery, OnlineLabels, roll printers) or type a custom size, and mark
+  container sizes that aren't a stock product.
 - Children warning is now "Keep out of reach of children and pets." (Leslie). When required
   FDA wording already says children, it prints "Keep away from pets." instead.
 

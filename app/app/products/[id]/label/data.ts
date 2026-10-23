@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { buildLabel } from "@/lib/label";
 import { buildLabelPdf, labelFileName, labelsThatFitBack, type LabelPdf } from "@/lib/labelPdf";
 import { LABEL_TEMPLATES } from "@/lib/labelTemplates";
-import { CONTAINERS, labelOptions } from "@/lib/containers";
+import { EASY_PICKS, findContainer, labelOptions } from "@/lib/containers";
 import type { LabelShape } from "@/lib/core/lettering";
 import { logoBytes } from "@/lib/logos";
 import { cleanWarnings } from "@/lib/warnings";
@@ -96,16 +96,17 @@ function labelCandidates(): { id: string; label: string; shape: LabelShape; wrap
     label: `Avery ${t.id}: ${t.label}`,
     shape: (t.shape === "round" ? { shape: "round", diameterIn: t.widthIn } : { shape: t.shape, widthIn: t.widthIn, heightIn: t.heightIn }) as LabelShape,
   }));
-  const wraps = CONTAINERS.flatMap((c) =>
-    labelOptions(c)
+  const wraps = EASY_PICKS.flatMap((p) => {
+    const c = findContainer(p.key);
+    return (c ? labelOptions(c) : [])
       .filter((o) => o.placement === "wrap")
       .map((o) => ({
-        id: `wrap-${c.key}`,
-        label: `${o.widthIn} × ${o.heightIn} in wraparound (fits a ${c.name})`,
+        id: `wrap-${c!.key}`,
+        label: `${o.widthIn} × ${o.heightIn} in wraparound (${p.label})`,
         shape: { shape: "rect", widthIn: o.widthIn, heightIn: o.heightIn } as LabelShape,
         wrap: true,
-      })),
-  );
+      }));
+  });
   return [...avery, ...wraps];
 }
 

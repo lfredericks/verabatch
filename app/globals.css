@@ -131,6 +131,16 @@ select:focus, textarea:focus { outline: none; border-color: var(--accent); box-s
 .plist a:hover b { color: var(--accent); }
 
 /* Sizes and label page */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { min-height: 40px; padding: 0 14px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.labelpicks { display: flex; flex-direction: column; gap: 8px; }
+.labelpick { display: flex; align-items: center; gap: 12px; text-align: left; padding: 10px 12px; border-radius: var(--radius-small); border: 2px solid var(--line); border-bottom-width: 4px; background: var(--surface); color: var(--ink); font: inherit; cursor: pointer; }
+.labelpick > svg { flex: none; color: var(--muted); }
+.labelpick > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.labelpick > span > span { color: var(--muted); font-size: 0.9rem; }
+.labelpick[aria-pressed="true"] { border-color: var(--accent); }
+.labelpick[aria-pressed="true"] > svg { color: var(--accent); }
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 fieldset.fld { border: 0; padding: 0; margin: 0; }
 .radio { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }

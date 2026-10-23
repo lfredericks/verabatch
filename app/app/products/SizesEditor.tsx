@@ -6,26 +6,40 @@ import type React from "react";
 import type { FillUnit } from "@/lib/core";
 import { activePack } from "@/lib/packs";
 import { FILL_UNITS, sizeFacts, type Size } from "@/lib/sizes";
-import { findTemplate, LABEL_TEMPLATES, type TemplateShape } from "@/lib/labelTemplates";
-import { CONTAINER_GROUPS, CONTAINERS, findContainer, labelOptions, labelRoomSqIn, type Container, type LabelOption } from "@/lib/containers";
-
-/** "2 oz jar" from a container, for the size name. */
-function shortName(c: Container): string {
-  const noun =
-    c.group === "Jars" ? "jar" : c.group === "Tins" ? "tin" : c.group === "Bottles" ? "bottle" : c.group === "Droppers" ? "dropper bottle" : c.group === "Tubes" ? "tube" : c.key.includes("tin") ? "candle tin" : "candle jar";
-  return `${c.holds.replace(" fl oz", " oz")} ${noun}`;
-}
-
-const SHAPE_GROUPS: { shape: TemplateShape; square?: boolean; label: string }[] = [
-  { shape: "round", label: "Round" },
-  { shape: "rect", square: true, label: "Square" },
-  { shape: "oval", label: "Oval" },
-  { shape: "rect", square: false, label: "Rectangle" },
-];
+import { findTemplate, type TemplateShape } from "@/lib/labelTemplates";
+import { EASY_PICKS, findContainer, labelOptions, labelRoomSqIn, type LabelOption } from "@/lib/containers";
 import { deleteSize, saveSize, type SizeFormState } from "./sizeActions";
 
 const pack = activePack();
 
+const PLACE: Record<LabelOption["placement"], { title: string; count: string }> = {
+  "front-back": { title: "Front + back", count: "2 labels" },
+  wrap: { title: "Wraparound", count: "1 label, all the way around" },
+  lid: { title: "Lid label", count: "1 round label on top" },
+  label: { title: "Wraparound", count: "1 label around the tube" },
+};
+
+const inch = (n: number) => String(Number(n.toFixed(3)));
+const sizeText = (o: { shape: string; widthIn: number; heightIn: number }) =>
+  o.shape === "round" ? `${inch(o.widthIn)} in round` : `${inch(o.widthIn)} × ${inch(o.heightIn)} in`;
+
+/** A tiny drawing of where the label goes. */
+function PlaceIcon({ p }: { p: LabelOption["placement"] }) {
+  return (
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+      <rect x="9" y="9" width="22" height="6" rx="2" />
+      <path d="M10 15h20v16a3 3 0 01-3 3H13a3 3 0 01-3-3z" />
+      {p === "front-back" && <rect x="14" y="19" width="12" height="10" rx="1" fill="currentColor" stroke="none" />}
+      {(p === "wrap" || p === "label") && <rect x="10" y="19" width="20" height="10" fill="currentColor" stroke="none" />}
+      {p === "lid" && <rect x="11" y="10" width="18" height="4" rx="1" fill="currentColor" stroke="none" />}
+    </svg>
+  );
+}
+
+/**
+ * Adding or changing a size, in three easy steps: what it's in, how much goes in, which
+ * label. "Something else" and "My own size" open the typed-in version.
+ */
 function SizeForm({
   productId,
   size,
@@ -42,26 +56,58 @@ function SizeForm({
     if (r.saved) onDone();
     return r;
   }, {});
-  const [shape, setShape] = useState<TemplateShape>(size?.label_shape ?? "rect");
   const n = (v: number | null | undefined) => (v ? String(Number(v)) : "");
+  const [pickKey, setPickKey] = useState(() => EASY_PICKS.find((p) => p.label === size?.name)?.key ?? (size ? "other" : ""));
+  const [name, setName] = useState(size?.name ?? "");
+  const [shape, setShape] = useState<TemplateShape>(size?.label_shape ?? "rect");
   const [templateId, setTemplateId] = useState(size?.label_template ?? "");
   const [width, setWidth] = useState(n(size?.width_in));
   const [height, setHeight] = useState(n(size?.height_in));
   const [diameter, setDiameter] = useState(n(size?.diameter_in));
-  const [lookup, setLookup] = useState("");
   const [wrap, setWrap] = useState(Boolean(size?.label_wrap));
   const [small, setSmall] = useState(Boolean(size?.label_small));
-  const [name, setName] = useState(size?.name ?? "");
-  const [containerKey, setContainerKey] = useState("");
-  const container = findContainer(containerKey);
+  const [own, setOwn] = useState(Boolean(size && !EASY_PICKS.some((p) => p.label === size.name)));
+  const [lookup, setLookup] = useState("");
+  const container = pickKey && pickKey !== "other" ? findContainer(pickKey) : undefined;
   const options = container ? labelOptions(container) : [];
-  const template = findTemplate(templateId);
   const looked = lookup.trim() ? findTemplate(lookup) : null;
+  const chosen = (o: LabelOption) =>
+    !own &&
+    shape === o.shape &&
+    (o.shape === "round" ? Number(diameter) === o.widthIn : Number(width) === o.widthIn && Number(height) === o.heightIn) &&
+    wrap === (o.placement === "wrap");
 
-  function pick(id: string) {
-    setTemplateId(id);
+  function pickContainer(key: string, label: string) {
+    setPickKey(key);
+    if (key === "other") {
+      setOwn(true);
+      setSmall(false);
+      return;
+    }
+    setName(label);
+    setOwn(false);
+    const c = findContainer(key);
+    setSmall(c ? labelRoomSqIn(c) < 12 : false);
+    // Start with the first label option, so one tap on the container is enough.
+    const first = c ? labelOptions(c)[0] : undefined;
+    if (first) chooseLabel(first);
+  }
+  function chooseLabel(o: LabelOption) {
+    const exact = o.avery.find((a) => a.shape === o.shape && a.widthIn === o.widthIn && a.heightIn === o.heightIn);
+    setTemplateId(exact?.id ?? "");
+    setShape(o.shape);
+    setWrap(o.placement === "wrap");
+    setOwn(false);
+    if (o.shape === "round") setDiameter(String(o.widthIn));
+    else {
+      setWidth(String(o.widthIn));
+      setHeight(String(o.heightIn));
+    }
+  }
+  function pickSheet(id: string) {
     const tp = findTemplate(id);
     if (!tp) return;
+    setTemplateId(tp.id);
     setShape(tp.shape);
     if (tp.shape === "round") setDiameter(String(tp.widthIn));
     else {
@@ -69,18 +115,6 @@ function SizeForm({
       setHeight(String(tp.heightIn));
     }
   }
-  function applyOption(o: LabelOption) {
-    const exact = o.avery.find((a) => a.shape === o.shape && a.widthIn === o.widthIn && a.heightIn === o.heightIn);
-    setTemplateId(exact?.id ?? "");
-    setShape(o.shape);
-    setWrap(o.placement === "wrap");
-    if (o.shape === "round") setDiameter(String(o.widthIn));
-    else {
-      setWidth(String(o.widthIn));
-      setHeight(String(o.heightIn));
-    }
-  }
-  // Typing dimensions by hand means it's no longer that sheet.
   const typed = (set: (v: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
     set(e.target.value);
     setTemplateId("");
@@ -91,172 +125,149 @@ function SizeForm({
       {size && <input type="hidden" name="id" value={size.id} />}
       <input type="hidden" name="product_id" value={productId} />
       <input type="hidden" name="label_template" value={templateId} />
-      <label className="fld">
-        <span>Size name</span>
-        <input name="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="2 oz jar" required maxLength={60} />
-      </label>
-      <div className="sub">
-        <label className="fld">
-          <span>What container? (optional)</span>
-          <select
-            value={containerKey}
-            onChange={(e) => {
-              setContainerKey(e.target.value);
-              const c = findContainer(e.target.value);
-              if (c && !name.trim()) setName(shortName(c));
-              if (c) setSmall(labelRoomSqIn(c) < 12);
-            }}
-            aria-label="Container"
-          >
-            <option value="">Pick one to see the labels that fit</option>
-            {CONTAINER_GROUPS.map((g) => (
-              <optgroup key={g} label={g}>
-                {CONTAINERS.filter((c) => c.group === g).map((c) => (
-                  <option key={c.key} value={c.key}>
-                    {c.name}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-        </label>
-        {container && (
-          <>
-            <p className="hint">
-              Tap a label size to use it.{container.note ? ` ${container.note}` : ""}
-            </p>
-            <div className="stack">
-              {options.map((o) => (
-                <button type="button" key={o.text} className="btn sm cta" onClick={() => applyOption(o)}>
-                  {o.text}
-                  {o.avery.length > 0 ? ` (Avery ${o.avery.map((a) => a.id).join(", ")} fits)` : ""}
-                </button>
-              ))}
-            </div>
-            <p className="hint">
-              Sizes from{" "}
-              <a href={container.source.url} target="_blank" rel="noopener">
-                {container.source.name}
-              </a>
-              . Yours may differ, so measure the flat band where the label goes.
-            </p>
-          </>
-        )}
-      </div>
-      <div className="fld">
-        <span>How much goes in one</span>
-        <div className="pair">
-          <input name="fill_amount" defaultValue={size?.fill_amount ?? ""} inputMode="decimal" placeholder="2" required maxLength={20} aria-label="Fill amount" />
-          <select name="fill_unit" defaultValue={size?.fill_unit ?? defaultUnit} aria-label="Fill unit">
-            {FILL_UNITS.map((u) => (
-              <option key={u.key} value={u.key}>
-                {u.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-      <p className="hint">Balms and butters are sold by weight (oz). Sprays and oils by liquid (fl oz).</p>
-      <div className="sub">
-        <label className="fld">
-          <span>Label sheet you buy (optional)</span>
-          <select value={templateId} onChange={(e) => pick(e.target.value)} aria-label="Label sheet">
-            <option value="">None, or I&rsquo;ll type the size</option>
-            {SHAPE_GROUPS.map((g) => (
-              <optgroup key={g.label} label={g.label}>
-                {LABEL_TEMPLATES.filter((tp) => tp.shape === g.shape && (g.square === undefined || (tp.widthIn === tp.heightIn) === g.square)).map((tp) => (
-                  <option key={tp.id} value={tp.id}>
-                    {tp.brand} {tp.id}: {tp.label}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-        </label>
-        <label className="fld narrow-fld">
-          <span>Or type the number on your box</span>
-          <input value={lookup} onChange={(e) => setLookup(e.target.value)} inputMode="numeric" placeholder="22807" maxLength={10} aria-label="Avery number" />
-        </label>
-        {lookup.trim() &&
-          (looked ? (
-            looked.id !== templateId ? (
-              <button type="button" className="btn sm cta" onClick={() => (pick(looked.id), setLookup(""))}>
-                Use {looked.brand} {looked.id}: {looked.label}
-              </button>
-            ) : null
-          ) : (
-            <p className="hint">We don&rsquo;t have that one yet. Type the label size below instead.</p>
-          ))}
-        {template && (
-          <p className="ok-soft rstatus">
-            {template.brand} {template.id}: {template.label}
-            {template.alsoFits.length > 0 && ` (same sheet as ${template.alsoFits.slice(0, 4).join(", ")}${template.alsoFits.length > 4 ? "…" : ""})`}
-          </p>
-        )}
-      </div>
-      <fieldset className="fld">
-        <span>Front label shape</span>
-        <div className="row">
-          {(["rect", "round", "oval"] as const).map((k) => (
-            <label className="radio" key={k}>
-              <input
-                type="radio"
-                name="label_shape"
-                value={k}
-                checked={shape === k}
-                onChange={() => (setShape(k), setTemplateId(""))}
-              />{" "}
-              {k === "rect" ? "Rectangle or square" : k === "round" ? "Round" : "Oval"}
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      <input type="hidden" name="label_shape" value={shape} />
       {shape === "round" ? (
+        <input type="hidden" name="diameter_in" value={diameter} />
+      ) : (
+        <>
+          <input type="hidden" name="width_in" value={width} />
+          <input type="hidden" name="height_in" value={height} />
+        </>
+      )}
+      {wrap && shape === "rect" && <input type="hidden" name="label_wrap" value="1" />}
+      {small && <input type="hidden" name="label_small" value="1" />}
+
+      <div className="fld">
+        <span>1. What&rsquo;s it in?</span>
+        <div className="chips">
+          {EASY_PICKS.map((p) => (
+            <button type="button" key={p.key} className="chip" aria-pressed={pickKey === p.key} onClick={() => pickContainer(p.key, p.label)}>
+              {p.label}
+            </button>
+          ))}
+          <button type="button" className="chip" aria-pressed={pickKey === "other"} onClick={() => pickContainer("other", "")}>
+            Something else
+          </button>
+        </div>
+      </div>
+
+      {pickKey === "other" ? (
         <label className="fld">
-          <span>Width across (inches)</span>
-          <input name="diameter_in" value={diameter} onChange={typed(setDiameter)} inputMode="decimal" placeholder="2" maxLength={10} />
+          <span>What do you call it?</span>
+          <input name="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="3 oz soap bar" required maxLength={60} />
         </label>
       ) : (
+        <input type="hidden" name="name" value={name} />
+      )}
+
+      {pickKey && (
         <div className="fld">
-          <span>Width and height (inches)</span>
+          <span>2. How much goes in one?</span>
           <div className="pair">
-            <input name="width_in" value={width} onChange={typed(setWidth)} inputMode="decimal" placeholder="3" maxLength={10} aria-label="Width in inches" />
-            <input name="height_in" value={height} onChange={typed(setHeight)} inputMode="decimal" placeholder="2" maxLength={10} aria-label="Height in inches" />
+            <input name="fill_amount" defaultValue={size?.fill_amount ?? ""} inputMode="decimal" placeholder="2" required maxLength={20} aria-label="Fill amount" />
+            <select name="fill_unit" defaultValue={size?.fill_unit ?? defaultUnit} aria-label="Fill unit">
+              {FILL_UNITS.map((u) => (
+                <option key={u.key} value={u.key}>
+                  {u.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <p className="hint">Balms and butters: by weight (oz). Sprays and oils: by liquid (fl oz).</p>
+        </div>
+      )}
+
+      {pickKey && (
+        <div className="fld">
+          <span>3. Pick a label</span>
+          <div className="labelpicks">
+            {options.map((o) => (
+              <button type="button" key={o.placement} className="labelpick" aria-pressed={chosen(o)} onClick={() => chooseLabel(o)}>
+                <PlaceIcon p={o.placement} />
+                <span>
+                  <b>{PLACE[o.placement].title}</b>
+                  <span>
+                    {sizeText(o)} · {PLACE[o.placement].count}
+                  </span>
+                </span>
+              </button>
+            ))}
+            <button type="button" className="labelpick" aria-pressed={own} onClick={() => (setOwn(true), setTemplateId(""))}>
+              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M8 30l4-1 16-16-3-3-16 16zM23 12l3 3" />
+              </svg>
+              <span>
+                <b>My own size</b>
+                <span>Type the size, or the number on your label box</span>
+              </span>
+            </button>
           </div>
         </div>
       )}
-      <label className="radio">
-        <input type="checkbox" name="label_small" value="1" checked={small} onChange={(e) => setSmall(e.target.checked)} /> Small container: less than
-        12 sq in of room for labels, all the way around
-      </label>
-      <p className="hint">
-        Then the law allows ingredient letters half as tall (1/32 in), so long ingredient lists fit. Most 2 oz jars, 1 oz bottles, droppers and lip
-        tubes qualify. Picking a container above ticks this for you; check it against your own container.
-      </p>
-      {shape === "rect" && (
-        <label className="radio">
-          <input type="checkbox" name="label_wrap" value="1" checked={wrap} onChange={(e) => setWrap(e.target.checked)} /> One wraparound label
-          (front and back on one strip)
-        </label>
+
+      {own && pickKey && (
+        <div className="sub">
+          <label className="fld narrow-fld">
+            <span>Number on your label box (optional)</span>
+            <input value={lookup} onChange={(e) => setLookup(e.target.value)} inputMode="numeric" placeholder="22807" maxLength={10} aria-label="Label box number" />
+          </label>
+          {lookup.trim() &&
+            (looked ? (
+              <button type="button" className="btn sm cta" onClick={() => (pickSheet(looked.id), setLookup(""))}>
+                Use {looked.brand} {looked.id}: {looked.label}
+              </button>
+            ) : (
+              <p className="hint">We don&rsquo;t know that one yet. Type the size below.</p>
+            ))}
+          <div className="row">
+            {(["rect", "round", "oval"] as const).map((k) => (
+              <label className="radio" key={k}>
+                <input type="radio" checked={shape === k} onChange={() => (setShape(k), setTemplateId(""))} />{" "}
+                {k === "rect" ? "Rectangle" : k === "round" ? "Round" : "Oval"}
+              </label>
+            ))}
+          </div>
+          {shape === "round" ? (
+            <label className="fld">
+              <span>Width across (inches)</span>
+              <input value={diameter} onChange={typed(setDiameter)} inputMode="decimal" placeholder="2" maxLength={10} />
+            </label>
+          ) : (
+            <div className="fld">
+              <span>Width and height (inches)</span>
+              <div className="pair">
+                <input value={width} onChange={typed(setWidth)} inputMode="decimal" placeholder="3" maxLength={10} aria-label="Width in inches" />
+                <input value={height} onChange={typed(setHeight)} inputMode="decimal" placeholder="2" maxLength={10} aria-label="Height in inches" />
+              </div>
+            </div>
+          )}
+          {shape === "rect" && (
+            <label className="radio">
+              <input type="checkbox" checked={wrap} onChange={(e) => setWrap(e.target.checked)} /> It wraps all the way around (one label, not two)
+            </label>
+          )}
+          <label className="radio">
+            <input type="checkbox" checked={small} onChange={(e) => setSmall(e.target.checked)} /> It&rsquo;s a small container (lets the
+            ingredients print smaller)
+          </label>
+        </div>
       )}
-      <p className="hint">
-        {wrap && shape === "rect"
-          ? "The whole strip. The front takes the left 40%, the ingredients and warnings the rest."
-          : "The front label. The back prints the same size. Optional, but it sets the smallest letter size allowed for the net weight."}
-      </p>
+
       {state.error && (
         <p className="error" role="alert">
           {state.error}
         </p>
       )}
-      <div className="row">
-        <button className="btn pri sm" disabled={saving}>
-          {saving ? "Saving..." : size ? "Save size" : "Add size"}
-        </button>
-        <button type="button" className="btn ghost sm" onClick={onDone}>
-          Cancel
-        </button>
-      </div>
+      {pickKey && (
+        <div className="row">
+          <button className="btn pri sm" disabled={saving}>
+            {saving ? "Saving..." : size ? "Save size" : "Add size"}
+          </button>
+          <button type="button" className="btn ghost sm" onClick={onDone}>
+            Cancel
+          </button>
+        </div>
+      )}
     </form>
   );
 }
