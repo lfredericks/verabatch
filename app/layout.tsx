@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { activeTheme, brand, googleFontsUrl, themeCss } from "@/lib/brand";
+import Link from "next/link";
+import { activeTheme, brand, brandText, googleFontsUrl, themeCss } from "@/lib/brand";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -29,7 +30,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Theme colors, fonts and corners. Everything in globals.css reads these. */}
         <style dangerouslySetInnerHTML={{ __html: themeCss(theme) }} />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <footer className="disclaimer-line">
+          {brandText(brand.disclaimerShort)} <Link href="/disclaimer">Read the full disclaimer</Link>
+        </footer>
+      </body>
     </html>
   );
 }

@@ -201,6 +201,12 @@ product forms submit by hand. Test real phone flows, not only Chromium.
   letters may be 1/32 in (21 CFR 701.3(b)). The container picker ticks it from the side band
   area (lids not counted). Relief Balm fits a 2 oz thin-wall jar wraparound with it on.
   Migration 0011_label_wrap.sql adds both columns (the WIP branch's 0011 becomes 0012).
+- Disclaimer (Leslie, Oct 23): the maker is responsible for everything; the app is a drafting
+  tool, not legal/regulatory advice, not FDA-affiliated, promises no compliance. Text lives in
+  `lib/brand/brand.ts` (`disclaimer`, `disclaimerShort`); full page at /disclaimer, a line at
+  the bottom of every page, and a notice above the label download. Wording that sounded like a
+  guarantee ("Correct labels", "all check out") was softened. Still needed for launch: a
+  lawyer-reviewed terms of service with an "I agree" at sign-up.
 - Children warning is now "Keep out of reach of children and pets." (Leslie). When required
   FDA wording already says children, it prints "Keep away from pets." instead.
 

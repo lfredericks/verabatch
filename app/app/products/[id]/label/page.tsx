@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { pageTitle } from "@/lib/brand";
+import { brand, brandText, pageTitle } from "@/lib/brand";
 import { BrandMark } from "../../../../BrandMark";
 import { CopyButtons } from "./CopyButtons";
 import { labelPdfFor, loadLabel, readLogoChoice } from "./data";
@@ -80,7 +80,9 @@ export default async function LabelPage({
         ) : null}
         <h1>{ready ? "Your label is ready" : "Almost ready"}</h1>
         <p className="hint">
-          {ready ? "Ingredient names, net weight size and warnings all checked." : "Fix these before you print. Everything else checks out."}
+          {ready
+            ? "No problems found in the ingredient names, net weight size or warnings. Review it yourself before you print."
+            : "Fix these before you print."}
         </p>
       </div>
       {sizes.length > 1 && (
@@ -146,6 +148,10 @@ export default async function LabelPage({
         <p className="hint">No size yet, so the net weight is the batch divided by how many it makes, from typical values. Add a size for an exact one.</p>
       )}
 
+      <p className="note">
+        <b>You&rsquo;re responsible for this label.</b> {brandText(brand.disclaimerShort)} Have it reviewed by a regulatory consultant or attorney
+        before you sell. <Link href="/disclaimer">Full disclaimer</Link>
+      </p>
       {"pdf" in made ? (
         <div className="bigbtns">
           <a href={`${pdfHref}&download=1`} className="bigbtn bigbtn-pri">
@@ -195,7 +201,7 @@ export default async function LabelPage({
           {made.suggest.length > 0 && (
             <>
               <p>
-                <b>These fit the whole back at the legal letter size:</b>
+                <b>These fit the whole back at the FDA minimum letter size:</b>
               </p>
               <ul className="tight">
                 {made.suggest.map((x) => (

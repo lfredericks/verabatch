@@ -15,6 +15,10 @@ export interface Brand {
   intro: string;
   /** Small print at the bottom of public pages. */
   footer: string;
+  /** One-line disclaimer at the bottom of every page, linking to the full one. */
+  disclaimerShort: string;
+  /** The full disclaimer, one paragraph per entry, shown at /disclaimer. */
+  disclaimer: { heading: string; text: string }[];
 }
 
 /** Every color the app uses. Screens only ever use these names, never raw colors. */

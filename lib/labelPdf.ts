@@ -313,7 +313,7 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
       netSize = netMin;
       placed = flow([{ text: netText!, font: sansBold, size: netMin, gap: 0 }], frame, bandTop, "center");
       netTop = bandTop;
-      warnings.push("The net weight doesn't fit in the bottom 30% of the front at the legal letter size. Use a bigger label.");
+      warnings.push("The net weight doesn't fit in the bottom 30% of the front at the FDA minimum letter size. Use a bigger label.");
     }
     draw(front, H, placed.lines);
   }
@@ -395,7 +395,7 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
   const back = fitBack({ sans, sansBold }, { ...input, shape: parts.back }, frameFor(parts.back), sizeForXHeight(minIn, xSans));
   if (!back.fits) {
     warnings.push(
-      `The back doesn't fit on this label at the smallest legal letter size (${input.smallPackage ? "1/32" : "1/16"} in). This part is cut off: "${back.cutOff}". Use a bigger label, or untick optional warnings.`,
+      `The back doesn't fit on this label at the FDA minimum letter size (${input.smallPackage ? "1/32" : "1/16"} in). This part is cut off: "${back.cutOff}". Use a bigger label, or untick optional warnings.`,
     );
   }
   draw(backPage, H, back.lines, parts.frontW);

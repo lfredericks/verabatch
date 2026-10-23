@@ -48,7 +48,7 @@ export function ProductHero({
             <circle cx="12" cy="12" r="9" />
             <path d="M8 12l3 3 5-6" />
           </svg>
-          Label ready. Recipe, size and warnings all check out.
+          Label ready to review. No problems found in the recipe, size or warnings.
         </p>
       ) : (
         <Link href={`/app/products/${productId}/label`} className="status status-warn">
