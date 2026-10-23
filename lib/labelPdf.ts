@@ -1,6 +1,7 @@
 import * as fontkitModule from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import { labelArea, type LabelShape } from "./core/lettering";
+import { WRAP_FRONT_SHARE } from "./sizes";
 
 /**
  * The label as a print-ready PDF: page 1 is the front, page 2 the back, each at the
@@ -43,6 +44,23 @@ export interface LabelPdfInput {
   logos?: { bytes: Uint8Array; kind: "png" | "jpg" }[];
   /** Back paragraphs printed in bold (warnings: FDA wants them conspicuous). */
   boldBack?: string[];
+  /**
+   * One wraparound label instead of a front and a back: a single page, the front panel on
+   * the left (40% of the width) and the back text on the right. Rectangles only.
+   */
+  wrap?: boolean;
+  /** The container has under 12 sq in for labels: ingredient letters may be 1/32 in. */
+  smallPackage?: boolean;
+}
+
+
+/** The front and back panels of a label: the whole shape each, or the two parts of a wraparound. */
+export function panels(shape: LabelShape, wrap?: boolean): { front: LabelShape; back: LabelShape; frontW: number } {
+  if (wrap && shape.shape === "rect") {
+    const fw = Math.round(shape.widthIn * WRAP_FRONT_SHARE * 1000) / 1000;
+    return { front: { shape: "rect", widthIn: fw, heightIn: shape.heightIn }, back: { shape: "rect", widthIn: shape.widthIn - fw, heightIn: shape.heightIn }, frontW: fw * PT };
+  }
+  return { front: shape, back: shape, frontW: 0 };
 }
 
 export interface LabelPdf {
@@ -51,10 +69,14 @@ export interface LabelPdf {
   warnings: string[];
   /** Point sizes used, for checking. */
   sizes: { name: number; identity: number; net: number; back: number };
+  /** How the back fit: false = cut off even at the legal minimum. */
+  backFits: boolean;
+  /** Back text that didn't fit, if any. */
+  backCutOff: string;
 }
 
 const PT = 72;
-/** FDA ingredient letters: 1/16 in, or 1/32 in when the whole package has under 12 sq in for labels. */
+/** FDA ingredient letters: at least 1/16 in, or 1/32 in when the whole package has under 12 sq in for labels. */
 const ING_MIN_IN = 1 / 16;
 const ING_SMALL_PACKAGE_IN = 1 / 32;
 const LEADING = 1.22;
@@ -213,11 +235,11 @@ export function bottomBandShare(shape: LabelShape): number {
   return lo / 2; // An oval is a stretched circle, so the share is the same.
 }
 
-function draw(page: PDFPage, H: number, lines: PlacedLine[]) {
+function draw(page: PDFPage, H: number, lines: PlacedLine[], dx = 0) {
   for (const l of lines) {
     // Baseline sits inside the band: ascent of roughly 0.8 em below the band's top, plus half the leading.
     const baseline = l.top + l.size * (LEADING - 1) / 2 + l.size * 0.8;
-    page.drawText(l.text, { x: l.x, y: H - baseline, size: l.size, font: l.font, color: rgb(0, 0, 0), lineHeight: l.size * LEADING });
+    page.drawText(l.text, { x: l.x + dx, y: H - baseline, size: l.size, font: l.font, color: rgb(0, 0, 0), lineHeight: l.size * LEADING });
   }
 }
 
@@ -250,13 +272,15 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
   // mixed case on the lowercase "o", so capitals stay legal at a smaller point size.
   const capBold = capHeightRatio(files.sansBold);
 
-  const frame = frameFor(input.shape);
+  const wrapped = Boolean(input.wrap && input.shape.shape === "rect");
+  const parts = panels(input.shape, wrapped);
+  const frame = frameFor(parts.front);
   const { W, H } = frame;
   const short = Math.min(W, H);
   const warnings: string[] = [];
 
   // ---- Front ----
-  const front = pdf.addPage([W, H]);
+  const front = wrapped ? pdf.addPage([frameFor(input.shape).W, H]) : pdf.addPage([W, H]);
   // Net weight: a hair over the legal minimum, in the bottom 30% of the panel's AREA
   // (21 CFR 701.13(f)). Panels of 5 sq in or less are exempt from the 30% rule (f)(1),
   // so there it just goes as low as it fits.
@@ -264,8 +288,8 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
   // Comfortable size first; the legal minimum only when space is tight.
   let netSize = Math.max(netMin, Math.round(short * 0.065 * 10) / 10);
   const netText = input.net ? input.net.toUpperCase() : null;
-  const bandTop = H * (1 - bottomBandShare(input.shape));
-  const placementRule = labelArea(input.shape) > 5;
+  const bandTop = H * (1 - bottomBandShare(parts.front));
+  const placementRule = labelArea(parts.front) > 5;
   const highestStart = placementRule ? bandTop : frame.top;
   let netTop = frame.bottom;
   if (input.net) {
@@ -366,51 +390,128 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
   }
 
   // ---- Back ----
-  const backPage = pdf.addPage([W, H]);
-  const align = input.shape.shape === "rect" ? "left" : "center";
-  const minBack = sizeForXHeight(ING_MIN_IN, xSans);
-  const smallBack = sizeForXHeight(ING_SMALL_PACKAGE_IN, xSans);
-  const backParas = (size: number): Para[] =>
-    input.back
-      .filter((t) => t.trim())
-      .map((text, i) => ({ text, font: input.boldBack?.includes(text) ? sansBold : sans, size, gap: i === 0 ? 0 : size * 0.45 }));
-  const tryBack = (size: number) => centerIn(backParas(size), frame, frame.top, frame.bottom, align);
-
-  let backSize = minBack;
-  let back = tryBack(minBack);
-  if (back.fits) {
-    // Room to spare: grow up to a comfortable reading size.
-    for (let s = Math.max(minBack, short * 0.075); s > minBack; s -= 0.25) {
-      const tried = tryBack(s);
-      if (tried.fits) {
-        back = tried;
-        backSize = s;
-        break;
-      }
-    }
-  } else {
-    for (let s = minBack - 0.1; s >= smallBack - 0.001; s -= 0.1) {
-      const tried = tryBack(Math.round(s * 10) / 10);
-      backSize = Math.round(s * 10) / 10;
-      back = tried;
-      if (tried.fits) break;
-    }
-    if (back.fits) {
-      warnings.push(
-        "The back only fits with ingredient letters under 1/16 in. That's allowed only if the whole container has less than 12 sq in of room for labels. Otherwise use a bigger back label.",
-      );
-    } else {
-      warnings.push("The back text doesn't fit on this label, even at the smallest allowed letter size. Use a bigger back label.");
-    }
+  const backPage = wrapped ? front : pdf.addPage([W, H]);
+  const minIn = input.smallPackage ? ING_SMALL_PACKAGE_IN : ING_MIN_IN;
+  const back = fitBack({ sans, sansBold }, { ...input, shape: parts.back }, frameFor(parts.back), sizeForXHeight(minIn, xSans));
+  if (!back.fits) {
+    warnings.push(
+      `The back doesn't fit on this label at the smallest legal letter size (${input.smallPackage ? "1/32" : "1/16"} in). This part is cut off: "${back.cutOff}". Use a bigger label, or untick optional warnings.`,
+    );
   }
-  draw(backPage, H, back.lines);
+  draw(backPage, H, back.lines, parts.frontW);
+  const backSize = back.size;
 
   const bytes = await pdf.save();
   return {
     bytes,
     warnings,
     sizes: { name: nameSize, identity: identitySize, net: input.net ? netSize : 0, back: backSize },
+    backFits: back.fits,
+    backCutOff: back.cutOff,
   };
+}
+
+/** The made-by, questions and lot lines as one line, when space is tight. */
+const SEP = " \u00b7 ";
+
+/**
+ * The back's paragraphs, from most spread out to most combined:
+ * 0. every paragraph on its own;
+ * 1. made-by, questions and lot joined into one line;
+ * 2. that, plus every warning joined into one bold paragraph.
+ */
+function backLayouts(input: Pick<LabelPdfInput, "back" | "boldBack">): { text: string; bold: boolean }[][] {
+  const paras = input.back.filter((t) => t.trim()).map((text, i) => ({ text, bold: Boolean(input.boldBack?.includes(text)), first: i === 0 }));
+  const isInfo = (p: (typeof paras)[number]) => !p.first && !p.bold;
+  const trim = (t: string) => t.trim().replace(/\.$/, "");
+  const mergeInfo = (list: typeof paras) => {
+    const info = list.filter(isInfo);
+    if (info.length < 2) return list;
+    const at = list.indexOf(info[0]!);
+    const rest = list.filter((p) => !isInfo(p));
+    return [...rest.slice(0, at), { text: `${info.map((p) => trim(p.text)).join(SEP)}.`, bold: false, first: false }, ...rest.slice(at)];
+  };
+  const mergeWarnings = (list: typeof paras) => {
+    const bold = list.filter((p) => p.bold);
+    if (bold.length < 2) return list;
+    const at = list.indexOf(bold[0]!);
+    const rest = list.filter((p) => !p.bold);
+    return [...rest.slice(0, at), { text: bold.map((p) => p.text.trim()).join(" "), bold: true, first: false }, ...rest.slice(at)];
+  };
+  const out = [paras, mergeInfo(paras), mergeWarnings(mergeInfo(paras))];
+  // Drop layouts that didn't change anything.
+  return out.filter((l, i) => i === 0 || l.length < out[i - 1]!.length).map((l) => l.map(({ text, bold }) => ({ text, bold })));
+}
+
+/**
+ * Fit the back: every paragraph at ONE size. Start at a comfortable size and shrink, combining
+ * short lines before going smaller, down to the legal minimum. Below that it doesn't shrink:
+ * the text runs out of room and `cutOff` says what didn't make it.
+ */
+function fitBack(
+  fonts: { sans: PDFFont; sansBold: PDFFont },
+  input: Pick<LabelPdfInput, "back" | "boldBack" | "shape">,
+  frame: Frame,
+  minSize: number,
+) {
+  const align = input.shape.shape === "rect" ? "left" : "center";
+  const layouts = backLayouts(input);
+  const paras = (l: { text: string; bold: boolean }[], size: number): Para[] =>
+    l.map((p, i) => ({ text: p.text, font: p.bold ? fonts.sansBold : fonts.sans, size, gap: i === 0 ? 0 : size * 0.45 }));
+  const short = Math.min(frame.W, frame.H);
+  const sizes: number[] = [];
+  for (let s = Math.max(minSize, Math.round(short * 0.075 * 4) / 4); s > minSize + 0.01; s -= 0.25) sizes.push(s);
+  sizes.push(minSize);
+  for (const size of sizes) {
+    for (const l of layouts) {
+      const out = centerIn(paras(l, size), frame, frame.top, frame.bottom, align);
+      if (out.fits) return { fits: true, size, lines: out.lines, cutOff: "" };
+    }
+  }
+  // Doesn't fit even at the minimum: keep what fits from the top, report the rest.
+  const all = paras(layouts[layouts.length - 1]!, minSize);
+  // Round and oval labels are too narrow at the very top: start where a line has room.
+  let start = frame.top;
+  const lh = minSize * LEADING;
+  for (; start < frame.bottom - lh; start += 1) {
+    const span = frame.across(start, start + lh);
+    if (span && span[1] - span[0] >= frame.W * 0.5) break;
+  }
+  const out = flow(all, frame, start, align);
+  const kept = out.lines.filter((l) => l.top + minSize * LEADING <= frame.bottom + 0.01);
+  const shown = kept.map((l) => l.text).join(" ").replace(/\u00a0/g, " ");
+  const full = all.map((p) => p.text).join(" ");
+  const words = full.split(/\s+/);
+  const shownCount = shown.split(/\s+/).filter(Boolean).length;
+  const cutOff = words.slice(shownCount).join(" ");
+  return { fits: false, size: minSize, lines: kept, cutOff: cutOff.length > 120 ? `${cutOff.slice(0, 117)}...` : cutOff };
+}
+
+/**
+ * Labels the back WOULD fit on, at the legal letter size: Avery sheets bigger than this one,
+ * smallest first, same shape first. For "use a different label" suggestions.
+ */
+export async function labelsThatFitBack(
+  input: Pick<LabelPdfInput, "back" | "boldBack" | "shape" | "smallPackage">,
+  files: LabelFontFiles,
+  candidates: { id: string; label: string; shape: LabelShape; wrap?: boolean }[],
+): Promise<{ id: string; label: string }[]> {
+  const pdf = await PDFDocument.create();
+  pdf.registerFontkit(fontkit);
+  const sans = await pdf.embedFont(files.sans, { subset: true });
+  const sansBold = await pdf.embedFont(files.sansBold, { subset: true });
+  const minSize = sizeForXHeight(input.smallPackage ? ING_SMALL_PACKAGE_IN : ING_MIN_IN, xHeightRatio(files.sans));
+  const here = labelArea(input.shape);
+  const sorted = candidates
+    .filter((c) => labelArea(c.shape) > here)
+    .sort((a, b) => Number(b.shape.shape === input.shape.shape) - Number(a.shape.shape === input.shape.shape) || labelArea(a.shape) - labelArea(b.shape));
+  const fit: { id: string; label: string }[] = [];
+  for (const c of sorted) {
+    const backShape = panels(c.shape, c.wrap).back;
+    if (fitBack({ sans, sansBold }, { ...input, shape: backShape }, frameFor(backShape), minSize).fits) fit.push({ id: c.id, label: c.label });
+    if (fit.length === 3) break;
+  }
+  return fit;
 }
 
 /**

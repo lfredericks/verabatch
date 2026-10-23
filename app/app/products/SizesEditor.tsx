@@ -49,6 +49,8 @@ function SizeForm({
   const [height, setHeight] = useState(n(size?.height_in));
   const [diameter, setDiameter] = useState(n(size?.diameter_in));
   const [lookup, setLookup] = useState("");
+  const [wrap, setWrap] = useState(Boolean(size?.label_wrap));
+  const [small, setSmall] = useState(Boolean(size?.label_small));
   const [name, setName] = useState(size?.name ?? "");
   const [containerKey, setContainerKey] = useState("");
   const container = findContainer(containerKey);
@@ -71,6 +73,7 @@ function SizeForm({
     const exact = o.avery.find((a) => a.shape === o.shape && a.widthIn === o.widthIn && a.heightIn === o.heightIn);
     setTemplateId(exact?.id ?? "");
     setShape(o.shape);
+    setWrap(o.placement === "wrap");
     if (o.shape === "round") setDiameter(String(o.widthIn));
     else {
       setWidth(String(o.widthIn));
@@ -101,6 +104,7 @@ function SizeForm({
               setContainerKey(e.target.value);
               const c = findContainer(e.target.value);
               if (c && !name.trim()) setName(shortName(c));
+              if (c) setSmall(labelRoomSqIn(c) < 12);
             }}
             aria-label="Container"
           >
@@ -130,9 +134,6 @@ function SizeForm({
               ))}
             </div>
             <p className="hint">
-              {labelRoomSqIn(container) < 12
-                ? "Small container: under 12 sq in of label room on the sides, so smaller ingredient letters are allowed. "
-                : ""}
               Sizes from{" "}
               <a href={container.source.url} target="_blank" rel="noopener">
                 {container.source.name}
@@ -224,7 +225,25 @@ function SizeForm({
           </div>
         </div>
       )}
-      <p className="hint">The front label only. Optional, but it sets the smallest letter size allowed for the net weight.</p>
+      <label className="radio">
+        <input type="checkbox" name="label_small" value="1" checked={small} onChange={(e) => setSmall(e.target.checked)} /> Small container: less than
+        12 sq in of room for labels, all the way around
+      </label>
+      <p className="hint">
+        Then the law allows ingredient letters half as tall (1/32 in), so long ingredient lists fit. Most 2 oz jars, 1 oz bottles, droppers and lip
+        tubes qualify. Picking a container above ticks this for you; check it against your own container.
+      </p>
+      {shape === "rect" && (
+        <label className="radio">
+          <input type="checkbox" name="label_wrap" value="1" checked={wrap} onChange={(e) => setWrap(e.target.checked)} /> One wraparound label
+          (front and back on one strip)
+        </label>
+      )}
+      <p className="hint">
+        {wrap && shape === "rect"
+          ? "The whole strip. The front takes the left 40%, the ingredients and warnings the rest."
+          : "The front label. The back prints the same size. Optional, but it sets the smallest letter size allowed for the net weight."}
+      </p>
       {state.error && (
         <p className="error" role="alert">
           {state.error}

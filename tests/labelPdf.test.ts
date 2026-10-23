@@ -118,3 +118,46 @@ describe("warnings", () => {
     expect(await fontNames(out.bytes)).toContain("Lato-Bold");
   });
 });
+
+describe("back label fitting", () => {
+  const ing = `Ingredients: ${Array.from({ length: 4 }, () => "Simmondsia Chinensis (Jojoba) Seed Oil, Persea Gratissima (Avocado) Oil, Cera Alba (Beeswax), Lavandula Angustifolia (Lavender) Oil").join(", ")}.`;
+  const caution = "Caution: For external use only. Avoid contact with eyes. Keep out of reach of children and pets.";
+  const back = [ing, caution, "Made by Hollow Pine Soap Co., Bend, OR 97701, USA.", "Questions or reactions: hollowpine.example", "Lot 2026-014"];
+
+  it("shrinks to the legal minimum, then reports what's cut off", async () => {
+    const out = await buildLabelPdf({ ...base, back, boldBack: [caution], shape: { shape: "rect", widthIn: 3, heightIn: 2 }, netMinIn: 1 / 8 }, await loadLabelFonts());
+    expect(out.backFits).toBe(false);
+    expect(out.sizes.back * 0.506).toBeGreaterThanOrEqual(72 / 16 - 0.01);
+    expect(out.backCutOff.length).toBeGreaterThan(0);
+    expect(out.warnings.join(" ")).toMatch(/cut off/);
+  });
+
+  it("small containers may go down to 1/32 in letters", async () => {
+    const out = await buildLabelPdf(
+      { ...base, back, boldBack: [caution], smallPackage: true, shape: { shape: "rect", widthIn: 3, heightIn: 2 }, netMinIn: 1 / 8 },
+      await loadLabelFonts(),
+    );
+    expect(out.backFits).toBe(true);
+    expect(out.sizes.back * 0.506).toBeGreaterThanOrEqual(72 / 32 - 0.01);
+  });
+
+  it("a wraparound is one page: front on the left, back on the right", async () => {
+    const out = await buildLabelPdf(
+      { ...base, back, boldBack: [caution], smallPackage: true, wrap: true, shape: { shape: "rect", widthIn: 6.25, heightIn: 1.375 }, netMinIn: 1 / 16 },
+      await loadLabelFonts(),
+    );
+    const doc = await PDFDocument.load(out.bytes);
+    expect(doc.getPageCount()).toBe(1);
+    expect(doc.getPages()[0]!.getSize()).toEqual({ width: 450, height: 99 });
+    expect(out.backFits).toBe(true);
+  });
+
+  it("suggests bigger labels that fit the back", async () => {
+    const { labelsThatFitBack } = await import("../lib/labelPdf");
+    const fit = await labelsThatFitBack({ back, boldBack: [caution], shape: { shape: "rect", widthIn: 3, heightIn: 2 } }, await loadLabelFonts(), [
+      { id: "small", label: "2 × 2", shape: { shape: "rect", widthIn: 2, heightIn: 2 } },
+      { id: "big", label: "4 × 3 1/3", shape: { shape: "rect", widthIn: 4, heightIn: 3.333 } },
+    ]);
+    expect(fit.map((f) => f.id)).toEqual(["big"]);
+  });
+});

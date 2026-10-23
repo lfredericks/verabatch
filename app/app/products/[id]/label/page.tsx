@@ -134,6 +134,8 @@ export default async function LabelPage({
         back={label.back}
         bold={label.warnings}
         sizeText={label.size?.labelText ?? null}
+        wrap={Boolean(size?.label_wrap && previewShape?.kind === "rect")}
+        cutOff={"pdf" in made ? made.pdf.backCutOff : ""}
       />
       {label.size?.lettering && (
         <p className="hint center">
@@ -190,6 +192,21 @@ export default async function LabelPage({
               <li key={w}>{w}</li>
             ))}
           </ul>
+          {made.suggest.length > 0 && (
+            <>
+              <p>
+                <b>These fit the whole back at the legal letter size:</b>
+              </p>
+              <ul className="tight">
+                {made.suggest.map((x) => (
+                  <li key={x.id}>{x.label}</li>
+                ))}
+              </ul>
+              <Link href={`/app/products/${id}#sizes`} className="btn sm cta">
+                Change the label size
+              </Link>
+            </>
+          )}
         </div>
       )}
 

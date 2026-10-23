@@ -190,6 +190,17 @@ product forms submit by hand. Test real phone flows, not only Chromium.
   and candle containers from supplier pages, with front/back, wrap and lid label sizes and
   matching Avery sheets. Picker in the size form. Finding: most 2 oz jars have a side band
   only 1 to 1.6 in tall, so a 3x2 label can't go on the side.
+- Back label rules (Leslie, Oct 23): all back text ONE size; combine lines when that keeps
+  text bigger (made-by, questions and lot on one line; then all warnings in one bold
+  paragraph); shrink to the legal minimum and no further; past that, show what's cut off and
+  suggest labels that fit (Avery sheets and container wraparounds).
+- Wraparound labels (Leslie: better for long text on a 2 oz jar): `sizes.label_wrap`, one
+  page, front panel the left 40%, back text the right 60%. Net weight lettering uses the
+  front panel's area.
+- Small container setting (`sizes.label_small`): under 12 sq in of label room, so ingredient
+  letters may be 1/32 in (21 CFR 701.3(b)). The container picker ticks it from the side band
+  area (lids not counted). Relief Balm fits a 2 oz thin-wall jar wraparound with it on.
+  Migration 0011_label_wrap.sql adds both columns (the WIP branch's 0011 becomes 0012).
 - Children warning is now "Keep out of reach of children and pets." (Leslie). When required
   FDA wording already says children, it prints "Keep away from pets." instead.
 

@@ -1,6 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { buildLabel } from "@/lib/label";
-import { buildLabelPdf, labelFileName, type LabelPdf } from "@/lib/labelPdf";
+import { buildLabelPdf, labelFileName, labelsThatFitBack, type LabelPdf } from "@/lib/labelPdf";
+import { LABEL_TEMPLATES } from "@/lib/labelTemplates";
+import { CONTAINERS, labelOptions } from "@/lib/containers";
+import type { LabelShape } from "@/lib/core/lettering";
 import { logoBytes } from "@/lib/logos";
 import { cleanWarnings } from "@/lib/warnings";
 import { loadLabelFonts } from "@/lib/labelFonts/load";
@@ -86,7 +89,27 @@ export async function loadLabel(id: string, sizeId?: string, batchParam?: string
 type Loaded = Extract<NonNullable<Awaited<ReturnType<typeof loadLabel>>>, { signedOut: false }>;
 
 /** The label PDF, or why it can't be made yet (no label dimensions on this size). */
-export async function labelPdfFor(loaded: Loaded): Promise<{ pdf: LabelPdf } | { missing: string }> {
+/** Labels to suggest when the back doesn't fit: Avery sheets, and wraparounds sized for common containers. */
+function labelCandidates(): { id: string; label: string; shape: LabelShape; wrap?: boolean }[] {
+  const avery = LABEL_TEMPLATES.map((t) => ({
+    id: `avery-${t.id}`,
+    label: `Avery ${t.id}: ${t.label}`,
+    shape: (t.shape === "round" ? { shape: "round", diameterIn: t.widthIn } : { shape: t.shape, widthIn: t.widthIn, heightIn: t.heightIn }) as LabelShape,
+  }));
+  const wraps = CONTAINERS.flatMap((c) =>
+    labelOptions(c)
+      .filter((o) => o.placement === "wrap")
+      .map((o) => ({
+        id: `wrap-${c.key}`,
+        label: `${o.widthIn} × ${o.heightIn} in wraparound (fits a ${c.name})`,
+        shape: { shape: "rect", widthIn: o.widthIn, heightIn: o.heightIn } as LabelShape,
+        wrap: true,
+      })),
+  );
+  return [...avery, ...wraps];
+}
+
+export async function labelPdfFor(loaded: Loaded): Promise<{ pdf: LabelPdf; suggest: { id: string; label: string }[] } | { missing: string }> {
   const { product, size, label, fileName, supabase, frontLogos } = loaded;
   if (!size) return { missing: "Add a size with label dimensions to get a print-ready PDF." };
   const shape = labelShapeOf(size);
@@ -102,10 +125,15 @@ export async function labelPdfFor(loaded: Loaded): Promise<{ pdf: LabelPdf } | {
       title: (fileName ?? "Label.pdf").replace(/\.pdf$/, ""),
       logos: (await Promise.all(frontLogos.map((p) => logoBytes(supabase, p)))).filter((l) => l !== null),
       boldBack: label.warnings,
+      wrap: Boolean(size.label_wrap),
+      smallPackage: Boolean(size.label_small),
     },
     await loadLabelFonts(),
   );
-  return { pdf };
+  const suggest = pdf.backFits
+    ? []
+    : await labelsThatFitBack({ back: label.back, boldBack: label.warnings, shape, smallPackage: Boolean(size.label_small) }, await loadLabelFonts(), labelCandidates());
+  return { pdf, suggest };
 }
 
 /** The label PDF as a download. Its link ends in the file name, so browsers save it under that name. */

@@ -4,6 +4,9 @@ import { parseAmount } from "./core/units";
 import { findTemplate } from "./labelTemplates";
 import type { LetteringStep } from "./core/types";
 
+/** Share of a wraparound label's width that is the front panel (the rest is the back text). */
+export const WRAP_FRONT_SHARE = 0.4;
+
 /** A size as stored. fill_amount stays as typed ("2", "1/2"). */
 export interface Size {
   id: string;
@@ -14,6 +17,10 @@ export interface Size {
   label_shape: "rect" | "round" | "oval";
   /** Label sheet it was picked from (Avery template number), if any. */
   label_template?: string | null;
+  /** One wraparound label (front + back on one strip) instead of two. Rectangles only. */
+  label_wrap?: boolean | null;
+  /** Under 12 sq in of label room on the whole container: 1/32 in ingredient letters allowed. */
+  label_small?: boolean | null;
   width_in: number | null;
   height_in: number | null;
   diameter_in: number | null;
@@ -56,7 +63,9 @@ export function sizeFacts(s: Size, steps: LetteringStep[]): SizeFacts {
   const fill = parseAmount(s.fill_amount);
   const net = fill > 0 ? netContentsForSize(fill, s.fill_unit) : null;
   const shape = labelShapeOf(s);
-  const areaSqIn = shape ? labelArea(shape) : null;
+  // The net weight's letter size goes by the FRONT panel: on a wraparound, its left 40%.
+  const wrapped = Boolean(s.label_wrap && shape?.shape === "rect");
+  const areaSqIn = shape ? labelArea(shape) * (wrapped ? WRAP_FRONT_SHARE : 1) : null;
   return {
     net,
     areaSqIn,
@@ -64,7 +73,7 @@ export function sizeFacts(s: Size, steps: LetteringStep[]): SizeFacts {
     labelText: shape
       ? shape.shape === "round"
         ? `${inch(shape.diameterIn)} in round`
-        : `${inch(shape.widthIn)} × ${inch(shape.heightIn)} in${shape.shape === "oval" ? " oval" : ""}`
+        : `${inch(shape.widthIn)} × ${inch(shape.heightIn)} in${shape.shape === "oval" ? " oval" : wrapped ? " wraparound" : ""}`
       : null,
   };
 }
@@ -103,6 +112,8 @@ export function readSizeForm(form: FormData):
       width_in: shape !== "round" && ok(w) && ok(h) ? w : null,
       height_in: shape !== "round" && ok(w) && ok(h) ? h : null,
       diameter_in: shape === "round" && ok(d) ? d : null,
+      label_wrap: shape === "rect" && form.get("label_wrap") === "1",
+      label_small: form.get("label_small") === "1",
       // Keep the sheet only if the label still matches it.
       label_template:
         template &&
