@@ -235,6 +235,19 @@ after Leslie added the domains. A new session should be able to use the Supabase
 API directly. Leslie generated a project-scoped Supabase access token named "Claude"
 (30 days or less); it is NOT stored in the repo. Ask her for it or have her generate a new one.
 
+### Oct 24: Open in Canva
+
+- Leslie created the Canva app (public, Connect REST APIs; scopes design:content read/write,
+  design:meta read, asset read/write; redirect https://verabatch-six.vercel.app/api/canva/callback;
+  return navigation https://verabatch-six.vercel.app/api/canva/return) and put CANVA_CLIENT_ID /
+  CANVA_CLIENT_SECRET in Vercel. Canva requires MFA for developer accounts.
+- Built: connect once, "Open in Canva" as the label page's main button (Download PDF beside it),
+  PDF sent as a design import, edit link tagged so Canva's Return button comes back. Migration
+  0012_canva.sql (canva_connections). The WIP branch's 0011 must become 0013.
+- When the domain moves: add the new callback/return URLs in Canva (keep the old ones until the
+  switch). Submit Canva's review once the domain, privacy policy and terms are live; until then
+  only Leslie's own Canva account can use it.
+
 ## Next steps (as of Oct 23)
 
 1. Redesign step 2: the recipe screen (Paprika-style paste, "Which lavender?" answers on the

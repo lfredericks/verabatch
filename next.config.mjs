@@ -10,6 +10,7 @@ const nextConfig = {
     "/app/products/[id]/label": ["./lib/labelFonts/*.ttf"],
     "/app/products/[id]/label/pdf": ["./lib/labelFonts/*.ttf"],
     "/app/products/[id]/label/pdf/[file]": ["./lib/labelFonts/*.ttf"],
+    "/app/products/[id]/label/canva": ["./lib/labelFonts/*.ttf"],
   },
 };
 

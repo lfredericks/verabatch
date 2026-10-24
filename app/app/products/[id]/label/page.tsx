@@ -6,6 +6,8 @@ import { BrandMark } from "../../../../BrandMark";
 import { CopyButtons } from "./CopyButtons";
 import { labelPdfFor, loadLabel, readLogoChoice } from "./data";
 import { LabelPreview } from "./LabelPreview";
+import { CanvaButton } from "./CanvaButton";
+import { canvaConfigured } from "@/lib/canva";
 import { LABEL_FONTS_WEB } from "@/lib/labelFonts/web";
 import { logoUrl } from "@/lib/logos";
 
@@ -17,7 +19,7 @@ export default async function LabelPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ size?: string; batch?: string; ls?: string; logo?: string | string[] }>;
+  searchParams: Promise<{ size?: string; batch?: string; ls?: string; logo?: string | string[]; canva?: string }>;
 }) {
   const { id } = await params;
   const sp = await searchParams;
@@ -55,6 +57,15 @@ export default async function LabelPage({
   const pdfHref = `/app/products/${id}/label/pdf/${encodeURIComponent(fileName ?? "Label.pdf")}?${pdfQuery}`;
   const frontText = label.front.join("\n");
   const ready = label.blockers.length === 0;
+  const canva = canvaConfigured();
+  const canvaNote =
+    {
+      back: "Back from Canva. Your design is saved in your Canva account.",
+      connected: "Canva connected.",
+      declined: "Canva wasn't connected. Tap Open in Canva to try again.",
+      failed: "Canva didn't open the label this time. Try again, or download the PDF and upload it in Canva.",
+      nosize: "Add the label size first, then Open in Canva.",
+    }[sp.canva ?? ""] ?? null;
   const backText = label.back.join("\n");
 
   return (
@@ -154,25 +165,41 @@ export default async function LabelPage({
         <b>You&rsquo;re responsible for this label.</b> {brandText(brand.disclaimerShort)} Have it reviewed by a regulatory consultant or attorney
         before you sell. <Link href="/disclaimer">Full disclaimer</Link>
       </p>
+      {canvaNote && (
+        <p className={sp.canva === "back" || sp.canva === "connected" ? "status" : "note"} role="status">
+          {canvaNote}
+        </p>
+      )}
       {"pdf" in made ? (
         <div className="bigbtns">
-          <a href={`${pdfHref}&download=1`} className="bigbtn bigbtn-pri">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
-            </svg>
-            Download PDF
-          </a>
-          <a href={pdfHref} target="_blank" rel="noopener" className="bigbtn">
-            Open the PDF
-          </a>
+          {canva ? (
+            <>
+              <CanvaButton href={`/app/products/${id}/label/canva?${pdfQuery}`} />
+              <a href={`${pdfHref}&download=1`} className="bigbtn">
+                Download PDF
+              </a>
+            </>
+          ) : (
+            <a href={`${pdfHref}&download=1`} className="bigbtn bigbtn-pri">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+              </svg>
+              Download PDF
+            </a>
+          )}
           <Link href={`/app/products/${id}/batches/new`} className="bigbtn">
             I made a batch
           </Link>
+          {!canva && (
+            <a href={pdfHref} target="_blank" rel="noopener" className="bigbtn">
+              Open the PDF
+            </a>
+          )}
         </div>
       ) : (
         <p className="note">{made.missing}</p>
       )}
-      <p className="hint center">One-click Open in Canva is coming before launch. For now, upload the PDF in Canva.</p>
+      {canva && <p className="hint center">The first time, Canva asks you to connect your account. After that it&rsquo;s one tap.</p>}
       {label.customNames.length > 0 && (
         <div className="note">
           <b>Not official ingredient names:</b> {label.customNames.join(", ")}. You entered these yourself. Check them
