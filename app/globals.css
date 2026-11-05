@@ -345,3 +345,4 @@ details.card summary { min-height: 28px; }
 .claim-opt .note { margin: 4px 0 0 26px; }
 .claim-preview { background: var(--sunk); border-radius: var(--radius-small); padding: 10px 12px; }
 .org-tag { margin-left: 8px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--success); }
+.radio.sub { margin-left: 26px; }

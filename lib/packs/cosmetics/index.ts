@@ -5,6 +5,7 @@ import { printName } from "./commonNames";
 import { INGREDIENTS } from "./ingredients";
 import { WARNINGS } from "./warnings";
 import { FRONT_CLAIMS } from "./frontClaims";
+import { ALLERGEN_GROUPS, ESSENTIAL_OIL, lineWords } from "./allergens";
 import { CARRIERS, FORM_DETECT_ORDER, FORMS, VARIETY_GROUPS, type FormKey, type VarietyGroup } from "./varieties";
 
 export const PRODUCT_TYPES: ProductType[] = [
@@ -205,6 +206,7 @@ export const cosmeticsPack: MarketPack = {
   backPanel,
   warnings: WARNINGS,
   frontClaims: FRONT_CLAIMS,
+  allergens: { groups: ALLERGEN_GROUPS, essentialOil: ESSENTIAL_OIL, words: lineWords },
   guessDensity,
   printName,
 };

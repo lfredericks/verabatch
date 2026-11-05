@@ -148,7 +148,7 @@ export default async function EditProduct({
         <Warnings productId={product.id} typeKey={product.type_key} warnings={warnings} />
       </div>
       <div className="anchor">
-        <Claims productId={product.id} claims={claims} recipe={product.recipe} productName={product.name} identity={product.identity} />
+        <Claims productId={product.id} claims={claims} recipe={product.recipe} productName={product.name} identity={product.identity} home={type?.use === "home"} />
       </div>
       <div className="anchor">
         <SizesEditor productId={product.id} sizes={sizes} defaultUnit={defaultUnit} typeKey={product.type_key} />

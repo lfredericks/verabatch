@@ -100,6 +100,7 @@ export function buildLabel({ product, business, size, pack, batch }: LabelInput)
   const warnings = warningLines(product.warnings, pack);
   const back = [
     ingredients,
+    claimCheck.allergens.line,
     ...warnings,
     ...(pack.backPanel?.({ business, ...(productType ? { productType } : {}) }) ?? []),
     // NOP 205.303(b)(2): the certifier statement goes below the maker's name.

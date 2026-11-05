@@ -7,7 +7,7 @@ import { activePack } from "../lib/packs";
 const pack = activePack();
 const L = (amount: string, unit: RecipeLine["unit"], text: string, extra: Partial<RecipeLine> = {}): RecipeLine => ({ amount, unit, text, ...extra });
 const ctx = { productName: "Garden Balm", identity: "Botanical Skin Balm" };
-const withOrganic = (o: Partial<ProductClaims["organic"]>, keys: string[] = []): ProductClaims => ({ keys, organic: { ...NO_CLAIMS.organic, ...o } });
+const withOrganic = (o: Partial<ProductClaims["organic"]>, keys: string[] = []): ProductClaims => ({ keys, organic: { ...NO_CLAIMS.organic, ...o }, allergens: NO_CLAIMS.allergens });
 
 describe("organic share", () => {
   it("counts by weight and leaves water and salt out", () => {
@@ -54,7 +54,7 @@ describe("front claims", () => {
   });
   it("vegan stops on beeswax; fragrance-free and pet safe stop on essential oils", () => {
     const r = computeRecipe([L("1", "oz", "beeswax"), L("10", "drop", "lavender essential oil")], pack);
-    const out = claimsFor({ keys: ["vegan", "fragrance-free", "pet-safe", "handmade"], organic: NO_CLAIMS.organic }, r, pack, ctx);
+    const out = claimsFor({ ...NO_CLAIMS, keys: ["vegan", "fragrance-free", "pet-safe", "handmade"] }, r, pack, ctx);
     expect(out.front).toEqual(["Handmade"]);
     expect(out.notes.filter((n) => n.level === "stop").map((n) => n.key).sort()).toEqual(["fragrance-free", "pet-safe", "vegan"]);
   });
@@ -74,5 +74,23 @@ describe("front claims", () => {
     expect(c.organic.status).toBe("no");
     expect(c.organic.madeWith).toHaveLength(3);
     expect(c.organic.front).toBe(false);
+  });
+});
+
+describe("allergens", () => {
+  it("finds tree nuts, bee products and wheat, and writes the Contains line", () => {
+    const r = computeRecipe([L("2", "oz", "sweet almond oil"), L("1", "oz", "beeswax"), L("1", "tsp", "wheat germ oil"), L("1", "oz", "milk thistle oil")], pack);
+    const out = claimsFor({ ...NO_CLAIMS, allergens: { on: true, skip: [] } }, r, pack, ctx);
+    expect(out.allergens.found.map((f) => f.key)).toEqual(["tree-nut", "wheat", "bee"]);
+    expect(out.allergens.line).toBe("Contains: sweet almond oil (tree nut), wheat germ oil (wheat), beeswax (bee product).");
+  });
+  it("skips groups the maker unticks, and prints nothing when off", () => {
+    const r = computeRecipe([L("2", "oz", "sweet almond oil"), L("1", "oz", "beeswax")], pack);
+    expect(claimsFor({ ...NO_CLAIMS, allergens: { on: true, skip: ["bee"] } }, r, pack, ctx).allergens.line).toBe("Contains: sweet almond oil (tree nut).");
+    expect(claimsFor(NO_CLAIMS, r, pack, ctx).allergens.line).toBe("");
+  });
+  it("coconut is its own group, not a tree nut", () => {
+    const r = computeRecipe([L("2", "oz", "coconut oil")], pack);
+    expect(claimsFor(NO_CLAIMS, r, pack, ctx).allergens.found.map((f) => f.key)).toEqual(["coconut"]);
   });
 });

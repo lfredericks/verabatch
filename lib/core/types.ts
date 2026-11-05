@@ -174,6 +174,15 @@ export interface ProductWarnings {
   custom: string[];
 }
 
+/** A kind of allergen a pack can spot in a recipe ("tree nut"). */
+export interface AllergenGroup {
+  key: string;
+  /** As printed in brackets: "sweet almond oil (tree nut)". */
+  label: string;
+  /** Matched against the typed ingredient and its label names, lower case. */
+  re: RegExp;
+}
+
 /** A claim a maker can put on the front of the label ("Vegan", "Handmade"). */
 export interface FrontClaim {
   key: string;
@@ -206,6 +215,8 @@ export interface MarketPack {
   warnings?: WarningOption[];
   /** Front-of-label claims makers can pick. */
   frontClaims?: FrontClaim[];
+  /** Allergens to look for in a recipe, and what counts as an essential oil. */
+  allergens?: { groups: AllergenGroup[]; essentialOil: RegExp; words(line: import("./recipe").ComputedLine): string };
   /**
    * The label form of an official name (e.g. US: common name first, Latin in brackets).
    * needsCommon: the maker must supply an everyday name before printing.

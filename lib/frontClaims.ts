@@ -24,9 +24,19 @@ export interface ProductClaims {
     /** For "Made with organic ...": up to three organic recipe lines, by line key. */
     madeWith: string[];
   };
+  /** Optional "Contains: ..." allergen line on the back. */
+  allergens: {
+    on: boolean;
+    /** Allergen groups the maker chose not to list. */
+    skip: string[];
+  };
 }
 
-export const NO_CLAIMS: ProductClaims = { keys: [], organic: { status: "no", certifier: "", front: false, madeWith: [] } };
+export const NO_CLAIMS: ProductClaims = {
+  keys: [],
+  organic: { status: "no", certifier: "", front: false, madeWith: [] },
+  allergens: { on: false, skip: [] },
+};
 
 /** Server-side check of claims from the browser or the database. */
 export function cleanClaims(raw: unknown, pack: MarketPack): ProductClaims {
@@ -39,7 +49,10 @@ export function cleanClaims(raw: unknown, pack: MarketPack): ProductClaims {
   const madeWith = Array.isArray(org.madeWith)
     ? [...new Set(org.madeWith.filter((k): k is string => typeof k === "string" && /^[a-z0-9]{1,12}$/.test(k)))].slice(0, 3)
     : [];
-  return { keys, organic: { status, certifier, front: org.front === true, madeWith } };
+  const al = o.allergens && typeof o.allergens === "object" ? (o.allergens as Record<string, unknown>) : {};
+  const groups = new Set((pack.allergens?.groups ?? []).map((g) => g.key));
+  const skip = Array.isArray(al.skip) ? [...new Set(al.skip.filter((k): k is string => typeof k === "string" && groups.has(k)))] : [];
+  return { keys, organic: { status, certifier, front: org.front === true, madeWith }, allergens: { on: al.on === true, skip } };
 }
 
 /** Water and salt don't count toward the organic share (7 CFR 205.302). */
@@ -104,6 +117,35 @@ function joinAnd(xs: string[]): string {
   return xs.length < 2 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 }
 
+export interface AllergenFind {
+  key: string;
+  label: string;
+  /** The recipe lines it's in, as the maker typed them (minus "organic"). */
+  lines: string[];
+}
+
+/** Common allergens in a recipe, by group, in the pack's order. */
+export function allergensIn(recipe: ComputedRecipe, pack: MarketPack): { found: AllergenFind[]; essentialOils: string[] } {
+  const a = pack.allergens;
+  if (!a) return { found: [], essentialOils: [] };
+  const words = recipe.lines.map((l) => a.words(l));
+  const found = a.groups
+    .map((g) => ({
+      key: g.key,
+      label: g.label,
+      lines: [...new Set(recipe.lines.filter((_, i) => g.re.test(words[i]!)).map((l) => everydayName("", l.line.text)))],
+    }))
+    .filter((f) => f.lines.length);
+  const essentialOils = recipe.lines.filter((_, i) => a.essentialOil.test(words[i]!)).map((l) => l.line.text);
+  return { found, essentialOils };
+}
+
+/** "Contains: sweet almond oil (tree nut), beeswax (bee product)." */
+export function containsLine(found: AllergenFind[], skip: string[]): string {
+  const parts = found.filter((f) => !skip.includes(f.key)).flatMap((f) => f.lines.map((l) => `${l} (${f.label})`));
+  return parts.length ? `Contains: ${[...new Set(parts)].join(", ")}.` : "";
+}
+
 export interface ClaimResult {
   /** Lines for the front of the label, in order. */
   front: string[];
@@ -112,6 +154,8 @@ export interface ClaimResult {
   /** Why a picked claim can't print, or what to double-check. */
   notes: { key: string; level: "stop" | "check"; text: string }[];
   organic: OrganicFacts;
+  /** Allergens found in the recipe (whether or not the line prints). */
+  allergens: { found: AllergenFind[]; essentialOils: string[]; line: string };
 }
 
 /**
@@ -180,6 +224,9 @@ export function claimsFor(claims: ProductClaims, recipe: ComputedRecipe, pack: M
       text: "\"Organic\" is in the product name or the line under it. That counts as an organic claim, which needs 70% or more organic ingredients and certification (or the $5,000 exemption).",
     });
 
-  return { front, back, notes, organic };
+  const al = allergensIn(recipe, pack);
+  const line = claims.allergens.on ? containsLine(al.found, claims.allergens.skip) : "";
+
+  return { front, back, notes, organic, allergens: { ...al, line } };
 }
 

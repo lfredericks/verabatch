@@ -3,6 +3,7 @@
 import { startTransition, useActionState, useMemo, useState } from "react";
 import { computeRecipe, type RecipeLine } from "@/lib/core";
 import { claimsFor, everydayName, type OrganicStatus, type ProductClaims } from "@/lib/frontClaims";
+import { brand } from "@/lib/brand";
 import { activePack } from "@/lib/packs";
 import { saveClaims, type ClaimsState } from "./actions";
 
@@ -20,12 +21,15 @@ export function Claims({
   recipe,
   productName,
   identity,
+  home = false,
 }: {
   productId: string;
   claims: ProductClaims;
   recipe: RecipeLine[];
   productName: string;
   identity: string;
+  /** Home products (candles, room sprays) skip the allergen line. */
+  home?: boolean;
 }) {
   const [state, action, saving] = useActionState<ClaimsState, FormData>(saveClaims, {});
   const [c, setC] = useState<ProductClaims>(claims);
@@ -47,6 +51,13 @@ export function Claims({
   }
   function setOrganic(patch: Partial<ProductClaims["organic"]>) {
     change({ ...c, organic: { ...c.organic, ...patch } });
+  }
+  function setAllergens(patch: Partial<ProductClaims["allergens"]>) {
+    change({ ...c, allergens: { ...c.allergens, ...patch } });
+  }
+  function toggleAllergen(key: string, on: boolean) {
+    const skip = on ? c.allergens.skip.filter((k) => k !== key) : [...c.allergens.skip, key];
+    setAllergens({ skip });
   }
   function toggleMadeWith(key: string, on: boolean) {
     const list = on ? [...c.organic.madeWith, key].slice(0, 3) : c.organic.madeWith.filter((k) => k !== key);
@@ -168,6 +179,39 @@ export function Claims({
         ))}
         <p className="hint">Never use the USDA Organic seal unless you&rsquo;re certified and the recipe is 95% organic or more.</p>
       </fieldset>
+
+      {!home && (
+        <fieldset className="fld">
+          <legend>Allergens (optional)</legend>
+          {result.allergens.found.length ? (
+            <>
+              <p className="hint">Common allergens in this recipe. Not required on US labels yet, but customers with allergies look for them.</p>
+              <label className="radio">
+                <input type="checkbox" checked={c.allergens.on} onChange={(e) => setAllergens({ on: e.target.checked })} />
+                <span>Print a &ldquo;Contains:&rdquo; line on the back</span>
+              </label>
+              {c.allergens.on &&
+                result.allergens.found.map((f) => (
+                  <label key={f.key} className="radio sub">
+                    <input type="checkbox" checked={!c.allergens.skip.includes(f.key)} onChange={(e) => toggleAllergen(f.key, e.target.checked)} />
+                    <span>
+                      {f.lines.join(", ")} <span className="hint">({f.label})</span>
+                    </span>
+                  </label>
+                ))}
+              {result.allergens.line && <p className="claim-preview">{result.allergens.line}</p>}
+            </>
+          ) : (
+            <p className="hint">No common allergens found (tree nuts, peanut, coconut, wheat, oat, soy, sesame, milk, egg, lanolin, bee products).</p>
+          )}
+          {result.allergens.essentialOils.length > 0 && (
+            <p className="hint">
+              Essential oils naturally contain fragrance allergens like linalool and limonene. The FDA is expected to propose a rule requiring
+              these on labels; {brand.name} will add them when the list is out.
+            </p>
+          )}
+        </fieldset>
+      )}
 
       <div className="claim-preview">
         <span className="hint">On the front:</span> <b>{result.front.length ? result.front.join(" · ") : "nothing yet"}</b>
