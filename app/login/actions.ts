@@ -39,10 +39,12 @@ export async function sendCode(_prev: LoginState, form: FormData): Promise<Login
 
 /** Step 2: check the code from the email and sign in. */
 export async function verifyCode(prev: LoginState, form: FormData): Promise<LoginState> {
+  // The email comes from a hidden field: prev only holds the form's first (empty) state.
+  const email = String(form.get("email") ?? prev.email ?? "").trim().toLowerCase();
   const token = String(form.get("code") ?? "").replace(/\s/g, "");
-  if (!/^\d{6,10}$/.test(token)) return { ...prev, error: "Enter the code from the email. It's only numbers." };
+  if (!/^\d{6,10}$/.test(token)) return { step: "code", email, error: "Enter the code from the email. It's only numbers." };
   const supabase = await createClient();
-  const { error } = await supabase.auth.verifyOtp({ email: prev.email, token, type: "email" });
-  if (error) return { ...prev, error: "That code didn't work. It may have expired, so ask for a new one." };
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+  if (error) return { step: "code", email, error: "That code didn't work. It may have expired, so ask for a new one." };
   redirect("/app");
 }

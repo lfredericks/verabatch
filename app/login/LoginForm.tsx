@@ -38,6 +38,7 @@ export function LoginForm() {
         We emailed <b>{emailState.email}</b>. Type the code from the email here, or tap the link in
         it on any device. It can take a minute, so check your spam folder too.
       </p>
+      <input type="hidden" name="email" value={emailState.email} />
       <label className="fld">
         <span>Code</span>
         <input
@@ -45,7 +46,7 @@ export function LoginForm() {
           inputMode="numeric"
           autoComplete="one-time-code"
           pattern="[0-9 ]*"
-          placeholder="123456"
+          placeholder="12345678"
           required
           autoFocus
         />
