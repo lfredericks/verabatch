@@ -279,6 +279,11 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   swap saves with a nudge, the one after is refused. Upgrade text says Pro opens at launch; Stripe
   and the 7-day trial plug in next. Leslie's business is on Pro. To give a tester Pro:
   `update businesses set plan = 'pro' where name = '<their shop>';` in the SQL editor.
+- **Password sign-in (optional): live.** Set one under "Signing in" on the shop page; the sign-in
+  screen has "Use my password". Codes still work and still create accounts. People stay signed in
+  per device. To do: Continue with Google, once Leslie is back in her Google account (all plans,
+  not just Pro: Leslie agreed sign-in friction shouldn't be a plan perk). Shopify/Squarespace
+  sign-in comes with the store-sync apps, not launch.
 
 ## Next steps (as of Oct 23)
 
