@@ -281,6 +281,10 @@ details.card summary { min-height: 28px; }
    "hovered" at that spot, so a button there would keep its hover look. */
 @media (hover: hover) {
   a:hover { color: var(--accent-deep); }
+  /* Buttons that are links keep their own text color (the plain link color made it plum on plum). */
+  a.btn:hover, a.bigbtn:hover { color: var(--ink); }
+  a.btn.pri:hover, a.bigbtn-pri:hover { color: var(--on-accent); }
+  a.btn.ghost:hover { color: var(--muted); }
   .btn:hover { border-color: var(--muted); }
   .plist a:hover b { color: var(--accent); }
   .copy-icon:hover { border-color: var(--accent); color: var(--accent); }
