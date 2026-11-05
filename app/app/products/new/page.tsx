@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { pageTitle } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/server";
-import { BrandMark } from "../../../BrandMark";
-import { ProductEditor } from "../ProductEditor";
+import { Onboarding } from "../../Onboarding";
 
 export const metadata: Metadata = { title: pageTitle("Add a product") };
 export const dynamic = "force-dynamic";
@@ -19,9 +18,7 @@ export default async function NewProduct() {
 
   return (
     <main className="wrap narrow">
-      <BrandMark href="/app" />
-      <h1>Add a product</h1>
-      <ProductEditor product={null} />
+      <Onboarding needsBusiness={false} />
     </main>
   );
 }

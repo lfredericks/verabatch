@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { brand, pageTitle } from "@/lib/brand";
+import { pageTitle } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/server";
 import { BrandMark } from "../BrandMark";
 import { BusinessForm, type Business } from "./BusinessForm";
+import { Onboarding } from "./Onboarding";
 import { LogoField } from "./LogoField";
 import { logoUrl } from "@/lib/logos";
 import { signOut } from "./actions";
@@ -89,11 +90,7 @@ export default async function AppHome() {
           />
         </>
       ) : (
-        <>
-          <h1>Welcome to {brand.name}</h1>
-          <p className="lead">First, tell us about your business. This goes on every label, and you only enter it once.</p>
-          <BusinessForm business={null} />
-        </>
+        <Onboarding needsBusiness />
       )}
     </main>
   );
