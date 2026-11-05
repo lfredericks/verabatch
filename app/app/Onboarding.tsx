@@ -264,9 +264,9 @@ export function Onboarding({ needsBusiness }: { needsBusiness: boolean }) {
         title={needsBusiness ? "What do you make?" : "What are you making?"}
         lead="Pick your product. We'll set up the right label rules for it."
       >
-        <div className="tiles" role="group" aria-label="Kind of product">
+        <div className="ob-tiles" role="group" aria-label="Kind of product">
           {GROUPS.map((x) => (
-            <button key={x.key} type="button" className="tile" aria-pressed={group === x.key} onClick={() => pickGroup(x.key)}>
+            <button key={x.key} type="button" className="ob-tile" aria-pressed={group === x.key} onClick={() => pickGroup(x.key)}>
               <svg width="34" height="34" viewBox="0 0 34 34" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                 {x.icon}
               </svg>

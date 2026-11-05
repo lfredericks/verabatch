@@ -144,7 +144,7 @@ export default async function EditProduct({
         <Warnings productId={product.id} typeKey={product.type_key} warnings={warnings} />
       </div>
       <div className="anchor">
-        <SizesEditor productId={product.id} sizes={sizes} defaultUnit={defaultUnit} />
+        <SizesEditor productId={product.id} sizes={sizes} defaultUnit={defaultUnit} typeKey={product.type_key} />
       </div>
       <Descriptions productId={product.id} descriptions={descriptions} />
       <section className="card anchor" aria-labelledby="batches">

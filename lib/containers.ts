@@ -318,6 +318,45 @@ export const PICK_TABS = ["Jars", "Tins", "Bottles", "Tubes", "Candles"] as cons
 export type PickTab = (typeof PICK_TABS)[number];
 
 /**
+ * Which container tabs come first for each kind of product (Leslie: sprays start on
+ * bottles, and every kind starts on what it usually goes in). Tabs not listed follow in
+ * the usual order.
+ */
+const TABS_FIRST: Record<string, PickTab[]> = {
+  butter: ["Jars", "Tins"],
+  lotion: ["Bottles", "Jars"],
+  balm: ["Tubes", "Tins"],
+  salve: ["Tins", "Jars"],
+  oil: ["Bottles"],
+  face: ["Bottles"],
+  hair: ["Bottles"],
+  perfume: ["Bottles"],
+  scrub: ["Jars"],
+  salts: ["Jars"],
+  deodorant: ["Jars", "Tins"],
+  mist: ["Bottles"],
+  room: ["Bottles"],
+  candle: ["Candles", "Tins", "Jars"],
+};
+/** Kinds that usually go in a dropper bottle, so droppers lead the Bottles tab. */
+const DROPPER_FIRST = new Set(["face", "hair", "perfume"]);
+
+/** The picker's tabs, most likely first for this kind of product. */
+export function pickTabsFor(typeKey: string | null | undefined): PickTab[] {
+  const first = TABS_FIRST[typeKey ?? ""] ?? [];
+  return [...first, ...PICK_TABS.filter((t) => !first.includes(t))];
+}
+
+/** One tab's containers, most likely first for this kind of product. */
+export function picksFor(tab: PickTab, typeKey: string | null | undefined) {
+  const picks = EASY_PICKS.filter((p) => p.tab === tab);
+  if (tab === "Bottles" && DROPPER_FIRST.has(typeKey ?? "")) {
+    return [...picks.filter((p) => p.look === "dropper"), ...picks.filter((p) => p.look !== "dropper")];
+  }
+  return picks;
+}
+
+/**
  * The short menu makers see: one plain name per common container, mapped to the measured
  * container behind it. Anything else is "My container isn't here" (type your own label size).
  */

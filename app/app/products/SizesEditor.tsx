@@ -7,7 +7,7 @@ import type { FillUnit } from "@/lib/core";
 import { activePack } from "@/lib/packs";
 import { FILL_UNITS, sizeFacts, type Size } from "@/lib/sizes";
 import { findTemplate, type TemplateShape } from "@/lib/labelTemplates";
-import { EASY_PICKS, PICK_TABS, findContainer, labelOptions, labelRoomSqIn, type ContainerLook, type LabelOption, type PickTab } from "@/lib/containers";
+import { EASY_PICKS, findContainer, pickTabsFor, picksFor, labelOptions, labelRoomSqIn, type ContainerLook, type LabelOption, type PickTab } from "@/lib/containers";
 import { deleteSize, saveSize, type SizeFormState } from "./sizeActions";
 
 const pack = activePack();
@@ -106,11 +106,13 @@ function SizeForm({
   productId,
   size,
   defaultUnit,
+  typeKey,
   onDone,
 }: {
   productId: string;
   size: Size | null;
   defaultUnit: FillUnit;
+  typeKey: string | null;
   onDone: () => void;
 }) {
   const [state, action, saving] = useActionState<SizeFormState, FormData>(async (prev, form) => {
@@ -121,7 +123,8 @@ function SizeForm({
   const n = (v: number | null | undefined) => (v ? String(Number(v)) : "");
   const known = EASY_PICKS.find((p) => p.label === size?.name);
   const [step, setStep] = useState<Step>(size && !known ? "own" : "container");
-  const [tab, setTab] = useState<PickTab>(known?.tab ?? "Jars");
+  const tabs = pickTabsFor(typeKey);
+  const [tab, setTab] = useState<PickTab>(known?.tab ?? tabs[0]!);
   const [pickKey, setPickKey] = useState(known?.key ?? "");
   const [name, setName] = useState(size?.name ?? "");
   const [amount, setAmount] = useState(size?.fill_amount ?? "");
@@ -212,14 +215,14 @@ function SizeForm({
         <>
           <p className="step-q">What does it go in?</p>
           <div className="seg seg-5" role="group" aria-label="Kind of container">
-            {PICK_TABS.map((t) => (
+            {tabs.map((t) => (
               <button type="button" key={t} aria-pressed={tab === t} onClick={() => setTab(t)}>
                 {t}
               </button>
             ))}
           </div>
           <div className="tiles">
-            {EASY_PICKS.filter((p) => p.tab === tab).map((p) => {
+            {picksFor(tab, typeKey).map((p) => {
               const c = findContainer(p.key);
               const first = c ? labelOptions(c)[0] : undefined;
               return (
@@ -363,7 +366,18 @@ function SizeForm({
   );
 }
 
-export function SizesEditor({ productId, sizes, defaultUnit }: { productId: string; sizes: Size[]; defaultUnit: FillUnit }) {
+export function SizesEditor({
+  productId,
+  sizes,
+  defaultUnit,
+  typeKey = null,
+}: {
+  productId: string;
+  sizes: Size[];
+  defaultUnit: FillUnit;
+  /** The product's kind, so the likeliest containers show first. */
+  typeKey?: string | null;
+}) {
   const [editing, setEditing] = useState<string | null>(sizes.length ? null : "new");
   const [removing, setRemoving] = useState<string | null>(null);
 
@@ -377,7 +391,7 @@ export function SizesEditor({ productId, sizes, defaultUnit }: { productId: stri
           return (
             <li key={s.id}>
               {editing === s.id ? (
-                <SizeForm productId={productId} size={s} defaultUnit={defaultUnit} onDone={() => setEditing(null)} />
+                <SizeForm productId={productId} size={s} defaultUnit={defaultUnit} typeKey={typeKey} onDone={() => setEditing(null)} />
               ) : (
                 <div className="sizerow">
                   <div>
@@ -417,7 +431,7 @@ export function SizesEditor({ productId, sizes, defaultUnit }: { productId: stri
         })}
       </ul>
       {editing === "new" ? (
-        <SizeForm productId={productId} size={null} defaultUnit={defaultUnit} onDone={() => setEditing(null)} />
+        <SizeForm productId={productId} size={null} defaultUnit={defaultUnit} typeKey={typeKey} onDone={() => setEditing(null)} />
       ) : (
         editing === null && (
           <button type="button" className="btn sm cta" onClick={() => setEditing("new")}>
