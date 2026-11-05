@@ -50,5 +50,6 @@ export const defaultTheme: Theme = {
     mono: { stack: '"IBM Plex Mono", ui-monospace, Menlo, monospace', google: "IBM+Plex+Mono:wght@400;500" },
   },
   radius: { card: "12px", control: "9px", small: "8px" },
-  mark: "diamond",
+  // The wordmark is the logo now; no separate mark beside it.
+  mark: "none",
 };

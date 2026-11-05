@@ -6,6 +6,8 @@ import type { Brand } from "./types";
  */
 export const brand: Brand = {
   name: "Verabatch",
+  // Logo (Leslie, Nov 5): lowercase Gloock, "vera" in plum, "batch" in ink.
+  wordmark: ["vera", "batch"],
   tagline: "Label drafts and batch records for small-batch makers.",
   description: "Label drafts and batch records for small-batch makers.",
   intro:

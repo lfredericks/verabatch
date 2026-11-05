@@ -7,6 +7,8 @@
 export interface Brand {
   /** Product name, shown in the header, page titles and copy. */
   name: string;
+  /** The logo: the name in lowercase, in two parts. The first is drawn in the accent color. */
+  wordmark?: [string, string];
   /** One line under the name on the home page. */
   tagline: string;
   /** Short description for search results and link previews. */
