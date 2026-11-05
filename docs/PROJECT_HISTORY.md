@@ -248,6 +248,14 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   switch). Submit Canva's review once the domain, privacy policy and terms are live; until then
   only Leslie's own Canva account can use it.
 
+### Nov 5: sign-in fixed
+
+- Supabase had paused the project (free plan, a week unused); Leslie restored it.
+- Custom email sender set up: Resend (signed up with GitHub). Sends only to Leslie's address
+  until a domain is verified; Leslie is holding the domain until the name is final. Limit 30/hour.
+- Sign-in email now carries an 8-digit code plus a link that works on any device. The login
+  screen takes the code again (bug fixed: it checked the code against an empty email).
+
 ## Next steps (as of Oct 23)
 
 1. Redesign step 2: the recipe screen (Paprika-style paste, "Which lavender?" answers on the

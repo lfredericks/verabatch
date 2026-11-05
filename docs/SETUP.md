@@ -30,7 +30,12 @@ when the session can reach supabase.co / supabase.com.
    into both **Magic link or OTP** and **Confirm sign up**, subject `Your Verabatch sign-in code`,
    and switch the login screen back to the code entry step (`verifyCode` in `app/login/actions.ts`).
 
-Status (Oct 20, 2026): steps 1 and 2 done. Step 3 waits on custom SMTP.
+Status (Nov 5, 2026): all three done. Custom SMTP is Resend (smtp.resend.com, port 465,
+username `resend`, password = a Resend API key, kept only in Supabase). Sender is
+onboarding@resend.dev, which only delivers to Leslie's own address until a domain is verified
+in Resend. Email limit is 30/hour. The Magic link template has the code and a token_hash link
+to https://verabatch-six.vercel.app (update it when the domain changes); the login screen asks
+for the code. Template changes can take a few minutes to start being used.
 
 ## Later migrations
 
@@ -48,5 +53,6 @@ Run each new file in `supabase/migrations` in the SQL Editor, in order.
 
 ## Before launch
 
-- Supabase's built-in email sender is limited to a few emails an hour. Set up a custom SMTP sender before real users.
+- Verify a domain in Resend and switch the sender to it before other makers sign in (onboarding@resend.dev only reaches Leslie). Copy the template into **Confirm sign up** too.
+- Supabase's free plan pauses the project after about a week unused; move to a paid plan before real users.
 - Vercel's free Hobby plan is for non-commercial use; move to Pro before charging customers.
