@@ -16,7 +16,8 @@ import { FREE_LIMITS } from "@/lib/plans";
 export const metadata: Metadata = { title: pageTitle("Your shop") };
 export const dynamic = "force-dynamic";
 
-export default async function AppHome() {
+export default async function AppHome({ searchParams }: { searchParams: Promise<{ password?: string }> }) {
+  const { password } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -99,7 +100,7 @@ export default async function AppHome() {
             url={businessLogo}
             note="No logo yet. It goes on the front of your labels unless a product has its own."
           />
-          <PasswordField email={user.email ?? ""} />
+          <PasswordField email={user.email ?? ""} reset={password === "reset"} />
         </>
       ) : (
         <Onboarding needsBusiness />

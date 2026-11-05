@@ -4,13 +4,13 @@ import { useActionState, useState } from "react";
 import { setPassword, type PasswordState } from "./actions";
 
 /** Optional password, so signing in doesn't always need an emailed code. */
-export function PasswordField({ email }: { email: string }) {
+export function PasswordField({ email, reset = false }: { email: string; reset?: boolean }) {
   const [state, action, saving] = useActionState<PasswordState, FormData>(async (prev, form) => {
     const r = await setPassword(prev, form);
     if (r.saved) setOpen(false);
     return r;
   }, {});
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(reset);
 
   return (
     <section className="card form" aria-labelledby="signin">
@@ -18,6 +18,11 @@ export function PasswordField({ email }: { email: string }) {
       <p className="hint">
         Signed in as {email}. You stay signed in on this device. To skip the emailed code next time, set a password (optional).
       </p>
+      {reset && open && !state.saved && (
+        <p className="note" role="status">
+          You&rsquo;re signed in. Set a new password below.
+        </p>
+      )}
       {state.saved && !open && (
         <p className="ok" role="status">
           Password saved. Next time, pick &ldquo;Use my password&rdquo; on the sign-in page.
