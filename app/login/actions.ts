@@ -17,21 +17,21 @@ export async function sendCode(_prev: LoginState, form: FormData): Promise<Login
   const email = String(form.get("email") ?? "").trim().toLowerCase();
   if (!EMAIL_RE.test(email)) return { step: "email", email, error: "Enter an email address like you@yourshop.com." };
   const supabase = await createClient();
-  // Supabase's default email (no custom sender yet) only has a link, so send people
-  // back to /auth/confirm, which finishes sign-in.
+  // The email (supabase/email-templates/sign-in.html) has a code and a link to /auth/confirm.
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host");
   const proto = h.get("x-forwarded-proto") ?? "https";
   const emailRedirectTo = host ? `${proto}://${host}/auth/confirm?next=/app` : undefined;
   const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo } });
   if (error) {
+    console.error("sign-in email failed:", error.status, error.message);
     const tooMany = /rate|too many|security purposes/i.test(error.message);
     return {
       step: "email",
       email,
       error: tooMany
-        ? "Too many codes requested. Wait a minute, then try again."
-        : "We couldn't send a code to that address. Check it and try again.",
+        ? "Too many sign-in emails in a row. Wait a few minutes, then try once."
+        : "We couldn't send the sign-in email just now. Wait a minute and try again.",
     };
   }
   return { step: "code", email };

@@ -31,20 +31,30 @@ export function LoginForm() {
     );
   }
 
-  // Sign-in link step. Supabase's default email has a link, not a code, until a custom
-  // email sender is set up (see docs/SETUP.md). verifyCode stays ready for that.
-  void codeState;
-  void codeAction;
-  void checking;
+  // Code step. The email has a code to type here and a link that works on any device.
   return (
-    <div className="card form">
+    <form action={codeAction} className="card form">
       <p>
-        We emailed a sign-in link to <b>{emailState.email}</b>. Open it on this device, in this browser.
-        It can take a minute, so check your spam folder too.
+        We emailed <b>{emailState.email}</b>. Type the code from the email here, or tap the link in
+        it on any device. It can take a minute, so check your spam folder too.
       </p>
+      <label className="fld">
+        <span>Code</span>
+        <input
+          name="code"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          pattern="[0-9 ]*"
+          placeholder="123456"
+          required
+          autoFocus
+        />
+      </label>
+      {codeState.error && <p className="error" role="alert">{codeState.error}</p>}
+      <button className="btn pri" disabled={checking}>{checking ? "Checking..." : "Sign in"}</button>
       <button className="btn ghost" type="button" onClick={() => window.location.reload()}>
         Use a different email
       </button>
-    </div>
+    </form>
   );
 }
