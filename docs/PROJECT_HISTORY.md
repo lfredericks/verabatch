@@ -273,6 +273,12 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   recipe. FDA plans to propose a MoCRA fragrance-allergen rule in Nov 2026; add its list when out.
 - **Ingredient names refreshed:** the 2025 EU glossary (Decision 2025/1175, 30,418 names) replaces
   the 2016 copy (`docs/INGREDIENTS.md`). Launch item "CosIng refresh" is done.
+- **Free plan limits: live** (`lib/plans.ts`, `lib/planServer.ts`, migration 0014, run Nov 5).
+  Free = 1 product (variations count) + 3 logged batches, enforced by database triggers too.
+  Three strikes: new name + new scent, or 80% of the recipe replaced, is a strike; after 3 the next
+  swap saves with a nudge, the one after is refused. Upgrade text says Pro opens at launch; Stripe
+  and the 7-day trial plug in next. Leslie's business is on Pro. To give a tester Pro:
+  `update businesses set plan = 'pro' where name = '<their shop>';` in the SQL editor.
 
 ## Next steps (as of Oct 23)
 
