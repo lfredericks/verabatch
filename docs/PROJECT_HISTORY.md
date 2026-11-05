@@ -284,6 +284,13 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   per device. To do: Continue with Google, once Leslie is back in her Google account (all plans,
   not just Pro: Leslie agreed sign-in friction shouldn't be a plan perk). Shopify/Squarespace
   sign-in comes with the store-sync apps, not launch.
+- **Domain bought (Leslie, Nov 5): verabatch.com** (plus verabatch.online free for a year, auto-renew
+  off). Not hooked up yet: Vercel, Resend sender, Supabase and Canva URLs to do.
+- **Logo (Leslie, Nov 5):** lowercase Gloock wordmark, "vera" in plum + "batch" in ink
+  (`brand.wordmark`), reversed version on plum (pink "vera", white "batch"), and a "vb" icon on plum
+  for the browser tab and phone home screen (`lib/brand/icon.ts`, Gloock outlines). Explored on the
+  "Verabatch Logo Concepts" canvas (https://claude.ai/artifact/HgPLaFpnnqxGiMHjATmwKF); Leslie passed
+  on marks (check, label, stamp, hallmark, plumb bob, equals, wax seal) and other fonts.
 
 ## Next steps (as of Oct 23)
 
