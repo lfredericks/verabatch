@@ -286,7 +286,10 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   sign-in comes with the store-sync apps, not launch.
 - **Domain bought (Leslie, Nov 5): verabatch.com** (plus verabatch.online free for a year, auto-renew
   off). Resend: verabatch.com verified (DNS at Bluehost), sign-in emails now from hello@verabatch.com
-  and reach anyone. Still to do: point the domain at Vercel, then Supabase and Canva URLs.
+  and reach anyone. The domain itself stays on Bluehost's placeholder until launch (Leslie).
+- **Timeline (Leslie, Nov 5, internal only):** waitlist page with signup form on verabatch.com in the
+  next week or two (no date on it); Nov–Dec testing and the five-maker round; January private beta
+  (~25 from the waitlist); **February 2027 public launch**. Master Plan updated.
 - **Logo (Leslie, Nov 5):** lowercase Gloock wordmark, "vera" in plum + "batch" in ink
   (`brand.wordmark`), reversed version on plum (pink "vera", white "batch"), and a "vb" icon on plum
   for the browser tab and phone home screen (`lib/brand/icon.ts`, Gloock outlines). Explored on the
