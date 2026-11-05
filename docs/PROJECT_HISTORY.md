@@ -291,6 +291,11 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   for the browser tab and phone home screen (`lib/brand/icon.ts`, Gloock outlines). Explored on the
   "Verabatch Logo Concepts" canvas (https://claude.ai/artifact/HgPLaFpnnqxGiMHjATmwKF); Leslie passed
   on marks (check, label, stamp, hallmark, plumb bob, equals, wax seal) and other fonts.
+- **Product library and product sheets (Leslie, Nov 5): live, every plan.** `/app/library` shows every
+  product as a spreadsheet row with a CSV download (`lib/productSheet.ts`). Each product has a
+  Product sheet PDF (`lib/productSheetPdf.ts`) in two versions: for buyers (no recipe amounts) and
+  internal (recipe with amounts and %, batch history). Later ideas: Excel (.xlsx) download, supplier
+  lots on the internal sheet, a product photo on the buyer sheet.
 
 ## Next steps (as of Oct 23)
 
