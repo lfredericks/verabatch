@@ -34,6 +34,8 @@ export interface LabelPdfInput {
   shape: LabelShape;
   name: string;
   identity: string;
+  /** Front claims, one line under "what it is" ("Vegan · Handmade"). */
+  claims?: string;
   net: string | null;
   /** Smallest net-weight letter height for this front panel, in inches. */
   netMinIn: number;
@@ -362,6 +364,7 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
       identitySize = Math.max(6, Math.round(nameBase * 0.5 * Math.max(s, 0.6) * 10) / 10);
       const paras: Para[] = [{ text: input.name, font: serif, size: nameSize, gap: 0 }];
       if (input.identity.trim()) paras.push({ text: input.identity, font: sans, size: identitySize, gap: identitySize * 0.35 });
+      if (input.claims?.trim()) paras.push({ text: input.claims, font: sans, size: Math.max(6, identitySize * 0.8), gap: identitySize * 0.3 });
       const out = centerIn(paras, frame, top, regionBottom, "center");
       if (out.fits) return out;
     }
@@ -416,6 +419,7 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
     );
     const paras: Para[] = [{ text: input.name, font: serif, size: nameSize, gap: 0 }];
     if (input.identity.trim()) paras.push({ text: input.identity, font: sans, size: identitySize, gap: 2 });
+    if (input.claims?.trim()) paras.push({ text: input.claims, font: sans, size: Math.max(6, identitySize * 0.8), gap: 2 });
     put(front, flow(paras, frame, frame.top, "center").lines);
   }
 

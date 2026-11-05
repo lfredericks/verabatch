@@ -88,12 +88,12 @@ export function RecipeLines({
   }
   /** Forget "which one" answers and picked names (keeps the line's key for variations). */
   function clearAnswer(row: Row) {
-    setRows((rs) => rs.map((r) => (r.id === row.id ? { id: r.id, amount: r.amount, unit: r.unit, text: r.text, ...(r.key ? { key: r.key } : {}) } : r)));
+    setRows((rs) => rs.map((r) => (r.id === row.id ? { id: r.id, amount: r.amount, unit: r.unit, text: r.text, ...(r.key ? { key: r.key } : {}), ...(r.organic ? { organic: true } : {}) } : r)));
     onChange();
   }
   function pickName(row: Row, pick: NamePick) {
     setRows((rs) =>
-      rs.map((r) => (r.id === row.id ? { id: r.id, amount: r.amount, unit: r.unit, text: r.text, ...(r.key ? { key: r.key } : {}), pick } : r)),
+      rs.map((r) => (r.id === row.id ? { id: r.id, amount: r.amount, unit: r.unit, text: r.text, ...(r.key ? { key: r.key } : {}), ...(r.organic ? { organic: true } : {}), pick } : r)),
     );
     setFinding((s) => {
       const n = new Set(s);
@@ -250,7 +250,10 @@ export function RecipeLines({
                 <button type="button" className="rread" onClick={() => toggle(row.id, true)} aria-label={`Edit ${row.text || "line"}`}>
                   <span className="amt">{amountText(row)}</span>
                   <span className="ing">
-                    <span className="ing-name">{row.text || <i className="hint">blank line</i>}</span>
+                    <span className="ing-name">
+                      {row.text || <i className="hint">blank line</i>}
+                      {row.organic && <span className="org-tag">Organic</span>}
+                    </span>
                     {status}
                   </span>
                 </button>
@@ -300,6 +303,12 @@ export function RecipeLines({
                     {r.note && <p className="hint">{r.note}</p>}
                   </div>
                 ))}
+              {editing && row.text.trim() && (
+                <label className="radio">
+                  <input type="checkbox" checked={Boolean(row.organic)} onChange={(e) => update(row.id, { organic: e.target.checked || undefined })} />
+                  <span>Certified organic (your supplier certifies it)</span>
+                </label>
+              )}
               {editing && (
                 <div className="row">
                   {(row.variety || row.pick) && (

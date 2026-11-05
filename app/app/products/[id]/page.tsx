@@ -18,6 +18,8 @@ import { logoUrl } from "@/lib/logos";
 import { LogoField } from "../../LogoField";
 import { Warnings } from "../Warnings";
 import { cleanWarnings, warningLines } from "@/lib/warnings";
+import { cleanClaims } from "@/lib/frontClaims";
+import { Claims } from "../Claims";
 import { buildLabel } from "@/lib/label";
 import { ProductHero } from "../ProductHero";
 
@@ -79,10 +81,11 @@ export default async function EditProduct({
   const productLogo = await logoUrl(supabase, ownLogo);
   const pack = activePack();
   const warnings = cleanWarnings((product as Product & { warnings?: unknown }).warnings, pack);
+  const claims = cleanClaims((product as Product & { claims?: unknown }).claims, pack);
   // Is the label ready? Checked against the first size, the same way the label page does.
   const { data: biz } = await supabase.from("businesses").select("name, city_state_zip, contact").limit(1).maybeSingle();
   const label = buildLabel({
-    product: { ...product, warnings },
+    product: { ...product, warnings, claims },
     business: { name: biz?.name ?? "", cityStateZip: biz?.city_state_zip ?? "", contact: biz?.contact ?? "" },
     size: sizes[0] ?? null,
     pack,
@@ -119,6 +122,7 @@ export default async function EditProduct({
               : "None yet (optional)",
           },
           { href: "#warnings", title: "Warnings", detail: printedWarnings.length ? `${printedWarnings.length === 1 ? "1 statement" : `${printedWarnings.length} statements`} on the back` : "None yet" },
+          { href: "#claims", title: "Label claims", detail: label.claimLine || "Optional: vegan, handmade, organic..." },
           { href: "#info", title: "Product info and logo", detail: product.identity || "Name, kind, what it is" },
         ]}
       />
@@ -142,6 +146,9 @@ export default async function EditProduct({
       </div>
       <div className="anchor">
         <Warnings productId={product.id} typeKey={product.type_key} warnings={warnings} />
+      </div>
+      <div className="anchor">
+        <Claims productId={product.id} claims={claims} recipe={product.recipe} productName={product.name} identity={product.identity} />
       </div>
       <div className="anchor">
         <SizesEditor productId={product.id} sizes={sizes} defaultUnit={defaultUnit} typeKey={product.type_key} />

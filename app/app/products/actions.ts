@@ -11,6 +11,7 @@ import { cleanRecipe } from "@/lib/products";
 import { createClient } from "@/lib/supabase/server";
 import { diffRecipe, ensureKeys, newKey } from "@/lib/variations";
 import { cleanWarnings } from "@/lib/warnings";
+import { cleanClaims } from "@/lib/frontClaims";
 
 export interface ProductFormState {
   error?: string;
@@ -252,6 +253,29 @@ export async function saveWarnings(_prev: WarningsState, form: FormData): Promis
   const warnings = cleanWarnings({ keys: form.getAll("key").map(String), custom }, activePack());
   const supabase = await createClient();
   const { data, error } = await supabase.from("products").update({ warnings }).eq("id", id).select("id");
+  if (error || !data?.length) return { error: "That didn't save. Reload the page and try again." };
+  revalidatePath(`/app/products/${id}`);
+  return { saved: Date.now() };
+}
+
+export interface ClaimsState {
+  error?: string;
+  saved?: number;
+}
+
+/** Save the front-of-label claims and organic settings for a product. */
+export async function saveClaims(_prev: ClaimsState, form: FormData): Promise<ClaimsState> {
+  const id = String(form.get("id") ?? "");
+  if (!UUID.test(id)) return { error: "Something went wrong. Reload the page and try again." };
+  let raw: unknown = null;
+  try {
+    raw = JSON.parse(String(form.get("claims") ?? "{}"));
+  } catch {
+    return { error: "Something went wrong. Reload the page and try again." };
+  }
+  const claims = cleanClaims(raw, activePack());
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("products").update({ claims }).eq("id", id).select("id");
   if (error || !data?.length) return { error: "That didn't save. Reload the page and try again." };
   revalidatePath(`/app/products/${id}`);
   return { saved: Date.now() };

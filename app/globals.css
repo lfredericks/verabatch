@@ -338,3 +338,10 @@ details.card summary { min-height: 28px; }
 .kinds { display: flex; flex-direction: column; gap: 10px; }
 .kind { min-height: 60px; border-radius: var(--radius-card); border: 2px solid var(--line); border-bottom-width: 4px; background: var(--surface); font: inherit; font-size: 1.05rem; font-weight: 700; color: var(--ink); text-align: left; padding: 0 18px; cursor: pointer; }
 .linkish { border: 0; padding: 0; background: none; font: inherit; font-weight: 700; color: var(--accent); cursor: pointer; text-decoration: underline; }
+
+/* Label claims */
+.claim-opt { display: flex; flex-direction: column; gap: 2px; }
+.claim-opt .hint { margin: 0 0 0 26px; font-size: 0.8rem; }
+.claim-opt .note { margin: 4px 0 0 26px; }
+.claim-preview { background: var(--sunk); border-radius: var(--radius-small); padding: 10px 12px; }
+.org-tag { margin-left: 8px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--success); }

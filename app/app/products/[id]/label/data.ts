@@ -5,6 +5,7 @@ import { LABEL_TEMPLATES } from "@/lib/labelTemplates";
 import { EASY_PICKS, findContainer, labelOptions } from "@/lib/containers";
 import type { LabelShape } from "@/lib/core/lettering";
 import { logoBytes } from "@/lib/logos";
+import { cleanClaims } from "@/lib/frontClaims";
 import { cleanWarnings } from "@/lib/warnings";
 import { loadLabelFonts } from "@/lib/labelFonts/load";
 import { activePack } from "@/lib/packs";
@@ -44,7 +45,7 @@ export async function loadLabel(id: string, sizeId?: string, batchParam?: string
   if (!user) return { signedOut: true as const };
 
   const [{ data: product }, { data: sizeRows }, { data: biz }, { data: batchRows }] = await Promise.all([
-    supabase.from("products").select("id, name, type_key, identity, makes, recipe, parent_id, changes, logo_path, warnings").eq("id", id).maybeSingle(),
+    supabase.from("products").select("id, name, type_key, identity, makes, recipe, parent_id, changes, logo_path, warnings, claims").eq("id", id).maybeSingle(),
     supabase.from("sizes").select("*").eq("product_id", id).order("position").order("created_at"),
     supabase.from("businesses").select("name, city_state_zip, contact, logo_path").limit(1).maybeSingle(),
     supabase
@@ -64,7 +65,12 @@ export async function loadLabel(id: string, sizeId?: string, batchParam?: string
   // Batches are optional: the label is the usual recipe with no lot unless a batch is picked.
   const batch = batches.find((b) => b.id === batchParam) ?? null;
   const label = buildLabel({
-    product: { ...product, recipe: recipeLines, warnings: cleanWarnings(product.warnings, activePack()) },
+    product: {
+      ...product,
+      recipe: recipeLines,
+      warnings: cleanWarnings(product.warnings, activePack()),
+      claims: cleanClaims(product.claims, activePack()),
+    },
     business: { name: biz?.name ?? "", cityStateZip: biz?.city_state_zip ?? "", contact: biz?.contact ?? "" },
     size,
     pack: activePack(),
@@ -120,6 +126,7 @@ export async function labelPdfFor(loaded: Loaded): Promise<{ pdf: LabelPdf; sugg
       shape,
       name: product.name,
       identity: product.identity ?? "",
+      claims: label.claimLine,
       net: label.net,
       netMinIn: label.size?.lettering?.minHeightIn ?? 1 / 16,
       back: label.back,

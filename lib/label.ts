@@ -2,13 +2,19 @@ import { checkClaims, computeRecipe, labelIngredients, netContentsFromBatch, typ
 import type { BusinessInfo, ClaimHit, MarketPack, ProductType, RecipeLine } from "./core/types";
 import { sizeFacts, type Size, type SizeFacts } from "./sizes";
 import { warningLines } from "./warnings";
+import { claimsFor, NO_CLAIMS, type ClaimResult, type ProductClaims } from "./frontClaims";
 import type { ProductWarnings } from "./core/types";
 
 /**
  * The ingredient list as printed: the pack's label form of each name (US: common name
  * first), the maker's own names as typed, and which plant names still need an everyday name.
  */
-export function printedIngredients(recipe: ComputedRecipe, pack: MarketPack): { names: string[]; needsCommon: string[] } {
+export function printedIngredients(
+  recipe: ComputedRecipe,
+  pack: MarketPack,
+  /** Label names whose every line is certified organic: printed as "Organic ...". */
+  organicNames?: Set<string>,
+): { names: string[]; needsCommon: string[] } {
   const custom = new Set(recipe.custom.map((l) => (l.resolution.status === "known" ? l.resolution.labelName : "")));
   const everyday = new Map<string, string>();
   for (const l of recipe.lines) {
@@ -19,19 +25,28 @@ export function printedIngredients(recipe: ComputedRecipe, pack: MarketPack): { 
   const names: string[] = [];
   const needsCommon: string[] = [];
   for (const i of labelIngredients(recipe, pack)) {
+    const org = organicNames?.has(i.name) ? "Organic " : "";
     if (custom.has(i.name) || i.unresolved || !pack.printName) {
-      names.push(i.name);
+      names.push(org + i.name);
       continue;
     }
     const p = pack.printName(i.name, everyday.get(i.name));
-    names.push(p.text);
+    names.push(org + p.text);
     if (p.needsCommon) needsCommon.push(i.name);
   }
   return { names, needsCommon };
 }
 
 export interface LabelInput {
-  product: { name: string; type_key: string; identity: string; makes: number | null; recipe: RecipeLine[]; warnings?: ProductWarnings | null };
+  product: {
+    name: string;
+    type_key: string;
+    identity: string;
+    makes: number | null;
+    recipe: RecipeLine[];
+    warnings?: ProductWarnings | null;
+    claims?: ProductClaims | null;
+  };
   business: BusinessInfo;
   size: Size | null;
   pack: MarketPack;
@@ -48,6 +63,10 @@ export interface Label {
   /** Net contents line, or null if it can't be worked out yet. */
   net: string | null;
   size: SizeFacts | null;
+  /** Front claims as printed, under "what it is" ("Vegan · Handmade"). */
+  claimLine: string;
+  /** Claims, organic share and what's wrong with them. */
+  claimCheck: ClaimResult;
   /** Problems that should stop printing. */
   blockers: string[];
   /** Risky words in the name or "what it is" line. */
@@ -66,7 +85,9 @@ export function buildLabel({ product, business, size, pack, batch }: LabelInput)
   const productType = pack.productTypes.find((t) => t.key === product.type_key);
   const recipe = computeRecipe(batch ? batch.recipe : product.recipe, pack);
   const list = labelIngredients(recipe, pack);
-  const printed = printedIngredients(recipe, pack);
+  const claimCheck = claimsFor(product.claims ?? NO_CLAIMS, recipe, pack, { productName: product.name, identity: product.identity });
+  const printed = printedIngredients(recipe, pack, claimCheck.organic.organicNames);
+  const claimLine = claimCheck.front.join(" · ");
   const ingredients = list.length ? `Ingredients: ${printed.names.join(", ")}.` : "";
   const facts = size ? sizeFacts(size, pack.lettering) : null;
 
@@ -75,12 +96,14 @@ export function buildLabel({ product, business, size, pack, batch }: LabelInput)
     net = netContentsFromBatch(recipe.totalGrams, recipe.totalMl, product.makes, productType?.declareBy ?? "weight");
   }
 
-  const front = [product.name, product.identity, net].filter((x): x is string => Boolean(x && x.trim()));
+  const front = [product.name, product.identity, claimLine, net].filter((x): x is string => Boolean(x && x.trim()));
   const warnings = warningLines(product.warnings, pack);
   const back = [
     ingredients,
     ...warnings,
     ...(pack.backPanel?.({ business, ...(productType ? { productType } : {}) }) ?? []),
+    // NOP 205.303(b)(2): the certifier statement goes below the maker's name.
+    ...claimCheck.back,
     batch ? `Lot ${batch.lot}` : "",
   ].filter(Boolean);
 
@@ -93,6 +116,7 @@ export function buildLabel({ product, business, size, pack, batch }: LabelInput)
     blockers.push("\"What it is\" repeats the name. Describe the product instead, like Botanical Skin Balm.");
   if (!net) blockers.push(size ? "Check this size's fill amount." : "Add a size, or how many one batch makes, for the net weight.");
   if (!business.name.trim()) blockers.push("Add your business name in your business details.");
+  for (const n of claimCheck.notes) if (n.key === "organic-name") blockers.push(n.text);
   if (printed.needsCommon.length)
     blockers.push(`US labels need the everyday name of each plant. Add one for: ${printed.needsCommon.join(", ")}.`);
 
@@ -103,6 +127,8 @@ export function buildLabel({ product, business, size, pack, batch }: LabelInput)
     warnings,
     net,
     size: facts,
+    claimLine,
+    claimCheck,
     blockers,
     claims: checkClaims(`${product.name} ${product.identity}`, pack.claimRules),
     customNames: recipe.custom.map((l) => (l.resolution.status === "known" ? l.resolution.labelName : l.line.text)),

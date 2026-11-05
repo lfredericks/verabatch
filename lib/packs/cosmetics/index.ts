@@ -4,6 +4,7 @@ import { CLAIM_RULES } from "./claims";
 import { printName } from "./commonNames";
 import { INGREDIENTS } from "./ingredients";
 import { WARNINGS } from "./warnings";
+import { FRONT_CLAIMS } from "./frontClaims";
 import { CARRIERS, FORM_DETECT_ORDER, FORMS, VARIETY_GROUPS, type FormKey, type VarietyGroup } from "./varieties";
 
 export const PRODUCT_TYPES: ProductType[] = [
@@ -203,6 +204,7 @@ export const cosmeticsPack: MarketPack = {
   choices: choicesFor,
   backPanel,
   warnings: WARNINGS,
+  frontClaims: FRONT_CLAIMS,
   guessDensity,
   printName,
 };

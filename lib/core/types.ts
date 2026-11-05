@@ -31,6 +31,8 @@ export interface RecipeLine {
   pick?: NamePick;
   /** The maker's everyday name for a plant ingredient whose common name we don't know. */
   common?: string;
+  /** The maker marked this ingredient as certified organic (their supplier's certificate). */
+  organic?: boolean;
 }
 
 export interface NamePick {
@@ -172,6 +174,19 @@ export interface ProductWarnings {
   custom: string[];
 }
 
+/** A claim a maker can put on the front of the label ("Vegan", "Handmade"). */
+export interface FrontClaim {
+  key: string;
+  /** Checkbox label. */
+  label: string;
+  /** As printed on the label. */
+  text: string;
+  /** One line under the checkbox: what it means or what backs it up. */
+  hint?: string;
+  /** A problem with this claim for this recipe: "stop" keeps it off the label. */
+  check?(recipe: import("./recipe").ComputedRecipe): { level: "stop" | "check"; text: string } | null;
+}
+
 export interface MarketPack {
   id: string;
   name: string;
@@ -189,6 +204,8 @@ export interface MarketPack {
   backPanel?(ctx: { business: BusinessInfo; productType?: ProductType }): string[];
   /** Standard warning statements makers can add. */
   warnings?: WarningOption[];
+  /** Front-of-label claims makers can pick. */
+  frontClaims?: FrontClaim[];
   /**
    * The label form of an official name (e.g. US: common name first, Latin in brackets).
    * needsCommon: the maker must supply an everyday name before printing.

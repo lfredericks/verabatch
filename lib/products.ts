@@ -50,7 +50,8 @@ export function cleanLine(raw: unknown): RecipeLine | null {
   const pickName = pk && typeof pk === "object" ? str(pk.name, 160).trim() : "";
   const pick = pickName && (pk!.kind === "official" || pk!.kind === "custom") ? { kind: pk!.kind as "official" | "custom", name: pickName } : undefined;
   const common = str(o.common, 60).trim();
-  return { amount, unit, text, ...(variety ? { variety } : {}), ...(key ? { key } : {}), ...(pick ? { pick } : {}), ...(common ? { common } : {}) };
+  const organic = o.organic === true;
+  return { amount, unit, text, ...(organic ? { organic: true } : {}), ...(variety ? { variety } : {}), ...(key ? { key } : {}), ...(pick ? { pick } : {}), ...(common ? { common } : {}) };
 }
 
 /**
