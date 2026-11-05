@@ -10,7 +10,7 @@ export default function LoginPage() {
     <main className="wrap narrow">
       <BrandMark href="/" />
       <h1>Sign in</h1>
-      <p className="lead">No password. We'll email you a sign-in link. New here? The same steps create your account.</p>
+      <p className="lead">We'll email you a sign-in code, or use your password if you've set one. New here? The code creates your account.</p>
       <LoginForm />
     </main>
   );

@@ -1,13 +1,35 @@
 "use client";
 
-import { useActionState } from "react";
-import { sendCode, verifyCode, type LoginState } from "./actions";
+import { useActionState, useState } from "react";
+import { sendCode, signInPassword, verifyCode, type LoginState } from "./actions";
 
 const START: LoginState = { step: "email", email: "" };
 
 export function LoginForm() {
   const [emailState, emailAction, sending] = useActionState(sendCode, START);
   const [codeState, codeAction, checking] = useActionState(verifyCode, emailState);
+  const [pwState, pwAction, signingIn] = useActionState(signInPassword, START);
+  const [usePassword, setUsePassword] = useState(false);
+
+  if (usePassword) {
+    return (
+      <form action={pwAction} className="card form">
+        <label className="fld">
+          <span>Email</span>
+          <input name="email" type="email" inputMode="email" autoComplete="email" defaultValue={pwState.email || emailState.email} placeholder="you@yourshop.com" required autoFocus />
+        </label>
+        <label className="fld">
+          <span>Password</span>
+          <input name="password" type="password" autoComplete="current-password" required />
+        </label>
+        {pwState.error && <p className="error" role="alert">{pwState.error}</p>}
+        <button className="btn pri" disabled={signingIn}>{signingIn ? "Signing in..." : "Sign in"}</button>
+        <button type="button" className="btn ghost sm" onClick={() => setUsePassword(false)}>
+          Email me a sign-in code instead
+        </button>
+      </form>
+    );
+  }
 
   if (emailState.step === "email") {
     return (
@@ -26,7 +48,10 @@ export function LoginForm() {
           />
         </label>
         {emailState.error && <p className="error" role="alert">{emailState.error}</p>}
-        <button className="btn pri" disabled={sending}>{sending ? "Sending..." : "Email me a sign-in link"}</button>
+        <button className="btn pri" disabled={sending}>{sending ? "Sending..." : "Email me a sign-in code"}</button>
+        <button type="button" className="btn ghost sm" onClick={() => setUsePassword(true)}>
+          Use my password
+        </button>
       </form>
     );
   }

@@ -48,3 +48,24 @@ export async function verifyCode(prev: LoginState, form: FormData): Promise<Logi
   if (error) return { step: "code", email, error: "That code didn't work. It may have expired, so ask for a new one." };
   redirect("/app");
 }
+
+/** Sign in with a password the person set on their account page. */
+export async function signInPassword(_prev: LoginState, form: FormData): Promise<LoginState> {
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  const password = String(form.get("password") ?? "");
+  if (!EMAIL_RE.test(email)) return { step: "email", email, error: "Enter an email address like you@yourshop.com." };
+  if (!password) return { step: "email", email, error: "Enter your password, or get a sign-in code instead." };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) {
+    const tooMany = /rate|too many/i.test(error.message);
+    return {
+      step: "email",
+      email,
+      error: tooMany
+        ? "Too many tries. Wait a few minutes, or get a sign-in code instead."
+        : "That email and password don't match. No password yet? Get a sign-in code instead.",
+    };
+  }
+  redirect("/app");
+}

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { BrandMark } from "../BrandMark";
 import { BusinessForm, type Business } from "./BusinessForm";
 import { Onboarding } from "./Onboarding";
+import { PasswordField } from "./PasswordField";
 import { LogoField } from "./LogoField";
 import { logoUrl } from "@/lib/logos";
 import { signOut } from "./actions";
@@ -46,8 +47,7 @@ export default async function AppHome() {
       {business ? (
         <>
           <h1>{business.name}</h1>
-          <p className="lead">Signed in as {user.email}.</p>
-          <section className="card" aria-labelledby="products">
+                    <section className="card" aria-labelledby="products">
             <h2 id="products">Your products</h2>
             {products && products.length > 0 ? (
               <ul className="plist">
@@ -99,6 +99,7 @@ export default async function AppHome() {
             url={businessLogo}
             note="No logo yet. It goes on the front of your labels unless a product has its own."
           />
+          <PasswordField email={user.email ?? ""} />
         </>
       ) : (
         <Onboarding needsBusiness />

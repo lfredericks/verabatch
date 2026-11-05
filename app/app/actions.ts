@@ -60,3 +60,26 @@ export async function signOut() {
   await supabase.auth.signOut();
   redirect("/");
 }
+
+export interface PasswordState {
+  error?: string;
+  saved?: number;
+}
+
+/** Set or change the signed-in person's password (optional; codes keep working). */
+export async function setPassword(_prev: PasswordState, form: FormData): Promise<PasswordState> {
+  const password = String(form.get("password") ?? "");
+  const again = String(form.get("again") ?? "");
+  if (password.length < 10) return { error: "Use at least 10 characters." };
+  if (password.length > 72) return { error: "Keep it under 72 characters." };
+  if (password !== again) return { error: "The two passwords don't match." };
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    if (/same/i.test(error.message)) return { error: "That's already your password." };
+    if (/weak|pwned|leaked/i.test(error.message)) return { error: "That password is too easy to guess. Try a longer one." };
+    if (/reauth/i.test(error.message)) return { error: "For safety, sign out and back in with a code, then set your password." };
+    return { error: "That didn't save. Try again in a moment." };
+  }
+  return { saved: Date.now() };
+}
