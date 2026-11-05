@@ -253,7 +253,8 @@ export function ProductEditor({
               Keep editing
             </button>
           </div>
-        ) : (
+        ) : !product || dirty || saving || state.error ? (
+          // An existing product shows Save only once something has changed.
           <div className="save-row">
             {recipeChanged ? (
               <button type="button" className="btn pri big" onClick={() => setChoosing(true)}>
@@ -264,11 +265,13 @@ export function ProductEditor({
                 {saving ? "Saving..." : product ? "Save recipe" : "Save product"}
               </button>
             )}
-            <Link href="/app" className="btn ghost cta">
-              Back
-            </Link>
+            {!product && (
+              <Link href="/app" className="btn ghost cta">
+                Back
+              </Link>
+            )}
           </div>
-        )}
+        ) : null}
       </form>
 
       <section className="card" aria-labelledby="preview">
