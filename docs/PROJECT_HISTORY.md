@@ -259,7 +259,18 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   one card of lines with the official name underneath, tap a line to edit, which-one answers as
   big buttons on the line (a select past 4 choices), + Add an ingredient, makes stepper, one big
   Save recipe button that shows only after a change (Leslie). Next: step 3, onboarding.
-- Open question: the daily keep-alive ping (Oct 30) didn't stop the pause; check it.
+- **Redesign step 3 (onboarding): live.** One question per screen: shop name, place, contact (first run
+  only), what you make (8 tiles, Which kind? when a tile has several), name, recipe.
+- **Container picker** starts on the likeliest containers for the product kind (Leslie).
+- **Keep-alive:** the Vercel cron didn't stop the pause; GitHub Actions now pings twice a day
+  (`.github/workflows/keepalive.yml`).
+- **Label claims (Leslie): live.** Front checkboxes: Handmade, Small batch, Vegan, Fragrance-free,
+  Cruelty-free, Pet safe, each checked against the recipe. Organic follows USDA tiers: lines marked
+  certified organic print as "Organic ..."; "Made with organic" (70%+) and "Organic" (95%+) only for
+  certified or $5,000-exempt makers; certifier line on the back; never the seal. Migration
+  0013_claims.sql (run Nov 5). The WIP branch's migration is now 0014.
+- **Allergens (Leslie): live.** Optional "Contains: ..." back line from common allergens found in the
+  recipe. FDA plans to propose a MoCRA fragrance-allergen rule in Nov 2026; add its list when out.
 
 ## Next steps (as of Oct 23)
 
