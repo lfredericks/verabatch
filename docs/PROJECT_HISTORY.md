@@ -271,13 +271,15 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   0013_claims.sql (run Nov 5). The WIP branch's migration is now 0014.
 - **Allergens (Leslie): live.** Optional "Contains: ..." back line from common allergens found in the
   recipe. FDA plans to propose a MoCRA fragrance-allergen rule in Nov 2026; add its list when out.
+- **Ingredient names refreshed:** the 2025 EU glossary (Decision 2025/1175, 30,418 names) replaces
+  the 2016 copy (`docs/INGREDIENTS.md`). Launch item "CosIng refresh" is done.
 
 ## Next steps (as of Oct 23)
 
 1. Redesign step 3: onboarding, one question per screen (step 2, the recipe screen, is done).
 2. Launch must-haves (Master Plan, Phase 2): Open in Canva (Leslie creates a Canva developer
    account), Stripe for Pro, Free limits and the three-strikes rule, terms and privacy (lawyer),
-   custom sign-in email, domain, paid hosting, CosIng refresh.
+   custom sign-in email (done Nov 5), domain, paid hosting, CosIng refresh (done Nov 5).
 3. Leslie's sign-offs: a printed Relief Balm label (2 oz jar wraparound), a real batch with
    supplier lots, the sprays decision (room/linen only or skin too).
 4. Parked: printer specs list, invoice reading and costs (WIP branch), recall engine, store sync.
