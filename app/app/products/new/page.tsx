@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { pageTitle } from "@/lib/brand";
 import { createClient } from "@/lib/supabase/server";
 import { Onboarding } from "../../Onboarding";
+import { PlanNote } from "../../PlanNote";
+import { atProductLimit, planInfo, PRODUCT_LIMIT_TEXT } from "@/lib/planServer";
 
 export const metadata: Metadata = { title: pageTitle("Add a product") };
 export const dynamic = "force-dynamic";
@@ -18,7 +20,11 @@ export default async function NewProduct() {
 
   return (
     <main className="wrap narrow">
-      <Onboarding needsBusiness={false} />
+      {atProductLimit(await planInfo(supabase)) ? (
+        <PlanNote title="One product on Free" text={PRODUCT_LIMIT_TEXT} back="/app" />
+      ) : (
+        <Onboarding needsBusiness={false} />
+      )}
     </main>
   );
 }

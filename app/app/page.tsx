@@ -9,6 +9,8 @@ import { Onboarding } from "./Onboarding";
 import { LogoField } from "./LogoField";
 import { logoUrl } from "@/lib/logos";
 import { signOut } from "./actions";
+import { planInfo } from "@/lib/planServer";
+import { FREE_LIMITS } from "@/lib/plans";
 
 export const metadata: Metadata = { title: pageTitle("Your shop") };
 export const dynamic = "force-dynamic";
@@ -27,6 +29,7 @@ export default async function AppHome() {
     .maybeSingle();
   const business = (data as Business | null) ?? null;
   const businessLogo = await logoUrl(supabase, (data as { logo_path?: string | null } | null)?.logo_path);
+  const plan = business ? await planInfo(supabase) : null;
   const { data: products } = business
     ? await supabase.from("products").select("id, name, identity, parent_id").order("name")
     : { data: null };
@@ -70,9 +73,17 @@ export default async function AppHome() {
             ) : (
               <p>Add your first product: its name and the recipe the way you make it.</p>
             )}
-            <Link href="/app/products/new" className="btn pri cta">
-              Add a product
-            </Link>
+            {plan?.plan === "free" && (
+              <p className="hint">
+                Free plan: {Math.min(plan.products, FREE_LIMITS.products)} of {FREE_LIMITS.products} product,{" "}
+                {Math.min(plan.batches, FREE_LIMITS.batches)} of {FREE_LIMITS.batches} logged batches. Pro (unlimited) opens at launch.
+              </p>
+            )}
+            {!(plan?.plan === "free" && plan.products >= FREE_LIMITS.products) && (
+              <Link href="/app/products/new" className="btn pri cta">
+                Add a product
+              </Link>
+            )}
           </section>
           <section className="card" aria-labelledby="supplies">
             <h2 id="supplies">Supplies</h2>

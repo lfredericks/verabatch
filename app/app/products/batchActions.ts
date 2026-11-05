@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { atBatchLimit, BATCH_LIMIT_TEXT, limitError, planInfo } from "@/lib/planServer";
 import { redirect } from "next/navigation";
 import { readBatchForm } from "@/lib/batches";
 import { lotNumber, productInitials } from "@/lib/core";
@@ -76,6 +77,8 @@ export async function saveBatch(_prev: BatchFormState, form: FormData): Promise<
     redirect(`/app/products/${productId}/label?batch=${b.id}`);
   }
 
+  if (atBatchLimit(await planInfo(supabase))) return { error: BATCH_LIMIT_TEXT };
+
   // New lot: initials + date + that day's count. Retry if two saves race for the same number.
   const prefix = `${productInitials(product.name)}-${b.madeOn.slice(2, 4)}${b.madeOn.slice(5, 7)}${b.madeOn.slice(8, 10)}`;
   let newId: string | null = null;
@@ -88,7 +91,7 @@ export async function saveBatch(_prev: BatchFormState, form: FormData): Promise<
       .select("id")
       .single();
     if (data) newId = data.id as string;
-    else if (error && error.code !== "23505") return { error: "We couldn't save that batch. Try again in a moment." };
+    else if (error && error.code !== "23505") return { error: limitError(error) ?? "We couldn't save that batch. Try again in a moment." };
   }
   if (!newId) return { error: "We couldn't save that batch. Try again in a moment." };
   await saveSupplyLinks(supabase, newId, fields.recipe, supplyRaw);

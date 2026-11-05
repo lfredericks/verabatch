@@ -197,10 +197,17 @@ export function ProductEditor({
             {state.error}
           </p>
         )}
-        {(state.saved || justSaved) && !dirty && (
-          <p className="ok" role="status">
-            Saved.
+        {state.notice && !dirty ? (
+          <p className="note" role="status">
+            {state.notice}
           </p>
+        ) : (
+          (state.saved || justSaved) &&
+          !dirty && (
+            <p className="ok" role="status">
+              Saved.
+            </p>
+          )
         )}
         {choosing && product ? (
           <div className="choose" role="group" aria-label="How to save this recipe change">

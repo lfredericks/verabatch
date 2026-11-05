@@ -12,10 +12,14 @@ import { createClient } from "@/lib/supabase/server";
 import { diffRecipe, ensureKeys, newKey } from "@/lib/variations";
 import { cleanWarnings } from "@/lib/warnings";
 import { cleanClaims } from "@/lib/frontClaims";
+import { productPrint } from "@/lib/plans";
+import { atProductLimit, limitError, LOCKED_TEXT, planInfo, PRODUCT_LIMIT_TEXT, strikeCheck } from "@/lib/planServer";
 
 export interface ProductFormState {
   error?: string;
   saved?: boolean;
+  /** A friendly note after saving (the Free plan's three-strikes nudge). */
+  notice?: string;
 }
 
 const UUID = /^[0-9a-f-]{36}$/i;
@@ -86,12 +90,13 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
   if (!p.id) {
     const { data: member } = await supabase.from("business_members").select("business_id").limit(1).maybeSingle();
     if (!member) return { error: "Add your business details first." };
+    if (atProductLimit(await planInfo(supabase))) return { error: PRODUCT_LIMIT_TEXT };
     const { data, error } = await supabase
       .from("products")
       .insert({ ...base, name: p.name, recipe: withKeys(p.recipe), business_id: member.business_id })
       .select("id")
       .single();
-    if (error || !data) return { error: "We couldn't save that. Try again in a moment." };
+    if (error || !data) return { error: limitError(error) ?? "We couldn't save that. Try again in a moment." };
     revalidatePath("/app");
     redirect(`/app/products/${data.id}?saved=1`);
   }
@@ -105,6 +110,7 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
 
   // Save as a new recipe: a linked variation, or an independent copy.
   if (p.mode !== "master") {
+    if (atProductLimit(await planInfo(supabase))) return { error: PRODUCT_LIMIT_TEXT };
     const { lines: currentRecipe, parent } = await effectiveRecipe(supabase, current);
     // A variation of a variation hangs off the same parent (one level only).
     const parentId = parent ? parent.id : current.id;
@@ -120,7 +126,7 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
       .insert({ ...row, business_id: current.business_id })
       .select("id")
       .single();
-    if (error || !data) return { error: "We couldn't save that. Try again in a moment." };
+    if (error || !data) return { error: limitError(error) ?? "We couldn't save that. Try again in a moment." };
     await copySizes(supabase, current.id, data.id as string);
     revalidatePath("/app");
     redirect(`/app/products/${data.id}?saved=1`);
@@ -128,6 +134,11 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
 
   // An out-of-date page (no save prompt) must never overwrite a recipe without asking.
   if (!p.modeSent) return { error: "This page is out of date. Reload the page, then make your change again." };
+
+  // Free plan: a save that turns the one product into a different one is a strike.
+  const plan = await planInfo(supabase);
+  const strike = strikeCheck(plan, productPrint(current.name, cleanRecipe(current.recipe)), productPrint(current.name, p.recipe));
+  if (strike.locked) return { error: LOCKED_TEXT };
 
   // Update this product. A variation stores its differences from the parent.
   let recipeFields: Record<string, unknown>;
@@ -148,14 +159,16 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
   if (error) return { error: "We couldn't save that. Try again in a moment." };
   // An update that touched no rows is a failure, not a success.
   if (!updated?.length) return { error: "That didn't save. Reload the page and try again." };
+  const notice = await strike.after(supabase);
   revalidatePath("/app");
   revalidatePath(`/app/products/${p.id}`);
-  return { saved: true };
+  return { saved: true, ...(notice ? { notice } : {}) };
 }
 
 export interface InfoFormState {
   error?: string;
   saved?: number;
+  notice?: string;
 }
 
 /** Name, kind of product and "what it is" — edited on their own, behind an Edit button. */
@@ -171,11 +184,16 @@ export async function saveProductInfo(_prev: InfoFormState, form: FormData): Pro
   if (identity.length > 120) return { error: "Keep \"what it is\" under 120 characters." };
   const type_key = pack.productTypes.some((t) => t.key === typeKey) || typeKey === "other" ? typeKey : "";
   const supabase = await createClient();
+  const { data: cur } = await supabase.from("products").select("name, recipe").eq("id", id).maybeSingle();
+  const recipe = cleanRecipe(cur?.recipe);
+  const strike = strikeCheck(await planInfo(supabase), productPrint(cur?.name ?? name, recipe), productPrint(name, recipe));
+  if (strike.locked) return { error: LOCKED_TEXT };
   const { data, error } = await supabase.from("products").update({ name, type_key, identity }).eq("id", id).select("id");
   if (error || !data?.length) return { error: "That didn't save. Reload the page and try again." };
+  const notice = await strike.after(supabase);
   revalidatePath("/app");
   revalidatePath(`/app/products/${id}`);
-  return { saved: Date.now() };
+  return { saved: Date.now(), ...(notice ? { notice } : {}) };
 }
 
 /** Variations become standalone products, keeping the recipe they have right now. */

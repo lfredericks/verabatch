@@ -55,7 +55,12 @@ export function ProductInfo({ product }: { product: { id: string; name: string; 
             <dd>{product.identity || <i className="hint">not set</i>}</dd>
           </div>
         </dl>
-        {state.saved && (
+        {state.notice && (
+          <p className="note" role="status">
+            {state.notice}
+          </p>
+        )}
+        {state.saved && !state.notice && (
           <p className="ok" role="status">
             Saved.
           </p>
