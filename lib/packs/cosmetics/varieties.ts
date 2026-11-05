@@ -92,7 +92,7 @@ export const VARIETY_GROUPS: VarietyGroup[] = [
   { key: "frankincense", triggers: ["frankincense", "boswellia", "olibanum"], question: "Which frankincense?", forms: ["eo"], varieties: [
     { key: "carterii", label: "Frankincense carterii", latin: "Boswellia carterii", keywords: ["carterii", "somali", "somalian"], base: "Boswellia Carterii", eo: "Boswellia Carterii Oil", note: "The most common one sold." },
     { key: "serrata", label: "Frankincense serrata", latin: "Boswellia serrata", keywords: ["serrata", "indian"], base: "Boswellia Serrata", eo: "Boswellia Serrata Oil", note: "Indian frankincense." },
-    { key: "sacra", label: "Frankincense sacra", latin: "Boswellia sacra", keywords: ["sacra", "omani", "sacred", "hojari"], base: "Boswellia Sacra", eo: "Boswellia Sacra Oil", note: "Omani frankincense." },
+    { key: "sacra", label: "Frankincense sacra", latin: "Boswellia sacra", keywords: ["sacra", "omani", "sacred", "hojari"], base: "Boswellia Sacra", eo: "Boswellia Sacra Resin Oil", note: "Omani frankincense." },
   ] },
   { key: "rose", triggers: ["rose"], exclude: ["rose hip", "rosehip", "rose geranium", "rosemary", "rosewood"], question: "Which rose?", forms: ["eo", "flower", "hydrosol"], varieties: [
     { key: "damascena", label: "Damask rose", latin: "Rosa damascena", keywords: ["damascena", "damask", "bulgarian", "turkish"], base: "Rosa Damascena Flower", note: "The classic rose oil and rose water." },

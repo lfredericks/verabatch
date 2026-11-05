@@ -5,16 +5,16 @@ checked against CosIng, the EU's free official ingredient list, by `tests/cosing
 
 ## The CosIng list in this repo
 
-`data/cosing-inci-names.txt`: ~24,000 official INCI names, one per line.
+`data/cosing-inci-names.txt`: 30,418 official names, one per line.
 
-- Source right now: a public copy kept by Open Beauty Facts on GitHub. **It is from Feb 2016.**
-  Good enough to catch wrong names; too old to trust for newer ingredients.
-- The EU sites can't be reached from Claude's workspace, so a fresh copy needs either:
-  1. Leslie downloads the official CosIng export and attaches it, or
-  2. the EU domain is added to the workspace's allowed sites (claude.ai settings).
-- **Before real makers use the app, replace this file with a fresh official export.**
-  Then run `npm test`: the CosIng test lists any name that no longer matches, and flags
-  exceptions that are no longer needed.
+- **Source (Nov 5, 2026): the EU glossary of common ingredient names, Commission Implementing
+  Decision (EU) 2025/1175 of 16 June 2025** (eur-lex.europa.eu/eli/dec_impl/2025/1175/oj), the
+  legal list behind CosIng. Copied from the EUR-Lex page's annex table in Leslie's browser.
+  Replaced the Feb 2016 Open Beauty Facts copy.
+- The CosIng site has no bulk download anymore; to refresh, use the newest glossary decision
+  (the EU page "CosIng – Glossary of ingredients" links it), or the CosIng helpdesk.
+- It's the EU list. US labels use PCPC's wINCI names (paid): mostly the same, with the
+  differences below. License wINCI once there are paying users.
 
 ## How names print on US labels (Oct 22)
 
@@ -53,7 +53,15 @@ Water (EU: Aqua), Fragrance (EU: Parfum), "Wax" where the EU says "Cera". US nam
 add the common name in brackets, e.g. "Butyrospermum Parkii (Shea) Butter". The official
 US dictionary (PCPC's wINCI) is paid; license it once there are paying users.
 
-## Last check (Oct 22, 2026, 2016 CosIng copy)
+## Last check (Nov 5, 2026, 2025 EU glossary)
+
+All label names match the 2025 glossary except the exceptions in `tests/cosing.test.ts`:
+Fragrance (EU: Parfum), spike lavender oil (the 2025 glossary lists it as Lavandula Spica
+Flower Oil; US name kept), and 5 dried-herb drafts. Fixed: frankincense sacra is
+Boswellia Sacra Resin Oil. Water, candelilla wax, Santalum Spicatum Wood Oil and dried
+lavandin flowers are now in the list.
+
+## Earlier check (Oct 22, 2026, 2016 CosIng copy)
 
 108 possible label names: 97 match CosIng, 11 explained in the test's exception list
 (3 US-only names, 2 missing from the old copy, 6 dried-herb drafts).

@@ -18,17 +18,14 @@ const cosing = new Set(
 
 /** Names allowed without a CosIng match, and why. Keep this list short and honest. */
 const EXCEPTIONS: Record<string, string> = {
-  Water: "US label name; CosIng (EU) says AQUA.",
   Fragrance: "US label name; CosIng (EU) says PARFUM.",
-  "Euphorbia Cerifera (Candelilla) Wax": "US label name; CosIng (EU) says EUPHORBIA CERIFERA CERA.",
-  "Boswellia Sacra Oil": "Not in our 2016 CosIng copy. Check against a current list.",
-  "Santalum Spicatum Wood Oil": "Not in our 2016 CosIng copy. Check against a current list.",
+  "Lavandula Latifolia (Spike Lavender) Herb Oil":
+    "In CosIng until the 2025 glossary, which lists spike lavender oil as LAVANDULA SPICA FLOWER OIL. Kept the US name; confirm against wINCI.",
   // Whole dried plant parts. CosIng lists powders and extracts; the dried-herb name is a draft.
   "Anthemis Nobilis Flower": "Dried flowers: draft name, check.",
   "Cinnamomum Zeylanicum Bark": "Dried bark: draft name, check.",
   "Cinnamomum Zeylanicum Leaf": "Dried leaf: draft name, check.",
   "Eugenia Caryophyllus (Clove) Bud": "Dried buds: draft name, check.",
-  "Lavandula Hybrida Flower": "Dried flowers: draft name, check.",
   "Salvia Sclarea Leaf": "Dried leaf: draft name, check.",
 };
 
