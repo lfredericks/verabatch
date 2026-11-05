@@ -255,11 +255,15 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   until a domain is verified; Leslie is holding the domain until the name is final. Limit 30/hour.
 - Sign-in email now carries an 8-digit code plus a link that works on any device. The login
   screen takes the code again (bug fixed: it checked the code against an empty email).
+- **Redesign step 2 (recipe screen): live.** Paste button (a new recipe opens on the paste box),
+  one card of lines with the official name underneath, tap a line to edit, which-one answers as
+  big buttons on the line (a select past 4 choices), + Add an ingredient, makes stepper, one big
+  Save recipe button that shows only after a change (Leslie). Next: step 3, onboarding.
+- Open question: the daily keep-alive ping (Oct 30) didn't stop the pause; check it.
 
 ## Next steps (as of Oct 23)
 
-1. Redesign step 2: the recipe screen (Paprika-style paste, "Which lavender?" answers on the
-   line, makes-N stepper). Then step 3: onboarding, one question per screen.
+1. Redesign step 3: onboarding, one question per screen (step 2, the recipe screen, is done).
 2. Launch must-haves (Master Plan, Phase 2): Open in Canva (Leslie creates a Canva developer
    account), Stripe for Pro, Free limits and the three-strikes rule, terms and privacy (lawyer),
    custom sign-in email, domain, paid hosting, CosIng refresh.
