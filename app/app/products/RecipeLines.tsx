@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { computeRecipe, parseQuickEntry, UNIT_LABELS, type NamePick, type RecipeLine, type Resolution, type Unit } from "@/lib/core";
 import { activePack } from "@/lib/packs";
 import { compareToParent } from "@/lib/variations";
@@ -54,6 +54,8 @@ export function RecipeLines({
   /** Lines where the maker chose "Mine isn't listed" on a which-one question. */
   const [finding, setFinding] = useState<Set<number>>(() => new Set());
   const [pasteOpen, setPasteOpen] = useState(false);
+  /** A new recipe starts on the paste box; "type it line by line" leaves it. */
+  const [manual, setManual] = useState(false);
 
   const lines = useMemo(() => rowsToLines(rows), [rows]);
   const recipe = useMemo(() => computeRecipe(lines, pack), [lines]);
@@ -123,15 +125,94 @@ export function RecipeLines({
     onChange();
   }
 
+  const hasLines = rows.some((r) => r.text.trim() || r.amount.trim());
+  const showPaste = pasteOpen || (startOpen && !hasLines && !manual);
+
   return (
     <>
-      <div className="rows">
+      {showPaste ? (
+        <div className="paste-box">
+          <label className="fld">
+            <span>Paste or type your recipe, one ingredient per line. Any units.</span>
+            <textarea
+              rows={6}
+              value={paste}
+              onChange={(e) => setPaste(e.target.value)}
+              placeholder={"1/2 cup jojoba oil\n1/4 cup shea butter\n20 drops lavender essential oil\nmakes 5"}
+            />
+          </label>
+          <div className="row">
+            <button type="button" className="btn sm" onClick={addPasted} disabled={!paste.trim()}>
+              Add these lines
+            </button>
+            {hasLines && (
+              <button type="button" className="btn ghost sm" onClick={() => (setPaste(""), setPasteOpen(false))}>
+                Cancel
+              </button>
+            )}
+            {!hasLines && (
+              <button type="button" className="btn ghost sm" onClick={() => (setPasteOpen(false), setManual(true))}>
+                Type it line by line instead
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <button type="button" className="paste-btn" onClick={() => setPasteOpen(true)}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <rect x="8" y="4" width="12" height="16" rx="2" />
+            <path d="M4 8v12a2 2 0 002 2h10" />
+          </svg>
+          Paste a recipe, any units
+        </button>
+      )}
+
+      {!showPaste && rows.length > 0 && (
+      <ul className="rlist">
         {rows.map((row, i) => {
           const r = byLine.get(lines[i]!)?.resolution;
           const editing = open.has(row.id);
           const mark = vs?.status[i];
+          const asking = r?.status === "needsChoice" && !finding.has(row.id);
+          const cls = ["rline", mark && mark !== "same" ? "rline-diff" : "", asking || r?.status === "unknown" ? "rline-ask" : ""].filter(Boolean).join(" ");
+
+          // The official name line under the ingredient.
+          let status: ReactNode = null;
+          let common: ReactNode = null;
+          if (r?.status === "known" && r.pick === "custom") {
+            status = (
+              <span className="rstatus warn-text">
+                {r.labelName}: your own name, <b>not an official ingredient name</b>
+              </span>
+            );
+          } else if (r?.status === "known") {
+            const names = r.parts ? r.parts.map((p) => p.labelName) : [r.labelName];
+            const printed = names.map((n) => pack.printName?.(n, row.common) ?? { text: n, needsCommon: false });
+            const missing = printed.some((p) => p.needsCommon);
+            status = <span className={`rstatus ${missing ? "warn-text" : "ok-text"}`}>{printed.map((p) => p.text).join(", ")}</span>;
+            if (missing || (editing && row.common !== undefined))
+              common = (
+                <label className="fld">
+                  <span>Everyday name for customers (required on US labels)</span>
+                  <input
+                    value={row.common ?? ""}
+                    // Typing opens the line, so the box stays put until Done.
+                    onChange={(e) => (update(row.id, { common: e.target.value }), toggle(row.id, true))}
+                    placeholder="Mugwort"
+                    maxLength={60}
+                  />
+                </label>
+              );
+          } else if (r?.status === "unknown" && row.text.trim()) {
+            status = <span className="rstatus warn-text">Not in our ingredient list yet</span>;
+          } else if (r?.status === "needsChoice") {
+            status = <span className="rstatus warn-text">{r.question} Check your bottle.</span>;
+          }
+
+          const choices = r?.status === "needsChoice" ? pack.choices?.(r) ?? [] : [];
+
           return (
-            <div className={`rline${mark && mark !== "same" ? " rline-diff" : ""}`} key={row.id}>
+            <li className={cls} key={row.id}>
               {mark === "changed" && <p className="tag">Changed from {parent!.name}</p>}
               {mark === "added" && <p className="tag">Added in this variation</p>}
               {editing ? (
@@ -144,6 +225,7 @@ export function RecipeLines({
                     onChange={(e) => update(row.id, { amount: e.target.value })}
                     placeholder="1/2"
                     maxLength={20}
+                    autoFocus={!row.text}
                   />
                   <select aria-label="Unit" value={row.unit} onChange={(e) => update(row.id, { unit: e.target.value as Unit })}>
                     {UNIT_OPTIONS.map((u) => (
@@ -165,74 +247,56 @@ export function RecipeLines({
                   </button>
                 </div>
               ) : (
-                <div className="rread">
+                <button type="button" className="rread" onClick={() => toggle(row.id, true)} aria-label={`Edit ${row.text || "line"}`}>
                   <span className="amt">{amountText(row)}</span>
-                  <span className="ing">{row.text || <i className="hint">blank line</i>}</span>
-                  <button type="button" className="btn ghost sm" aria-label={`Edit ${row.text || "line"}`} onClick={() => toggle(row.id, true)}>
-                    Edit
-                  </button>
-                </div>
+                  <span className="ing">
+                    <span className="ing-name">{row.text || <i className="hint">blank line</i>}</span>
+                    {status}
+                  </span>
+                </button>
               )}
+              {editing && status && <p className="rstatus-edit">{status}</p>}
+              {common}
 
-              {r?.status === "known" && r.pick === "custom" && (
-                <p className="rstatus warn-text">
-                  {r.labelName}: your own name, <b>not an official ingredient name</b>.
-                </p>
-              )}
-              {r?.status === "known" &&
-                r.pick !== "custom" &&
-                (() => {
-                  const names = r.parts ? r.parts.map((p) => p.labelName) : [r.labelName];
-                  const printed = names.map((n) => pack.printName?.(n, row.common) ?? { text: n, needsCommon: false });
-                  const missing = printed.some((p) => p.needsCommon);
-                  return (
-                    <>
-                      <p className={`rstatus ${missing ? "warn-text" : "ok-soft"}`}>{printed.map((p) => p.text).join(", ")}</p>
-                      {(missing || (editing && row.common !== undefined)) && (
-                        <label className="fld">
-                          <span>Everyday name for customers (required on US labels)</span>
-                          <input
-                            value={row.common ?? ""}
-                            // Typing opens the line, so the box stays put until Done.
-                            onChange={(e) => (update(row.id, { common: e.target.value }), toggle(row.id, true))}
-                            placeholder="Mugwort"
-                            maxLength={60}
-                          />
-                        </label>
-                      )}
-                    </>
-                  );
-                })()}
-              {r?.status === "unknown" && row.text.trim() && (
-                <>
-                  <p className="rstatus warn-text">&ldquo;{row.text}&rdquo; isn&rsquo;t in our list yet.</p>
-                  <NameFinder typed={row.text} onPick={(p) => pickName(row, p)} />
-                </>
-              )}
+              {r?.status === "unknown" && row.text.trim() && <NameFinder typed={row.text} onPick={(p) => pickName(row, p)} />}
               {r?.status === "needsChoice" &&
                 (finding.has(row.id) ? (
                   <NameFinder typed={row.text} onPick={(p) => pickName(row, p)} onCancel={() => startFinding(row, false)} />
+                ) : choices.length <= 4 ? (
+                  <div className="answers" role="group" aria-label={r.question}>
+                    {choices.map((ch) => {
+                      const m = /^(.*?)\s*\((.*)\)$/.exec(ch.label);
+                      return (
+                        <button key={ch.key} type="button" className="answer" onClick={() => answer(row, r, ch.key)}>
+                          <b>{m ? m[1] : ch.label}</b>
+                          {m && <span>{m[2]}</span>}
+                        </button>
+                      );
+                    })}
+                    <button type="button" className="btn ghost sm" onClick={() => startFinding(row, true)}>
+                      Mine isn&rsquo;t listed
+                    </button>
+                    {r.note && <p className="hint">{r.note}</p>}
+                  </div>
                 ) : (
-                  <div className="ask">
-                    <label className="fld">
-                      <span>{r.question}</span>
-                      <select
-                        value=""
-                        onChange={(e) => {
-                          const v = e.target.value;
-                          if (v === "__mine") startFinding(row, true);
-                          else if (v) answer(row, r, v);
-                        }}
-                      >
-                        <option value="">Choose (check your bottle)</option>
-                        {(pack.choices?.(r) ?? []).map((ch) => (
-                          <option key={ch.key} value={ch.key}>
-                            {ch.label}
-                          </option>
-                        ))}
-                        <option value="__mine">Mine isn&rsquo;t listed</option>
-                      </select>
-                    </label>
+                  <div className="answers">
+                    <select
+                      aria-label={r.question}
+                      value=""
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        if (v === "__mine") startFinding(row, true);
+                        else if (v) answer(row, r, v);
+                      }}
+                    >
+                      <option value="">Choose (check your bottle)</option>
+                      {choices.map((ch) => (
+                        <option key={ch.key} value={ch.key}>
+                          {ch.label}
+                        </option>
+                      ))}
+                      <option value="__mine">Mine isn&rsquo;t listed</option>
+                    </select>
                     {r.note && <p className="hint">{r.note}</p>}
                   </div>
                 ))}
@@ -252,16 +316,17 @@ export function RecipeLines({
                   </button>
                 </div>
               )}
-            </div>
+            </li>
           );
         })}
-      </div>
+      </ul>
+      )}
 
       {vs && vs.removed.length > 0 && (
         <div className="removed">
           <p className="hint">Left out from {parent!.name}:</p>
           {vs.removed.map((l) => (
-            <div key={l.key} className="rread">
+            <div key={l.key} className="rremoved">
               <span className="amt">{amountText(l)}</span>
               <s className="ing">{l.text}</s>
               <button
@@ -276,28 +341,10 @@ export function RecipeLines({
         </div>
       )}
 
-      <div className="row">
-        <button type="button" className="btn sm" onClick={addLine}>
-          + Add a line
+      {!showPaste && (
+        <button type="button" className="add-line" onClick={addLine}>
+          + Add an ingredient
         </button>
-        <button type="button" className="btn ghost sm" onClick={() => setPasteOpen((o) => !o)}>
-          Paste a whole recipe
-        </button>
-      </div>
-
-      {pasteOpen && (
-        <div className="fld">
-          <span>One ingredient per line, or separated by commas</span>
-          <textarea
-            rows={5}
-            value={paste}
-            onChange={(e) => setPaste(e.target.value)}
-            placeholder={"1/4 cup avocado oil\n1/2 cup jojoba oil\n10 drops lavender\nmakes 5"}
-          />
-          <button type="button" className="btn sm" onClick={addPasted} disabled={!paste.trim()}>
-            Add these lines
-          </button>
-        </div>
       )}
     </>
   );

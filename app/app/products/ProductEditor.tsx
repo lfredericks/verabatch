@@ -154,7 +154,7 @@ export function ProductEditor({
             {parent.name}&rsquo;s recipe.
           </p>
         )}
-        <p className="hint">Type it the way you make it. Use &ldquo;fl oz&rdquo; for liquid ounces and &ldquo;oz&rdquo; for weighed ounces.</p>
+        <p className="hint">Type it the way you make it. Tap a line to change it.</p>
 
         <RecipeLines
           rows={rows}
@@ -165,16 +165,32 @@ export function ProductEditor({
           parent={parent ? { name: parent.name, lines: parent.recipe } : null}
         />
 
-        <label className="fld narrow-fld">
-          <span>One batch makes</span>
-          <input
-            name="makes"
-            inputMode="numeric"
-            value={makes}
-            onChange={(e) => (setMakes(e.target.value.replace(/[^\d]/g, "")), touch())}
-            placeholder="5"
-          />
-        </label>
+        <div className="makes">
+          <label htmlFor="makes">This batch makes</label>
+          <div className="stepper">
+            <button
+              type="button"
+              aria-label="One fewer"
+              onClick={() => (setMakes((m) => String(Math.max(1, (Number(m) || 1) - 1))), touch())}
+              disabled={!makes || Number(makes) <= 1}
+            >
+              &minus;
+            </button>
+            <input
+              id="makes"
+              name="makes"
+              inputMode="numeric"
+              value={makes}
+              onChange={(e) => (setMakes(e.target.value.replace(/[^\d]/g, "").slice(0, 5)), touch())}
+              placeholder="?"
+              aria-describedby="makes-hint"
+            />
+            <button type="button" aria-label="One more" onClick={() => (setMakes((m) => String((Number(m) || 0) + 1)), touch())}>
+              +
+            </button>
+          </div>
+        </div>
+        <p className="hint" id="makes-hint">How many jars, tins or bottles one batch fills.</p>
 
         {state.error && (
           <p className="error" role="alert">
@@ -238,14 +254,14 @@ export function ProductEditor({
             </button>
           </div>
         ) : (
-          <div className="row">
+          <div className="save-row">
             {recipeChanged ? (
-              <button type="button" className="btn pri" onClick={() => setChoosing(true)}>
-                Save changes
+              <button type="button" className="btn pri big" onClick={() => setChoosing(true)}>
+                Save recipe
               </button>
             ) : (
-              <button type="submit" className="btn pri" disabled={saving} onClick={() => setMode("master")}>
-                {saving ? "Saving..." : product ? "Save changes" : "Save product"}
+              <button type="submit" className="btn pri big" disabled={saving} onClick={() => setMode("master")}>
+                {saving ? "Saving..." : product ? "Save recipe" : "Save product"}
               </button>
             )}
             <Link href="/app" className="btn ghost cta">
