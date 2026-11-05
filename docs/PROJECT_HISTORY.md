@@ -285,7 +285,8 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   not just Pro: Leslie agreed sign-in friction shouldn't be a plan perk). Shopify/Squarespace
   sign-in comes with the store-sync apps, not launch.
 - **Domain bought (Leslie, Nov 5): verabatch.com** (plus verabatch.online free for a year, auto-renew
-  off). Not hooked up yet: Vercel, Resend sender, Supabase and Canva URLs to do.
+  off). Resend: verabatch.com verified (DNS at Bluehost), sign-in emails now from hello@verabatch.com
+  and reach anyone. Still to do: point the domain at Vercel, then Supabase and Canva URLs.
 - **Logo (Leslie, Nov 5):** lowercase Gloock wordmark, "vera" in plum + "batch" in ink
   (`brand.wordmark`), reversed version on plum (pink "vera", white "batch"), and a "vb" icon on plum
   for the browser tab and phone home screen (`lib/brand/icon.ts`, Gloock outlines). Explored on the

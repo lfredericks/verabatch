@@ -32,8 +32,8 @@ when the session can reach supabase.co / supabase.com.
 
 Status (Nov 5, 2026): all three done. Custom SMTP is Resend (smtp.resend.com, port 465,
 username `resend`, password = a Resend API key, kept only in Supabase). Sender is
-onboarding@resend.dev, which only delivers to Leslie's own address until a domain is verified
-in Resend. Email limit is 30/hour. The Magic link template has the code and a token_hash link
+hello@verabatch.com: verabatch.com was verified in Resend on Nov 5 (DNS at Bluehost: TXT
+resend._domainkey, TXT _dmarc, CNAME send, CNAME rsend), so email reaches anyone. Email limit is 30/hour. The Magic link template has the code and a token_hash link
 to https://verabatch-six.vercel.app (update it when the domain changes); the login screen asks
 for the code. Template changes can take a few minutes to start being used.
 
@@ -53,6 +53,6 @@ Run each new file in `supabase/migrations` in the SQL Editor, in order.
 
 ## Before launch
 
-- Verify a domain in Resend and switch the sender to it before other makers sign in (onboarding@resend.dev only reaches Leslie). Copy the template into **Confirm sign up** too.
+- Copy the sign-in template into **Confirm sign up** too.
 - Supabase's free plan pauses the project after about a week unused; move to a paid plan before real users.
 - Vercel's free Hobby plan is for non-commercial use; move to Pro before charging customers.
