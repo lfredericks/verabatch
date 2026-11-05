@@ -64,3 +64,25 @@ describe("product sheet PDF", () => {
     expect(sheetFileName(sheet)).toBe("Moon-Garden-Co_Garden-Balm_Internal-sheet.pdf");
   });
 });
+
+describe("whole recipe on the record", () => {
+  it("keeps lines without a number amount, in recipe order", async () => {
+    const { computeRecipe } = await import("../lib/core");
+    const { activePack } = await import("../lib/packs");
+    const { loadAllRecipes } = await import("../lib/productSheet");
+    const lines = [
+      { amount: "4", unit: "oz" as const, text: "shea butter" },
+      { amount: "a pinch", unit: "g" as const, text: "sea salt" },
+      { amount: "10", unit: "drop" as const, text: "lavender essential oil" },
+    ];
+    // loadAllRecipes reads from the database; check the row builder through a fake client.
+    const fake = {
+      from: () => ({ select: () => ({ order: async () => ({ data: [{ id: "a", name: "Garden Balm", parent_id: null, recipe: lines, makes: 5 }] }) }) }),
+    };
+    const rows = await loadAllRecipes(fake as never);
+    expect(rows.map((r) => r.ingredient)).toEqual(["shea butter", "sea salt", "lavender essential oil"]);
+    expect(rows[1]!.amount).toBe("a pinch");
+    expect(rows[1]!.labelName).toBe("Not counted (no amount)");
+    expect(computeRecipe(lines, activePack()).skipped).toHaveLength(1);
+  });
+});

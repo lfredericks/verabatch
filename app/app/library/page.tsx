@@ -23,11 +23,16 @@ export default async function Library() {
       <BrandMark href="/app" />
       <div className="row between">
         <h1>Product library</h1>
-        <a href="/app/library/csv" className="btn sm cta" download>
-          Download spreadsheet (.csv)
-        </a>
+        <div className="row">
+          <a href="/app/library/csv" className="btn sm cta" download>
+            Download library (.csv)
+          </a>
+          <a href="/app/library/recipes" className="btn sm cta" download>
+            Download all recipes (.csv)
+          </a>
+        </div>
       </div>
-      <p className="hint">Opens in Excel, Numbers or Google Sheets. Click a product to open it.</p>
+      <p className="hint">Both open in Excel, Numbers or Google Sheets. All recipes has every ingredient line of every product, exactly as written. Click a product to open it.</p>
       {rows.length ? (
         <div className="table-scroll">
           <table className="grid-table">
