@@ -80,6 +80,11 @@ export default async function AppHome({ searchParams }: { searchParams: Promise<
                 {Math.min(plan.batches, FREE_LIMITS.batches)} of {FREE_LIMITS.batches} logged batches. Pro (unlimited) opens at launch.
               </p>
             )}
+            {products && products.length > 0 && (
+              <Link href="/app/library" className="btn ghost sm cta">
+                View as a spreadsheet
+              </Link>
+            )}
             {!(plan?.plan === "free" && plan.products >= FREE_LIMITS.products) && (
               <Link href="/app/products/new" className="btn pri cta">
                 Add a product

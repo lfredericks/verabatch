@@ -122,6 +122,7 @@ export default async function EditProduct({
               : "None yet (optional)",
           },
           { href: "#warnings", title: "Warnings", detail: printedWarnings.length ? `${printedWarnings.length === 1 ? "1 statement" : `${printedWarnings.length} statements`} on the back` : "None yet" },
+          { href: `/app/products/${product.id}/sheet`, title: "Product sheet", detail: "For buyers and wholesale, or your own records (PDF)" },
           { href: "#claims", title: "Label claims", detail: label.claimLine || "Optional: vegan, handmade, organic..." },
           { href: "#info", title: "Product info and logo", detail: product.identity || "Name, kind, what it is" },
         ]}

@@ -349,3 +349,16 @@ details.card summary { min-height: 28px; }
 .claim-preview { background: var(--sunk); border-radius: var(--radius-small); padding: 10px 12px; }
 .org-tag { margin-left: 8px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--success); }
 .radio.sub { margin-left: 26px; }
+
+/* Product library and product sheet */
+.wrap.wide { max-width: 1200px; }
+.row.between { justify-content: space-between; }
+.table-scroll { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-card); }
+.grid-table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+.grid-table th, .grid-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; vertical-align: top; }
+.grid-table thead th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); background: var(--sunk); position: sticky; top: 0; }
+.grid-table tbody th { font-weight: 700; }
+.grid-table tbody tr:last-child th, .grid-table tbody tr:last-child td { border-bottom: 0; }
+.seg a { display: flex; align-items: center; justify-content: center; min-height: 40px; border-radius: var(--radius-small); font-weight: 700; color: var(--muted); text-decoration: none; }
+.seg a.on { background: var(--surface); color: var(--ink); font-weight: 800; }
+.sheet-preview { width: 100%; height: 720px; border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); }
