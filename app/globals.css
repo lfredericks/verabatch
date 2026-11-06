@@ -376,3 +376,10 @@ details.card summary { min-height: 28px; }
 .sg-chip { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; }
 .sg-chip i { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line); flex: none; }
 .sg-pdf th, .sg-pdf td { white-space: normal; }
+
+/* Continue with Google, above the email form */
+.google-form { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.btn.google { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 48px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.btn.google:hover { background: var(--paper); color: var(--ink); }
+.or-line { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 14px; margin: 16px 0; }
+.or-line::before, .or-line::after { content: ""; flex: 1; height: 1px; background: var(--line); }

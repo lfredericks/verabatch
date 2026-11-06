@@ -76,3 +76,20 @@ export async function signInPassword(_prev: LoginState, form: FormData): Promise
   }
   redirect("/app");
 }
+
+/** "Continue with Google": off to Google, back through /auth/confirm (which swaps the code for a session). */
+export async function signInGoogle(): Promise<void> {
+  const supabase = await createClient();
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const proto = h.get("x-forwarded-proto") ?? "https";
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: host ? `${proto}://${host}/auth/confirm?next=/app` : undefined },
+  });
+  if (error || !data.url) {
+    console.error("Google sign-in failed to start:", error?.status, error?.message);
+    redirect("/login?google=failed");
+  }
+  redirect(data.url);
+}
