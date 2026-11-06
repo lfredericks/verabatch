@@ -324,8 +324,11 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   check-ins, ratings by product type, and keep/tweak/drop), and **workshop mode** (phone-sized batch
   screens, weigh list, supplier lot per line, works on spotty Wi-Fi). A native phone app comes after launch.
 - **Waitlist email (Leslie, Nov 6): Resend, on hold until Leslie says go.** Plan: the WordPress form
-  (Custom HTML block, no plugin) posts to app.verabatch.com/api/waitlist; it saves email + the three
-  answers (what they make, how many products, where they sell) to a locked `waitlist` table (insert
+  (Custom HTML block, no plugin) posts to app.verabatch.com/api/waitlist; it saves email + the
+  answers (what they make, how many products, where they sell, and "What matters most to you?":
+  pick 3 of 10 from the top market wants: cost per product, rules-following labels, batch records and
+  lots, recall tracing, stock, recipe tests, wholesale sheets, phone/workshop, Etsy/Shopify, teas and
+  spice blends; Leslie, Nov 6) to a locked `waitlist` table (insert
   only, no public read) and adds the contact to a Resend "Waitlist" audience, then sends a welcome
   email. Resend is the only place unsubscribes live and the only place email is sent from; our copy is
   for picking January beta testers and skipping known setup questions later. Free up to 1,000 contacts.
