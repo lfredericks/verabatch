@@ -5,7 +5,7 @@ Accounts (all owned by Leslie):
 | Service | What it does | Where |
 | --- | --- | --- |
 | GitHub | Holds the code | github.com/lfredericks/verabatch (an empty Verabatch/verabatch org repo also exists; the Claude GitHub app is installed on both accounts) |
-| Vercel | Puts the app online; deploys every push to `main` | Team "verabatch", project "verabatch", live at https://app.verabatch.com (CNAME `app` at Bluehost; the old https://verabatch-six.vercel.app still works) |
+| Vercel | Puts the app online; deploys every push to `main` | Team "verabatch", project "verabatch", live at https://app.verabatch.com (CNAME `app` at Bluehost; the old https://verabatch-six.vercel.app forwards to it with a 308, set in Vercel Nov 6) |
 | Supabase | Database and sign-in | Organization "Verabatch", project ref `lbuyjpscimxbawotgzkt`, East US |
 
 Vercel environment variables (already set):
