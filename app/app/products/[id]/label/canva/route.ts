@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { accessToken, CanvaAuthError, canvaConfigured, importPdf, withReturn } from "@/lib/canva";
+import { accessToken, CanvaAuthError, canvaConfigured, importPdfWithRetry, withReturn } from "@/lib/canva";
 import { labelPdfFor, loadLabel, readLogoChoice } from "../data";
 
 export const dynamic = "force-dynamic";
@@ -34,13 +34,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   }
   try {
     const title = (loaded.fileName ?? loaded.product.name).replace(/\.pdf$/, "");
-    const edit = await importPdf(token, made.pdf.bytes, title);
+    const edit = await importPdfWithRetry(token, made.pdf.bytes, title);
     return NextResponse.redirect(withReturn(edit, id));
   } catch (e) {
     if (e instanceof CanvaAuthError) {
       await loaded.supabase.from("canva_connections").delete().eq("user_id", user.id);
       return connect();
     }
+    console.error("Open in Canva failed:", e instanceof Error ? e.message : e);
     labelPage.searchParams.set("canva", "failed");
     return NextResponse.redirect(labelPage);
   }

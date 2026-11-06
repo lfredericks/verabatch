@@ -98,13 +98,21 @@ export async function accessToken(supabase: SupabaseClient, userId: string): Pro
 
 export class CanvaAuthError extends Error {}
 
+/** Canva answers that mean "busy, ask again in a moment", not "this won't work". */
+function transient(status: number): boolean {
+  return status === 404 || status === 408 || status === 429 || status >= 500;
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 /**
  * Upload a PDF as a new Canva design and wait for it. Returns the design's edit link
- * (only works for this person, valid 30 days).
+ * (only works for this person, valid 30 days). Gives up after `budgetMs`.
  */
-export async function importPdf(token: string, bytes: Uint8Array, title: string): Promise<string> {
+export async function importPdf(token: string, bytes: Uint8Array, title: string, budgetMs = 25_000, fetcher: typeof fetch = fetch): Promise<string> {
+  const until = Date.now() + budgetMs;
   const meta = { title_base64: Buffer.from(title.slice(0, 50)).toString("base64"), mime_type: "application/pdf" };
-  const res = await fetch(`${API}/imports`, {
+  const res = await fetcher(`${API}/imports`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/octet-stream", "Import-Metadata": JSON.stringify(meta) },
     body: Buffer.from(bytes),
@@ -112,15 +120,30 @@ export async function importPdf(token: string, bytes: Uint8Array, title: string)
   if (res.status === 401 || res.status === 403) throw new CanvaAuthError("Canva needs you to connect again.");
   if (!res.ok) throw new Error(`Canva didn't accept the label (${res.status}).`);
   let job = ((await res.json()) as { job: ImportJob }).job;
-  for (let i = 0; i < 40 && job.status === "in_progress"; i++) {
-    await new Promise((r) => setTimeout(r, i < 5 ? 500 : 1000));
-    const poll = await fetch(`${API}/imports/${encodeURIComponent(job.id)}`, { headers: { Authorization: `Bearer ${token}` } });
+  // Right after the upload Canva can briefly say "not found" or "busy" for the new job: wait and ask again.
+  for (let i = 0; job.status === "in_progress" && Date.now() < until; i++) {
+    await sleep(i < 5 ? 500 : 1000);
+    const poll = await fetcher(`${API}/imports/${encodeURIComponent(job.id)}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (poll.status === 401 || poll.status === 403) throw new CanvaAuthError("Canva needs you to connect again.");
+    if (transient(poll.status)) continue;
     if (!poll.ok) throw new Error(`Canva didn't finish the import (${poll.status}).`);
     job = ((await poll.json()) as { job: ImportJob }).job;
   }
   const url = job.status === "success" ? job.result?.designs?.[0]?.urls?.edit_url : undefined;
   if (!url) throw new Error(job.error?.message ? `Canva: ${job.error.message}` : "Canva took too long. Try again in a minute.");
   return url;
+}
+
+/** Import with one automatic second try, so a hiccup on Canva's side doesn't send the maker back. */
+export async function importPdfWithRetry(token: string, bytes: Uint8Array, title: string, fetcher: typeof fetch = fetch): Promise<string> {
+  try {
+    return await importPdf(token, bytes, title, 25_000, fetcher);
+  } catch (e) {
+    if (e instanceof CanvaAuthError) throw e;
+    console.error("Canva import, first try failed:", e instanceof Error ? e.message : e);
+    await sleep(1000);
+    return importPdf(token, bytes, title, 25_000, fetcher);
+  }
 }
 
 interface ImportJob {
