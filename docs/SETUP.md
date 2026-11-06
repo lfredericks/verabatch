@@ -56,3 +56,12 @@ Run each new file in `supabase/migrations` in the SQL Editor, in order.
 - Copy the sign-in template into **Confirm sign up** too.
 - Supabase's free plan pauses the project after about a week unused; move to a paid plan before real users.
 - Vercel's free Hobby plan is for non-commercial use; move to Pro before charging customers.
+
+## Google sign-in (Nov 6)
+
+- Google Cloud project `verabatch` → Google Auth Platform. Client "Verabatch web" (Web application):
+  JavaScript origin `https://app.verabatch.com`, redirect URI
+  `https://lbuyjpscimxbawotgzkt.supabase.co/auth/v1/callback` (change to the custom auth domain later).
+- Supabase → Authentication → Sign In / Providers → Google: on, with the client ID and secret.
+- Publishing status is Testing (test users only) until Branding has the home page, privacy and terms
+  links and the verabatch.com domain; then Audience → Publish app.

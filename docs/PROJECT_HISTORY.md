@@ -351,6 +351,12 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   can use it knowing it's new and being tested. Beta use is also the meter for costs: the app counts how
   often each beta feature is used (first-party counts, no tracking tools) to see demand and running costs
   before pricing it. The Privacy Policy draft now says we count feature use.
+- **Google sign-in works (Nov 6).** "Continue with Google" on /login (`signInGoogle` in
+  app/login/actions.ts, back through /auth/confirm). Google Cloud project "verabatch" (Leslie's personal
+  Google account for now), OAuth client "Verabatch web", redirect = the Supabase callback. Google app is
+  in **Testing**: only listed test users can use Google until the privacy and terms pages are live and
+  the app is published. Email code and password sign-in work for everyone. The Google screen shows the
+  supabase.co address; fix with the auth.verabatch.com custom domain when upgrading to Supabase Pro.
 - **Privacy Policy and Terms drafted (Nov 6),** for lawyer review: https://claude.ai/artifact/WBfavU2SYzwuhJMPwcdLHF
   and https://claude.ai/artifact/AdV2TDSvQZqMijWvL8rVAM. To publish at verabatch.com/privacy and /terms
   (WordPress), then link them from the app and submit Canva's review.
