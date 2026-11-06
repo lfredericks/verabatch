@@ -343,7 +343,7 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   statement (9 allergens), Nutrition Facts small-business exemption check, cottage food (home kitchen)
   label wording starting with Indiana, food claim checker (no drug/supplement claims). Culinary
   infused oils are secondary (after launch, with botulism rules); skin oils and bath teas are already
-  cosmetics. Something else on the February list moves to spring to make room (Leslie to pick).
+  cosmetics. To make room, **The Bench moves to spring** (Leslie, Nov 6); Pro launches owner-only.
 - **Privacy Policy and Terms drafted (Nov 6),** for lawyer review: https://claude.ai/artifact/WBfavU2SYzwuhJMPwcdLHF
   and https://claude.ai/artifact/AdV2TDSvQZqMijWvL8rVAM. To publish at verabatch.com/privacy and /terms
   (WordPress), then link them from the app and submit Canva's review.
