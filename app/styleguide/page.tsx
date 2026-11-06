@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { activeTheme, brand, googleFontsUrl, pageTitle, themeCss, THEMES, type ColorTokens } from "@/lib/brand";
 import { BrandMark } from "../BrandMark";
+import { fontName, LABEL_PDF_FONTS, loadedWeights, sizeText, TYPE_SCALE, WEIGHT_NAMES } from "./typeScale";
 
 export const metadata: Metadata = { title: pageTitle("Style guide"), robots: { index: false } };
 
@@ -24,6 +25,8 @@ const COLOR_NOTES: Record<keyof ColorTokens, string> = {
   labelInk: "Label text",
   labelAccent: "Label product name",
 };
+
+const FONT_ROLES = { display: "Headings and product names", body: "Everything else", mono: "Numbers and lot codes" };
 
 function cssVar(key: string) {
   return "--" + key.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
@@ -71,7 +74,7 @@ export default async function StyleGuide({ searchParams }: { searchParams: Promi
               <i style={{ background: `var(${cssVar(k)})` }} />
               <div>
                 <b>{COLOR_NOTES[k]}</b>
-                <code>{k}</code>
+                <code>{k} · {cssVar(k)}</code>
                 <code>
                   {theme.colors.light[k]} / {theme.colors.dark[k]}
                 </code>
@@ -81,7 +84,125 @@ export default async function StyleGuide({ searchParams }: { searchParams: Promi
         </div>
         <p className="hint">Each swatch shows light / dark values. Your device&rsquo;s dark mode setting decides which you see.</p>
 
-        <h2 className="section">Type</h2>
+        <h2 className="section">Fonts</h2>
+        <div className="sg-fonts">
+          {(["display", "body", "mono"] as const).map((k) => {
+            const f = theme.fonts[k];
+            const weights = loadedWeights(f.google);
+            return (
+              <section className="card" key={k}>
+                <p className="eyebrow">{FONT_ROLES[k]}</p>
+                <p className="sg-font-name" style={{ fontFamily: `var(--${k})` }}>{fontName(f.stack)}</p>
+                <p className="sg-font-abc" style={{ fontFamily: `var(--${k})` }}>Aa Bb Cc 0123456789</p>
+                <dl className="sg-spec">
+                  <dt>Weights</dt>
+                  <dd>{weights.length ? weights.map((w) => `${WEIGHT_NAMES[w] ?? w} ${w}`).join(", ") : "Device font"}</dd>
+                  <dt>Styles</dt>
+                  <dd>Normal (no italics loaded)</dd>
+                  <dt>CSS</dt>
+                  <dd><code>var(--{k})</code></dd>
+                  <dt>Fallbacks</dt>
+                  <dd><code>{f.stack}</code></dd>
+                </dl>
+              </section>
+            );
+          })}
+        </div>
+
+        <h2 className="section">Type styles</h2>
+        <div className="sg-types">
+          {TYPE_SCALE.map((t) => {
+            const fg = t.color[0]!;
+            const bg = t.on;
+            return (
+              <section className="card sg-type" key={t.name}>
+                <div
+                  className="sg-sample"
+                  style={{
+                    fontFamily: `var(--${t.font})`,
+                    fontSize: Array.isArray(t.rem) ? `clamp(${t.rem[0]}rem, 7vw, ${t.rem[1]}rem)` : `${t.rem}rem`,
+                    fontWeight: t.weight,
+                    lineHeight: t.lineHeight ?? 1.3,
+                    color: `var(${cssVar(fg)})`,
+                    background: bg ? `var(${cssVar(bg)})` : undefined,
+                    padding: bg ? "6px 12px" : undefined,
+                    borderRadius: bg ? "var(--radius-small)" : undefined,
+                    ...t.css,
+                  }}
+                >
+                  {t.name === "Wordmark" && brand.wordmark ? (
+                    <>
+                      <span style={{ color: "var(--accent)" }}>{brand.wordmark[0]}</span>
+                      <span style={{ color: "var(--ink)" }}>{brand.wordmark[1]}</span>
+                    </>
+                  ) : (
+                    t.sample
+                  )}
+                </div>
+                <div>
+                  <b>{t.name}</b> <span className="hint">{t.use}</span>
+                </div>
+                <dl className="sg-spec">
+                  <dt>Font</dt>
+                  <dd>{fontName(theme.fonts[t.font].stack)}</dd>
+                  <dt>Size</dt>
+                  <dd>{sizeText(t.rem)}</dd>
+                  <dt>Weight</dt>
+                  <dd>{WEIGHT_NAMES[t.weight]} {t.weight}</dd>
+                  <dt>Style</dt>
+                  <dd>{t.style ?? "Normal"}</dd>
+                  {t.lineHeight && (
+                    <>
+                      <dt>Line height</dt>
+                      <dd>{t.lineHeight}</dd>
+                    </>
+                  )}
+                  <dt>Color</dt>
+                  <dd>
+                    {[...t.color, ...(t.on ? [t.on] : [])].map((c) => (
+                      <span key={c} className="sg-chip">
+                        <i style={{ background: `var(${cssVar(c)})` }} />
+                        {c === t.on ? "on " : ""}
+                        {c} <code>{theme.colors.light[c]} / {theme.colors.dark[c]}</code>
+                      </span>
+                    ))}
+                  </dd>
+                </dl>
+              </section>
+            );
+          })}
+        </div>
+        <p className="hint">Sizes in rem: 1rem = 16px. Ranges grow with the screen, phone to desktop. Colors show light / dark.</p>
+
+        <h2 className="section">Printed label (PDF)</h2>
+        <section className="card">
+          <p className="hint" style={{ margin: 0 }}>
+            The label PDF always uses these two fonts, whatever the theme, so text stays editable in Canva. Text prints
+            black.
+          </p>
+          <table className="grid-table sg-pdf">
+            <thead>
+              <tr>
+                <th>Font</th>
+                <th>Weight</th>
+                <th>Used for</th>
+                <th>Size</th>
+              </tr>
+            </thead>
+            <tbody>
+              {LABEL_PDF_FONTS.map((f) => (
+                <tr key={f.font + f.weight}>
+                  <th>{f.font}</th>
+                  <td>{WEIGHT_NAMES[f.weight]} {f.weight}</td>
+                  <td>{f.use}</td>
+                  <td>{f.size}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+
+        <h2 className="section">Type in use</h2>
         <section className="card">
           <h1>Display: Midnight Garden</h1>
           <p className="lead">Body: Type your recipe the way you make it.</p>

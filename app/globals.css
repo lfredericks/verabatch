@@ -362,3 +362,17 @@ details.card summary { min-height: 28px; }
 .seg a { display: flex; align-items: center; justify-content: center; min-height: 40px; border-radius: var(--radius-small); font-weight: 700; color: var(--muted); text-decoration: none; }
 .seg a.on { background: var(--surface); color: var(--ink); font-weight: 800; }
 .sheet-preview { width: 100%; height: 720px; border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); }
+.sg-fonts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.sg-fonts .card p { margin: 0; }
+.sg-font-name { font-size: 1.6rem; line-height: 1.15; }
+.sg-font-abc { font-size: 1.1rem; color: var(--muted); }
+.sg-types { display: flex; flex-direction: column; gap: 10px; }
+.sg-type { gap: 8px; }
+.sg-sample { align-self: flex-start; max-width: 100%; overflow-wrap: anywhere; }
+.sg-spec { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 0; font-size: 0.85rem; }
+.sg-spec dt { color: var(--muted); font-weight: 600; }
+.sg-spec dd { margin: 0; }
+.sg-spec code { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
+.sg-chip { display: inline-flex; align-items: center; gap: 6px; margin-right: 12px; }
+.sg-chip i { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line); flex: none; }
+.sg-pdf th, .sg-pdf td { white-space: normal; }

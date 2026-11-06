@@ -46,7 +46,7 @@ export const defaultTheme: Theme = {
   },
   fonts: {
     display: { stack: '"Gloock", Georgia, "Times New Roman", serif', google: "Gloock" },
-    body: { stack: '"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif', google: "Figtree:wght@400;600;700" },
+    body: { stack: '"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif', google: "Figtree:wght@400;600;700;800" },
     mono: { stack: '"IBM Plex Mono", ui-monospace, Menlo, monospace', google: "IBM+Plex+Mono:wght@400;500" },
   },
   radius: { card: "12px", control: "9px", small: "8px" },
