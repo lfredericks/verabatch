@@ -344,6 +344,10 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   label wording starting with Indiana, food claim checker (no drug/supplement claims). Culinary
   infused oils are secondary (after launch, with botulism rules); skin oils and bath teas are already
   cosmetics. To make room, **The Bench moves to spring** (Leslie, Nov 6); Pro launches owner-only.
+- **Beta tags (Leslie, Nov 6):** at launch and for every new feature or service, a "Beta" tag so makers
+  can use it knowing it's new and being tested. Beta use is also the meter for costs: the app counts how
+  often each beta feature is used (first-party counts, no tracking tools) to see demand and running costs
+  before pricing it. The Privacy Policy draft now says we count feature use.
 - **Privacy Policy and Terms drafted (Nov 6),** for lawyer review: https://claude.ai/artifact/WBfavU2SYzwuhJMPwcdLHF
   and https://claude.ai/artifact/AdV2TDSvQZqMijWvL8rVAM. To publish at verabatch.com/privacy and /terms
   (WordPress), then link them from the app and submit Canva's review.
