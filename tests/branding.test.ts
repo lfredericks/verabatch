@@ -30,6 +30,13 @@ describe("branding stays in lib/brand", () => {
     expect(hits).toEqual([]);
   });
 
+  it("the plum stays plum (Leslie, Nov 6): change it only on purpose", () => {
+    const light = THEMES.find((t) => t.id === "default")!.colors.light;
+    expect(light.accent).toBe("#6a2945");
+    expect(light.accentDeep).toBe("#4d1d32");
+    expect(light.accentSoft).toBe("#efe0e6");
+  });
+
   it("every theme defines every color in light and dark", () => {
     const keys = Object.keys(THEMES[0]!.colors.light).sort() as (keyof ColorTokens)[];
     for (const t of THEMES) {

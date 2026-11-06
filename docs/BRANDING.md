@@ -31,3 +31,10 @@ another theme without changing the live site.
 
 - A real logo file can replace the mark: add an `logo` field to the theme and use it in `app/BrandMark.tsx`.
 - Per-market themes can switch by domain (e.g. a bakery domain) instead of one site-wide setting.
+
+## Brand colors (locked, Leslie Nov 6)
+
+Plum `#6a2945` (deep `#4d1d32`, soft `#efe0e6`) is the brand color everywhere: the app, the
+logo, emails, the landing page and the botanical plates. `tests/branding.test.ts` fails if the
+default theme changes it, so a change has to be deliberate. It reads warmer on cream and
+purpler on the sage app background; that is the same color, not a drift.
