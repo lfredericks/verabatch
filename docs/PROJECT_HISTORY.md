@@ -331,11 +331,11 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   for picking January beta testers and skipping known setup questions later. Free up to 1,000 contacts.
   Before the beta: two-factor sign-in on Supabase, Vercel and Resend, and Supabase Pro for backups.
 - **Teams are "The Bench" (Leslie, Nov 6),** as in workbench (she passed on Stillroom: sounds like
-  liquor). Pro only; extra people likely an add-on cost (proposed: owner + 1 helper included, ~$5-8/mo
-  per extra; not decided). Roles: owner (billing, delete, invite) and member (batches, recipes, labels).
+  liquor). Pro only. Agreed: owner + 1 helper included, each extra person ~$5-8/mo
+  (exact price set with Stripe). Roles: owner (billing, delete, invite) and member (batches, recipes, labels).
   `business_members` already has owner/member; invites, role limits and seat billing are to build.
 - **Other brands' names (Nov 6):** `lib/packs/cosmetics/brands.ts` already flags ~50 brands + "dupe" /
-  "inspired by" in name and identity (warning only). Proposed: an "I understand" sign-off before printing
+  "inspired by" in name and identity (warning only). Agreed for February: an "I understand" sign-off before printing
   when the name or label uses another brand; supplier "type" fragrance oils as recipe lines stay fine.
   Later: check names against registered US trademarks (classes 3 and 4) once data terms are confirmed.
 - **Privacy Policy and Terms drafted (Nov 6),** for lawyer review: https://claude.ai/artifact/WBfavU2SYzwuhJMPwcdLHF
