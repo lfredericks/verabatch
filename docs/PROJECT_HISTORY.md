@@ -338,6 +338,12 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   "inspired by" in name and identity (warning only). Agreed for February: an "I understand" sign-off before printing
   when the name or label uses another brand; supplier "type" fragrance oils as recipe lines stay fine.
   Later: check names against registered US trademarks (classes 3 and 4) once data terms are confirmed.
+- **Food pack is a February must (Leslie, Nov 6): herbal teas and spice kits.** A second market pack
+  beside cosmetics (`lib/packs/food`): common-name ingredients, required major-allergen "Contains"
+  statement (9 allergens), Nutrition Facts small-business exemption check, cottage food (home kitchen)
+  label wording starting with Indiana, food claim checker (no drug/supplement claims). Culinary
+  infused oils are secondary (after launch, with botulism rules); skin oils and bath teas are already
+  cosmetics. Something else on the February list moves to spring to make room (Leslie to pick).
 - **Privacy Policy and Terms drafted (Nov 6),** for lawyer review: https://claude.ai/artifact/WBfavU2SYzwuhJMPwcdLHF
   and https://claude.ai/artifact/AdV2TDSvQZqMijWvL8rVAM. To publish at verabatch.com/privacy and /terms
   (WordPress), then link them from the app and submit Canva's review.
