@@ -11,4 +11,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ping keep-alive
-        run: curl -fsS --retry 3 --retry-delay 20 https://verabatch-six.vercel.app/api/keepalive
+        run: curl -fsS --retry 3 --retry-delay 20 https://app.verabatch.com/api/keepalive

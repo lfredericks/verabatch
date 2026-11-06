@@ -176,7 +176,7 @@ Parked for later:
 Lessons: React 19 resets forms after an action (it snapped a dropdown back after "Saved.");
 product forms submit by hand. Test real phone flows, not only Chromium.
 
-- Theming: `docs/BRANDING.md`. Live: https://verabatch-six.vercel.app
+- Theming: `docs/BRANDING.md`. Live: https://app.verabatch.com (was https://verabatch-six.vercel.app)
 
 ### Oct 23: new look, label fit, containers, disclaimer
 
@@ -300,6 +300,24 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   Product sheet PDF (`lib/productSheetPdf.ts`) in two versions: for buyers (no recipe amounts) and
   internal (recipe with amounts and %, batch history). Later ideas: Excel (.xlsx) download, supplier
   lots on the internal sheet, a product photo on the buyer sheet.
+
+### Nov 6: app address, landing page, competitors
+
+- **Addresses (Leslie, Nov 6):** the app lives at **https://app.verabatch.com** (Vercel; CNAME `app`
+  at Bluehost). **verabatch.com** stays at Bluehost and becomes a **WordPress** landing page with the
+  waitlist form, built and updated by Leslie (no landing page in this repo). The sign-in email link
+  now uses `{{ .SiteURL }}`. Canva: add the app.verabatch.com callback/return URLs beside the old ones.
+- **Landing page mockup:** "Verabatch Landing Page" canvas (https://claude.ai/artifact/1bbdWFbiTwJpwF73nrYjyf):
+  apothecary look (engraved botanical plate, Libre Baskerville italics, ruled feature list), headline
+  "Every recipe. Every batch. Every label.", the five maker types (soapers, formulators, herbalists,
+  body care makers, candle makers), waitlist right under the features. No launch date on it.
+- **Competitor Review (Nov 6):** https://claude.ai/artifact/6fbxWPM3aUoNJd2JFUtzib. Nobody connects
+  recipe, batch and label; tracing to supplier lots is the lead selling point. Leslie agreed with the
+  gap list. **Must-haves for February:** Open in Canva for everyone (needs Canva's review: final address,
+  live privacy policy and terms, a reviewer login; until then only Leslie's Canva can connect, which is
+  why it failed in James's test), a **recipe testing ledger** (a test = a batch marked test, with
+  check-ins, ratings by product type, and keep/tweak/drop), and **workshop mode** (phone-sized batch
+  screens, weigh list, supplier lot per line, works on spotty Wi-Fi). A native phone app comes after launch.
 
 ## Next steps (as of Oct 23)
 

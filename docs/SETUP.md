@@ -5,7 +5,7 @@ Accounts (all owned by Leslie):
 | Service | What it does | Where |
 | --- | --- | --- |
 | GitHub | Holds the code | github.com/lfredericks/verabatch (an empty Verabatch/verabatch org repo also exists; the Claude GitHub app is installed on both accounts) |
-| Vercel | Puts the app online; deploys every push to `main` | Team "verabatch", project "verabatch", live at https://verabatch-six.vercel.app |
+| Vercel | Puts the app online; deploys every push to `main` | Team "verabatch", project "verabatch", live at https://app.verabatch.com (CNAME `app` at Bluehost; the old https://verabatch-six.vercel.app still works) |
 | Supabase | Database and sign-in | Organization "Verabatch", project ref `lbuyjpscimxbawotgzkt`, East US |
 
 Vercel environment variables (already set):
@@ -21,8 +21,8 @@ Do these in the Supabase dashboard, or have Claude do them through the Managemen
 when the session can reach supabase.co / supabase.com.
 
 1. **Database tables:** SQL Editor → New query → paste all of `supabase/migrations/0001_businesses.sql` → Run.
-2. **Site URL:** Authentication → URL Configuration → Site URL = `https://verabatch-six.vercel.app`.
-   Add `https://verabatch-six.vercel.app/**` under Redirect URLs. (Update both when verabatch.com is live.)
+2. **Site URL:** Authentication → URL Configuration → Site URL = `https://app.verabatch.com`.
+   Redirect URLs: `https://app.verabatch.com/**` and `https://verabatch-six.vercel.app/**`.
 3. **Sign-in email:** Supabase only allows editing email templates once a custom SMTP sender is set up.
    Until then the app uses Supabase's default email, which has a sign-in link (no code); the link
    lands on `/auth/confirm` and works in the same browser that asked for it.
@@ -34,7 +34,7 @@ Status (Nov 5, 2026): all three done. Custom SMTP is Resend (smtp.resend.com, po
 username `resend`, password = a Resend API key, kept only in Supabase). Sender is
 hello@verabatch.com: verabatch.com was verified in Resend on Nov 5 (DNS at Bluehost: TXT
 resend._domainkey, TXT _dmarc, CNAME send, CNAME rsend), so email reaches anyone. Email limit is 30/hour. The Magic link template has the code and a token_hash link
-to https://verabatch-six.vercel.app (update it when the domain changes); the login screen asks
+built from `{{ .SiteURL }}`, so it follows the Site URL setting; the login screen asks
 for the code. Template changes can take a few minutes to start being used.
 
 ## Later migrations
