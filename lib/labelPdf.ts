@@ -8,7 +8,7 @@ import { WRAP_FRONT_SHARE } from "./sizes";
  * label's exact size. Built for importing into Canva (or any label app):
  *
  * - Only two font families, both in Canva's standard font list, so they come across
- *   as editable text: Libre Baskerville for the product name, Lato for everything else.
+ *   as editable text: Libre Baskerville for the product name, Arimo (shaped and spaced like Helvetica/Arial) for everything else.
  * - Each part of the label (name, what it is, net weight, ingredients, made-by line, lot)
  *   is one paragraph with one font and one size, so it imports as one text box.
  * - Letter sizes are measured the FDA way, on the lowercase "o" (x-height), never below
@@ -19,14 +19,14 @@ import { WRAP_FRONT_SHARE } from "./sizes";
 // The font reader ships as one bundled object; bundlers expose it as the default export.
 const fontkit = ((fontkitModule as unknown as { default?: typeof fontkitModule }).default ?? fontkitModule) as typeof fontkitModule;
 
-export const LABEL_FONT_FAMILIES = ["Libre Baskerville", "Lato"] as const;
+export const LABEL_FONT_FAMILIES = ["Libre Baskerville", "Arimo"] as const;
 
 export interface LabelFontFiles {
   /** Libre Baskerville Regular: the product name. */
   serif: Uint8Array;
-  /** Lato Regular: everything else. */
+  /** Arimo Regular: everything else. */
   sans: Uint8Array;
-  /** Lato Bold: the net weight. */
+  /** Arimo Bold: the net weight and warnings. */
   sansBold: Uint8Array;
 }
 
@@ -283,10 +283,10 @@ export async function buildLabelPdf(input: LabelPdfInput, files: LabelFontFiles)
   pdf.registerFontkit(fontkit);
   pdf.setTitle(input.title);
   pdf.setCreator("Label PDF");
-  // Standard subset names ("ABCDEF+Lato-Regular"), so apps like Canva see the real font name.
+  // Standard subset names ("ABCDEF+Arimo-Regular"), so apps like Canva see the real font name.
   const serif = await pdf.embedFont(files.serif, { subset: true, customName: "VBLAAA+LibreBaskerville-Regular" });
-  const sans = await pdf.embedFont(files.sans, { subset: true, customName: "VBLAAB+Lato-Regular" });
-  const sansBold = await pdf.embedFont(files.sansBold, { subset: true, customName: "VBLAAC+Lato-Bold" });
+  const sans = await pdf.embedFont(files.sans, { subset: true, customName: "VBLAAB+Arimo-Regular" });
+  const sansBold = await pdf.embedFont(files.sansBold, { subset: true, customName: "VBLAAC+Arimo-Bold" });
   const xSans = xHeightRatio(files.sans);
   // Everything drawn, per page, for the on-screen preview.
   const drawn = new Map<PDFPage, PreviewItem[]>();

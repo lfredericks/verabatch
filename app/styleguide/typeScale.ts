@@ -79,6 +79,6 @@ export function loadedWeights(google?: string): number[] {
 /** Fonts on the printed label PDF (lib/labelPdf.ts). Fixed, not themed, so Canva can edit them. */
 export const LABEL_PDF_FONTS = [
   { font: "Libre Baskerville", weight: 400, use: "Product name", size: "Sized to fit the front panel" },
-  { font: "Lato", weight: 400, use: "Product type, claims, ingredients, made-by line, lot", size: "One size for the whole back; never under 1/16 in (1/32 in on small containers)" },
-  { font: "Lato", weight: 700, use: "Net weight (ALL CAPS), warnings", size: "Net weight follows the FDA minimum for the front panel’s area" },
+  { font: "Arimo", weight: 400, use: "Product type, claims, ingredients, made-by line, lot", size: "One size for the whole back; never under 1/16 in (1/32 in on small containers)" },
+  { font: "Arimo", weight: 700, use: "Net weight (ALL CAPS), warnings", size: "Net weight follows the FDA minimum for the front panel’s area" },
 ];

@@ -65,7 +65,7 @@ To do: USPTO search, buy verabatch.com and veribatch.com (redirect).
   makers can use it. Route 2, later: a Canva sidebar app (Apps SDK) that fills text into a
   design the maker already has.
   **Fonts (Leslie, Oct 22):** the label PDF uses only two font families, both standard in
-  Canva, so text stays editable after import: Libre Baskerville (product name) and Lato
+  Canva, so text stays editable after import: Libre Baskerville (product name) and Lato (replaced by Arimo, Nov 6)
   (everything else, bold for the net weight). Makers restyle in Canva. Each label part is
   one paragraph in one font and size, so it should import as one text box.
   **Tested Oct 22 on Leslie's Canva:** hand-uploaded PDF imports with editable text in the right
@@ -311,6 +311,11 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   apothecary look (engraved botanical plate, Libre Baskerville italics, ruled feature list), headline
   "Every recipe. Every batch. Every label.", the five maker types (soapers, formulators, herbalists,
   body care makers, candle makers), waitlist right under the features. No launch date on it.
+- **Label font (Leslie, Nov 6):** label text is now **Arimo** (free, shaped and spaced like Helvetica/Arial,
+  in Canva's font list) instead of Lato; the product name stays Libre Baskerville. Real Helvetica is paid and
+  can't be built into the PDF. Tinos (Times look-alike) was considered for the name but isn't confirmed in Canva.
+- **Style guide (Nov 6):** /styleguide lists every font, weight, size, style and color per text style, plus the
+  label PDF fonts. Figtree 800 (Extra Bold) now loads; it was used but never loaded.
 - **Competitor Review (Nov 6):** https://claude.ai/artifact/6fbxWPM3aUoNJd2JFUtzib. Nobody connects
   recipe, batch and label; tracing to supplier lots is the lead selling point. Leslie agreed with the
   gap list. **Must-haves for February:** Open in Canva for everyone (needs Canva's review: final address,

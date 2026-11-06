@@ -12,7 +12,7 @@ export function loadLabelFonts(): Promise<LabelFontFiles> {
   if (!cached) {
     const dir = path.join(process.cwd(), "lib", "labelFonts");
     const read = (f: string) => readFile(path.join(dir, f)).then((b) => new Uint8Array(b));
-    cached = Promise.all([read("LibreBaskerville-Regular.ttf"), read("Lato-Regular.ttf"), read("Lato-Bold.ttf")]).then(
+    cached = Promise.all([read("LibreBaskerville-Regular.ttf"), read("Arimo-Regular.ttf"), read("Arimo-Bold.ttf")]).then(
       ([serif, sans, sansBold]) => ({ serif, sans, sansBold }),
     );
     cached.catch(() => (cached = null));

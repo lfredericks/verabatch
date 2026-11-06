@@ -45,16 +45,16 @@ describe("label PDF", () => {
   it("uses only the two Canva font families", async () => {
     const out = await buildLabelPdf({ ...base, shape: { shape: "round", diameterIn: 2 }, netMinIn: 1 / 16 }, await loadLabelFonts());
     const names = await fontNames(out.bytes);
-    expect(names).toEqual(["Lato-Bold", "Lato-Regular", "LibreBaskerville-Regular"]);
-    const families = new Set(names.map((n) => (n.startsWith("Lato") ? "Lato" : "Libre Baskerville")));
+    expect(names).toEqual(["Arimo-Bold", "Arimo-Regular", "LibreBaskerville-Regular"]);
+    const families = new Set(names.map((n) => (n.startsWith("Arimo") ? "Arimo" : "Libre Baskerville")));
     expect([...families].sort()).toEqual([...LABEL_FONT_FAMILIES].sort());
   });
 
   it("letters meet the FDA minimums: capitals for the net weight, lowercase o for the rest", async () => {
-    // Lato Bold's capitals are about 0.72 of the point size; Lato's x-height about 0.506.
+    // Arimo Bold's capitals are about 0.688 of the point size; its x-height about 0.528.
     const out = await buildLabelPdf({ ...base, shape: { shape: "rect", widthIn: 3, heightIn: 2 }, netMinIn: 1 / 8 }, await loadLabelFonts());
-    expect(out.sizes.net * 0.716).toBeGreaterThanOrEqual(72 / 8);
-    expect(out.sizes.back * 0.506).toBeGreaterThanOrEqual(72 / 16);
+    expect(out.sizes.net * 0.688).toBeGreaterThanOrEqual(72 / 8);
+    expect(out.sizes.back * 0.528).toBeGreaterThanOrEqual(72 / 16);
   });
 
   it("says so when the back won't fit at legal size", async () => {
@@ -115,7 +115,7 @@ describe("warnings", () => {
       await loadLabelFonts(),
     );
     expect(out.warnings).toEqual([]);
-    expect(await fontNames(out.bytes)).toContain("Lato-Bold");
+    expect(await fontNames(out.bytes)).toContain("Arimo-Bold");
   });
 });
 
@@ -127,7 +127,7 @@ describe("back label fitting", () => {
   it("shrinks to the legal minimum, then reports what's cut off", async () => {
     const out = await buildLabelPdf({ ...base, back, boldBack: [caution], shape: { shape: "rect", widthIn: 3, heightIn: 2 }, netMinIn: 1 / 8 }, await loadLabelFonts());
     expect(out.backFits).toBe(false);
-    expect(out.sizes.back * 0.506).toBeGreaterThanOrEqual(72 / 16 - 0.01);
+    expect(out.sizes.back * 0.528).toBeGreaterThanOrEqual(72 / 16 - 0.01);
     expect(out.backCutOff.length).toBeGreaterThan(0);
     expect(out.warnings.join(" ")).toMatch(/cut off/);
   });
@@ -138,7 +138,7 @@ describe("back label fitting", () => {
       await loadLabelFonts(),
     );
     expect(out.backFits).toBe(true);
-    expect(out.sizes.back * 0.506).toBeGreaterThanOrEqual(72 / 32 - 0.01);
+    expect(out.sizes.back * 0.528).toBeGreaterThanOrEqual(72 / 32 - 0.01);
   });
 
   it("a wraparound is one page: front on the left, back on the right", async () => {
