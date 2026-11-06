@@ -357,6 +357,9 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   in **Testing**: only listed test users can use Google until the privacy and terms pages are live and
   the app is published. Email code and password sign-in work for everyone. The Google screen shows the
   supabase.co address; fix with the auth.verabatch.com custom domain when upgrading to Supabase Pro.
+- **Pro price (Leslie, Nov 6): $19.99/month or $199/year** (2 months free), food pack included. Founding-
+  member offer for the waitlist: $149/year locked in while active, capped by date or spots. Nets ~$19.11/mo
+  or ~$193/yr after Stripe; ~6-8 subscribers cover running costs. Raise prices later for new customers only.
 - **Privacy Policy and Terms drafted (Nov 6),** for lawyer review: https://claude.ai/artifact/WBfavU2SYzwuhJMPwcdLHF
   and https://claude.ai/artifact/AdV2TDSvQZqMijWvL8rVAM. To publish at verabatch.com/privacy and /terms
   (WordPress), then link them from the app and submit Canva's review.
