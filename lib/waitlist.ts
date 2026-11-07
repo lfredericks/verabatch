@@ -11,7 +11,7 @@ export const WAITLIST_MAKES = [
   "Herbal products",
   "Candles and wax melts",
   "Room sprays and home fragrance",
-  "Teas and spice blends",
+  "Teas, spice and herb blends",
   "Potpourri, sachets and incense blends",
   "Something else",
 ] as const;
@@ -38,7 +38,7 @@ export const WAITLIST_WANTS = [
   "Product sheets for wholesale",
   "Using it on my phone in the workshop",
   "Connecting to Etsy or Shopify",
-  "Labels for teas and spice blends",
+  "Labels for teas, spice and herb blends",
 ] as const;
 
 export const WAITLIST_MAX_WANTS = 3;
@@ -47,8 +47,11 @@ export const WAITLIST_MAX_WANTS = 3;
 export const WAITLIST_MIN_SECONDS = 3;
 
 export type WaitlistEntry = {
+  first_name: string;
+  last_name: string;
   email: string;
   makes: string[];
+  makes_other: string | null;
   product_count: string | null;
   sells: string[];
   wants: string[];
@@ -83,9 +86,19 @@ export function cleanWaitlist(
     return { ok: false, bot: true };
   }
 
+  const first = cleanName(list(input.first_name)[0]);
+  const last = cleanName(list(input.last_name)[0]);
+  if (!first || !last) return { ok: false, bot: false, error: "Please enter your first and last name." };
+
   const email = (list(input.email)[0] ?? "").toLowerCase();
   if (!email || email.length > 254 || !EMAIL.test(email)) {
     return { ok: false, bot: false, error: "Please enter a valid email address." };
+  }
+
+  const makes = pick(input.makes, WAITLIST_MAKES);
+  const other = cleanName(list(input.makes_other)[0], 100) || null;
+  if (makes.includes("Something else") && !other) {
+    return { ok: false, bot: false, error: "Please tell us what else you make." };
   }
 
   const count = list(input.product_count)[0];
@@ -93,14 +106,41 @@ export function cleanWaitlist(
   return {
     ok: true,
     entry: {
+      first_name: first,
+      last_name: last,
       email,
-      makes: pick(input.makes, WAITLIST_MAKES),
+      makes,
+      makes_other: makes.includes("Something else") ? other : null,
       product_count: count && (WAITLIST_COUNTS as readonly string[]).includes(count) ? count : null,
       sells: pick(input.sells, WAITLIST_SELLS),
       wants: pick(input.wants, WAITLIST_WANTS, WAITLIST_MAX_WANTS),
       source,
     },
   };
+}
+
+/** A name as typed, minus control characters and extra spaces, at most 60 characters. */
+function cleanName(v: string | undefined, max = 60): string {
+  return (v ?? "").replace(/[\u0000-\u001f\u007f<>]/g, "").replace(/\s+/g, " ").trim().slice(0, max);
+}
+
+/** Common misspellings of big email providers. The form offers "Did you mean ...?" for these. */
+export const EMAIL_TYPOS: Record<string, string> = {
+  "gmial.com": "gmail.com", "gmai.com": "gmail.com", "gmal.com": "gmail.com", "gamil.com": "gmail.com",
+  "gnail.com": "gmail.com", "gmail.co": "gmail.com", "gmail.con": "gmail.com", "gmail.cm": "gmail.com",
+  "gmaill.com": "gmail.com", "yaho.com": "yahoo.com", "yahooo.com": "yahoo.com", "yahoo.co": "yahoo.com",
+  "yahoo.con": "yahoo.com", "hotmial.com": "hotmail.com", "hotmal.com": "hotmail.com", "hotmail.co": "hotmail.com",
+  "hotmail.con": "hotmail.com", "outlok.com": "outlook.com", "outloo.com": "outlook.com", "outlook.co": "outlook.com",
+  "outlook.con": "outlook.com", "icloud.co": "icloud.com", "icoud.com": "icloud.com", "iclod.com": "icloud.com",
+  "aol.co": "aol.com", "aol.con": "aol.com", "comcast.ner": "comcast.net", "sbcglobal.ner": "sbcglobal.net",
+};
+
+/** "Did you mean ...?" for a misspelled big provider, or null. */
+export function emailTypo(email: string): string | null {
+  const at = email.lastIndexOf("@");
+  if (at < 1) return null;
+  const fix = EMAIL_TYPOS[email.slice(at + 1).toLowerCase()];
+  return fix ? `${email.slice(0, at)}@${fix}` : null;
 }
 
 /** Where a plain (no-JavaScript) form submit may be sent back to. */

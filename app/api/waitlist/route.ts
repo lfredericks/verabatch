@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { brand } from "@/lib/brand";
 import { supabaseKey, supabaseUrl } from "@/lib/supabase/env";
+import { domainTakesMail } from "@/lib/emailDomain";
 import { cleanWaitlist, safeReturnUrl, WAITLIST_ORIGINS, type WaitlistInput } from "@/lib/waitlist";
 import { waitlistWelcomeEmail } from "@/lib/waitlistEmail";
 
@@ -80,6 +81,9 @@ export async function POST(req: NextRequest) {
     return reply(400, { ok: false, error: checked.error });
   }
   const entry = checked.entry;
+  if (!(await domainTakesMail(entry.email))) {
+    return reply(400, { ok: false, error: "That email address can't receive mail. Please check it for typos." });
+  }
 
   const supabase = createClient(supabaseUrl(), supabaseKey(), { auth: { persistSession: false } });
   const { error } = await supabase.from("waitlist").insert(entry);
@@ -93,13 +97,15 @@ export async function POST(req: NextRequest) {
   const segment = process.env.RESEND_WAITLIST_SEGMENT_ID;
   await resend("/contacts", {
     email: entry.email,
+    first_name: entry.first_name,
+    last_name: entry.last_name,
     unsubscribed: false,
     ...(segment ? { segments: [{ id: segment }] } : {}),
   });
-  const mail = waitlistWelcomeEmail();
+  const mail = waitlistWelcomeEmail(entry.first_name);
   await resend("/emails", {
     from: `${brand.name} <${FROM_ADDRESS}>`,
-    to: [entry.email],
+    to: [`${entry.first_name} ${entry.last_name} <${entry.email}>`.replace(/[",]/g, "")],
     reply_to: FROM_ADDRESS,
     subject: mail.subject,
     text: mail.text,

@@ -387,8 +387,12 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   Segments in Nov 2025; optional `RESEND_WAITLIST_SEGMENT_ID`), then one welcome email from
   hello@verabatch.com; a repeat signup gets no second email. Spam guards: hidden honeypot field and a
   3-second minimum fill time. WordPress form: `docs/waitlist-form.html` (Custom HTML block; a test keeps its
-  choices matched to the app). No-JS fallback lands on https://verabatch.com/thank-you/. The WIP branch's
-  migration is now 0016.
+  choices matched to the app). No-JS fallback lands on https://verabatch.com/thank-you/.
+  Same day (Leslie): **first and last name required**; **email check** = the domain must be able to receive
+  mail (`lib/emailDomain.ts`, MX/address lookup; a slow lookup lets it through) plus a "Did you mean
+  gmail.com?" hint for common typos (`EMAIL_TYPOS`); **"Something else" opens a required fill-in**
+  (`makes_other`); "Teas, spice and herb blends" wording. Migration 0016_waitlist_names.sql. Names go to
+  Resend contacts and the welcome email says "Hi <first name>". The WIP branch's migration is now 0017.
 
 ## Next steps (as of Oct 23)
 

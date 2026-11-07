@@ -13,7 +13,11 @@
   .vb-wl .vb-wl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:4px 20px}
   .vb-wl label.vb-wl-check{display:flex;align-items:center;gap:8px;min-height:40px;cursor:pointer}
   .vb-wl input[type=checkbox]{width:18px;height:18px;accent-color:#6a2945}
-  .vb-wl input[type=email],.vb-wl select{width:100%;box-sizing:border-box;min-height:48px;padding:10px 12px;border:1px solid #b9c1b9;border-radius:4px;font:inherit;background:#fff;color:#1a1f1c}
+  .vb-wl .vb-wl-names{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px 20px}
+  .vb-wl .vb-wl-other{margin:12px 0 0}
+  .vb-wl .vb-wl-typo{margin:8px 0 0;font-size:15px}
+  .vb-wl .vb-wl-typo button{min-height:0;padding:0;background:none;color:#6a2945;text-decoration:underline;font-weight:700}
+  .vb-wl input[type=text],.vb-wl input[type=email],.vb-wl select{width:100%;box-sizing:border-box;min-height:48px;padding:10px 12px;border:1px solid #b9c1b9;border-radius:4px;font:inherit;background:#fff;color:#1a1f1c}
   .vb-wl button{min-height:52px;padding:0 28px;border:0;border-radius:4px;background:#6a2945;color:#fff;font:inherit;font-weight:700;cursor:pointer}
   .vb-wl button:disabled{opacity:.6;cursor:wait}
   .vb-wl .vb-wl-note{font-size:14px;opacity:.8;margin:14px 0 0}
@@ -28,9 +32,21 @@
   <input type="hidden" name="return" value="https://verabatch.com/thank-you/">
   <div class="vb-wl-hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
 
+  <fieldset class="vb-wl-names">
+    <div>
+      <label class="vb-wl-label" for="vb-wl-first">First name</label>
+      <input id="vb-wl-first" type="text" name="first_name" required maxlength="60" autocomplete="given-name">
+    </div>
+    <div>
+      <label class="vb-wl-label" for="vb-wl-last">Last name</label>
+      <input id="vb-wl-last" type="text" name="last_name" required maxlength="60" autocomplete="family-name">
+    </div>
+  </fieldset>
+
   <fieldset>
     <label class="vb-wl-label" for="vb-wl-email">Email address</label>
     <input id="vb-wl-email" type="email" name="email" required autocomplete="email" placeholder="you@yourshop.com">
+    <p class="vb-wl-typo" hidden>Did you mean <button type="button" class="vb-wl-fix"></button>?</p>
   </fieldset>
 
   <fieldset>
@@ -42,9 +58,13 @@
       <label class="vb-wl-check"><input type="checkbox" name="makes" value="Herbal products"> Herbal products</label>
       <label class="vb-wl-check"><input type="checkbox" name="makes" value="Candles and wax melts"> Candles and wax melts</label>
       <label class="vb-wl-check"><input type="checkbox" name="makes" value="Room sprays and home fragrance"> Room sprays and home fragrance</label>
-      <label class="vb-wl-check"><input type="checkbox" name="makes" value="Teas and spice blends"> Teas and spice blends</label>
+      <label class="vb-wl-check"><input type="checkbox" name="makes" value="Teas, spice and herb blends"> Teas, spice and herb blends</label>
       <label class="vb-wl-check"><input type="checkbox" name="makes" value="Potpourri, sachets and incense blends"> Potpourri, sachets and incense blends</label>
       <label class="vb-wl-check"><input type="checkbox" name="makes" value="Something else"> Something else</label>
+    </div>
+    <div class="vb-wl-other" hidden>
+      <label class="vb-wl-label" for="vb-wl-other">What else do you make?</label>
+      <input id="vb-wl-other" type="text" name="makes_other" maxlength="100" placeholder="For example: lip balm tins, bath bombs, beard oil">
     </div>
   </fieldset>
 
@@ -84,7 +104,7 @@
       <label class="vb-wl-check"><input type="checkbox" name="wants" value="Product sheets for wholesale"> Product sheets for wholesale</label>
       <label class="vb-wl-check"><input type="checkbox" name="wants" value="Using it on my phone in the workshop"> Using it on my phone in the workshop</label>
       <label class="vb-wl-check"><input type="checkbox" name="wants" value="Connecting to Etsy or Shopify"> Connecting to Etsy or Shopify</label>
-      <label class="vb-wl-check"><input type="checkbox" name="wants" value="Labels for teas and spice blends"> Labels for teas and spice blends</label>
+      <label class="vb-wl-check"><input type="checkbox" name="wants" value="Labels for teas, spice and herb blends"> Labels for teas, spice and herb blends</label>
     </div>
   </fieldset>
 
@@ -100,6 +120,31 @@
   form.elements.started.value = String(Date.now());
   var msg = form.querySelector(".vb-wl-msg");
   var btn = form.querySelector("button");
+
+  // "Did you mean ...?" for misspelled big providers (same list as lib/waitlist.ts EMAIL_TYPOS).
+  var TYPOS = {"gmial.com": "gmail.com", "gmai.com": "gmail.com", "gmal.com": "gmail.com", "gamil.com": "gmail.com", "gnail.com": "gmail.com", "gmail.co": "gmail.com", "gmail.con": "gmail.com", "gmail.cm": "gmail.com", "gmaill.com": "gmail.com", "yaho.com": "yahoo.com", "yahooo.com": "yahoo.com", "yahoo.co": "yahoo.com", "yahoo.con": "yahoo.com", "hotmial.com": "hotmail.com", "hotmal.com": "hotmail.com", "hotmail.co": "hotmail.com", "hotmail.con": "hotmail.com", "outlok.com": "outlook.com", "outloo.com": "outlook.com", "outlook.co": "outlook.com", "outlook.con": "outlook.com", "icloud.co": "icloud.com", "icoud.com": "icloud.com", "iclod.com": "icloud.com", "aol.co": "aol.com", "aol.con": "aol.com", "comcast.ner": "comcast.net", "sbcglobal.ner": "sbcglobal.net"};
+  var emailBox = form.elements.email;
+  var typo = form.querySelector(".vb-wl-typo");
+  var fix = form.querySelector(".vb-wl-fix");
+  function checkTypo() {
+    var v = emailBox.value.trim(), at = v.lastIndexOf("@");
+    var better = at > 0 && TYPOS[v.slice(at + 1).toLowerCase()];
+    typo.hidden = !better;
+    if (better) fix.textContent = v.slice(0, at) + "@" + better;
+  }
+  emailBox.addEventListener("blur", checkTypo);
+  emailBox.addEventListener("input", function () { if (!typo.hidden) checkTypo(); });
+  fix.addEventListener("click", function () { emailBox.value = fix.textContent; typo.hidden = true; emailBox.focus(); });
+
+  // "Something else" opens a required fill-in.
+  var elseBox = form.querySelector('input[name="makes"][value="Something else"]');
+  var otherWrap = form.querySelector(".vb-wl-other");
+  function toggleOther() {
+    otherWrap.hidden = !elseBox.checked;
+    form.elements.makes_other.required = elseBox.checked;
+    if (elseBox.checked) form.elements.makes_other.focus();
+  }
+  elseBox.addEventListener("change", toggleOther);
 
   // "Pick 3": once 3 are checked, the rest are greyed out.
   var wants = form.querySelectorAll('input[name="wants"]');
