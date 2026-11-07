@@ -52,7 +52,7 @@ export type WaitlistEntry = {
   email: string;
   makes: string[];
   makes_other: string | null;
-  product_count: string | null;
+  product_count: string;
   sells: string[];
   wants: string[];
   source: string | null;
@@ -102,6 +102,14 @@ export function cleanWaitlist(
   }
 
   const count = list(input.product_count)[0];
+  const countOk = !!count && (WAITLIST_COUNTS as readonly string[]).includes(count);
+  const sells = pick(input.sells, WAITLIST_SELLS);
+  const wants = pick(input.wants, WAITLIST_WANTS, WAITLIST_MAX_WANTS);
+  // Every question is required (Leslie, Nov 7). "What matters most": at least 1, up to 3.
+  if (!makes.length) return { ok: false, bot: false, error: "Please tell us what you make." };
+  if (!countOk) return { ok: false, bot: false, error: "Please choose how many products you make." };
+  if (!sells.length) return { ok: false, bot: false, error: "Please tell us where you sell." };
+  if (!wants.length) return { ok: false, bot: false, error: "Please pick what matters most to you (up to 3)." };
   const source = (list(input.source)[0] ?? "").slice(0, 100) || null;
   return {
     ok: true,
@@ -111,9 +119,9 @@ export function cleanWaitlist(
       email,
       makes,
       makes_other: makes.includes("Something else") ? other : null,
-      product_count: count && (WAITLIST_COUNTS as readonly string[]).includes(count) ? count : null,
-      sells: pick(input.sells, WAITLIST_SELLS),
-      wants: pick(input.wants, WAITLIST_WANTS, WAITLIST_MAX_WANTS),
+      product_count: count!,
+      sells,
+      wants,
       source,
     },
   };

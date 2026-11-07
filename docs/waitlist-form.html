@@ -20,6 +20,8 @@
   .vb-wl input[type=text],.vb-wl input[type=email],.vb-wl select{width:100%;box-sizing:border-box;min-height:48px;padding:10px 12px;border:1px solid #b9c1b9;border-radius:4px;font:inherit;background:#fff;color:#1a1f1c}
   .vb-wl button{min-height:52px;padding:0 28px;border:0;border-radius:4px;background:#6a2945;color:#fff;font:inherit;font-weight:700;cursor:pointer}
   .vb-wl button:disabled{opacity:.6;cursor:wait}
+  .vb-wl .vb-wl-req{font-size:14px;opacity:.75;margin:0 0 12px}
+  .vb-wl fieldset.vb-wl-missing legend{color:#9b1c1c}
   .vb-wl .vb-wl-note{font-size:14px;opacity:.8;margin:14px 0 0}
   .vb-wl .vb-wl-msg{margin:14px 0 0;font-weight:700}
   .vb-wl .vb-wl-hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
@@ -70,7 +72,7 @@
 
   <fieldset>
     <label class="vb-wl-label" for="vb-wl-count">How many products do you make?</label>
-    <select id="vb-wl-count" name="product_count">
+    <select id="vb-wl-count" name="product_count" required>
       <option value="" disabled selected hidden>Choose one</option>
       <option value="Just starting">Just starting</option>
       <option value="1-5">1 to 5</option>
@@ -108,6 +110,7 @@
     </div>
   </fieldset>
 
+  <p class="vb-wl-req">All questions are required.</p>
   <button type="submit">Join the waitlist</button>
   <p class="vb-wl-note">We'll only email you about Verabatch: early access and news. Unsubscribe any time. See our <a href="/privacy/">Privacy Policy</a>.</p>
   <p class="vb-wl-msg" role="status" aria-live="polite"></p>
@@ -158,8 +161,23 @@
   }
   wants.forEach(function (box) { box.addEventListener("change", limit); });
 
+  // Checkbox groups: at least one box each.
+  var groups = [["makes", "Please tell us what you make."], ["sells", "Please tell us where you sell."], ["wants", "Please pick what matters most to you (up to 3)."]];
+  function groupsOk() {
+    for (var i = 0; i < groups.length; i++) {
+      var name = groups[i][0], box = form.querySelector('input[name="' + name + '"]');
+      var set = box && box.closest("fieldset");
+      var any = form.querySelectorAll('input[name="' + name + '"]:checked').length > 0;
+      if (set) set.classList.toggle("vb-wl-missing", !any);
+      if (!any) { msg.textContent = groups[i][1]; if (set) set.scrollIntoView({ behavior: "smooth", block: "center" }); return false; }
+    }
+    return true;
+  }
+  form.addEventListener("change", function () { if (msg.textContent && msg.textContent.indexOf("Please") === 0) groupsOk() && (msg.textContent = ""); });
+
   form.addEventListener("submit", function (e) {
     e.preventDefault();
+    if (!groupsOk()) return;
     var data = {};
     new FormData(form).forEach(function (v, k) {
       if (k === "makes" || k === "sells" || k === "wants") (data[k] = data[k] || []).push(v);

@@ -393,6 +393,8 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   gmail.com?" hint for common typos (`EMAIL_TYPOS`); **"Something else" opens a required fill-in**
   (`makes_other`); "Teas, spice and herb blends" wording. Migration 0016_waitlist_names.sql. Names go to
   Resend contacts and the welcome email says "Hi <first name>". The WIP branch's migration is now 0017.
+  Later Nov 7 (Leslie): **every question is required** (what you make, how many, where you sell, and at least 1 of
+  the "matters most" picks, up to 3), checked in the form and again in `cleanWaitlist`.
 
 ## Next steps (as of Oct 23)
 

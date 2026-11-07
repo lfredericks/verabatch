@@ -54,7 +54,7 @@ describe("waitlist form", () => {
   });
 
   it("needs a fill-in when they pick Something else", () => {
-    const base = { first_name: "A", last_name: "B", email: "a@b.co", makes: ["Something else"] };
+    const base = { first_name: "A", last_name: "B", email: "a@b.co", makes: ["Something else"], product_count: "1-5", sells: ["Etsy"], wants: [WAITLIST_WANTS[0]] };
     expect(cleanWaitlist(base, now)).toMatchObject({ ok: false, error: expect.stringMatching(/what else/i) });
     const r = cleanWaitlist({ ...base, makes_other: " bath bombs " }, now);
     expect(r.ok && r.entry.makes_other).toBe("bath bombs");
@@ -72,9 +72,13 @@ describe("waitlist form", () => {
     expect(cleanWaitlist({ email: "a@b.co", started: String(now - 500) }, now)).toEqual({ ok: false, bot: true });
   });
 
-  it("ignores an unknown product count", () => {
-    const r = cleanWaitlist({ first_name: "A", last_name: "B", email: "a@b.co", product_count: "a million" }, now);
-    expect(r.ok && r.entry.product_count).toBe(null);
+  it("every question is required", () => {
+    const full = { first_name: "A", last_name: "B", email: "a@b.co", makes: ["Soap"], product_count: "1-5", sells: ["Etsy"], wants: [WAITLIST_WANTS[0]] };
+    expect(cleanWaitlist(full, now).ok).toBe(true);
+    for (const [k, msg] of [["makes", /what you make/], ["product_count", /how many/], ["sells", /where you sell/], ["wants", /matters most/]] as const) {
+      expect(cleanWaitlist({ ...full, [k]: undefined }, now)).toMatchObject({ ok: false, error: expect.stringMatching(msg) });
+    }
+    expect(cleanWaitlist({ ...full, product_count: "a million" }, now)).toMatchObject({ ok: false });
   });
 
   it("only sends people back to the website", () => {
