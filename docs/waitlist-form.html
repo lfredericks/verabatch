@@ -20,6 +20,7 @@
   .vb-wl input[type=text],.vb-wl input[type=email],.vb-wl select{width:100%;box-sizing:border-box;min-height:48px;padding:10px 12px;border:1px solid #b9c1b9;border-radius:4px;font:inherit;background:#fff;color:#1a1f1c}
   .vb-wl button{min-height:52px;padding:0 28px;border:0;border-radius:4px;background:#6a2945;color:#fff;font:inherit;font-weight:700;cursor:pointer}
   .vb-wl button:disabled{opacity:.6;cursor:wait}
+  .vb-wl .vb-wl-star{color:#9b1c1c;font-weight:700}
   .vb-wl .vb-wl-req{font-size:14px;opacity:.75;margin:0 0 12px}
   .vb-wl fieldset.vb-wl-missing legend{color:#9b1c1c}
   .vb-wl .vb-wl-note{font-size:14px;opacity:.8;margin:14px 0 0}
@@ -36,23 +37,23 @@
 
   <fieldset class="vb-wl-names">
     <div>
-      <label class="vb-wl-label" for="vb-wl-first">First name</label>
+      <label class="vb-wl-label" for="vb-wl-first">First name <span class="vb-wl-star" aria-hidden="true">*</span></label>
       <input id="vb-wl-first" type="text" name="first_name" required maxlength="60" autocomplete="given-name">
     </div>
     <div>
-      <label class="vb-wl-label" for="vb-wl-last">Last name</label>
+      <label class="vb-wl-label" for="vb-wl-last">Last name <span class="vb-wl-star" aria-hidden="true">*</span></label>
       <input id="vb-wl-last" type="text" name="last_name" required maxlength="60" autocomplete="family-name">
     </div>
   </fieldset>
 
   <fieldset>
-    <label class="vb-wl-label" for="vb-wl-email">Email address</label>
+    <label class="vb-wl-label" for="vb-wl-email">Email address <span class="vb-wl-star" aria-hidden="true">*</span></label>
     <input id="vb-wl-email" type="email" name="email" required autocomplete="email" placeholder="you@yourshop.com">
     <p class="vb-wl-typo" hidden>Did you mean <button type="button" class="vb-wl-fix"></button>?</p>
   </fieldset>
 
   <fieldset>
-    <legend>What do you make? <span class="vb-wl-hint">(pick any)</span></legend>
+    <legend>What do you make? <span class="vb-wl-star" aria-hidden="true">*</span> <span class="vb-wl-hint">(pick any)</span></legend>
     <div class="vb-wl-grid">
       <label class="vb-wl-check"><input type="checkbox" name="makes" value="Soap"> Soap</label>
       <label class="vb-wl-check"><input type="checkbox" name="makes" value="Balms, butters and body oils"> Balms, butters and body oils</label>
@@ -65,13 +66,13 @@
       <label class="vb-wl-check"><input type="checkbox" name="makes" value="Something else"> Something else</label>
     </div>
     <div class="vb-wl-other" hidden>
-      <label class="vb-wl-label" for="vb-wl-other">What else do you make?</label>
+      <label class="vb-wl-label" for="vb-wl-other">What else do you make? <span class="vb-wl-star" aria-hidden="true">*</span></label>
       <input id="vb-wl-other" type="text" name="makes_other" maxlength="100" placeholder="For example: lip balm tins, bath bombs, beard oil">
     </div>
   </fieldset>
 
   <fieldset>
-    <label class="vb-wl-label" for="vb-wl-count">How many products do you make?</label>
+    <label class="vb-wl-label" for="vb-wl-count">How many products do you make? <span class="vb-wl-star" aria-hidden="true">*</span></label>
     <select id="vb-wl-count" name="product_count" required>
       <option value="" disabled selected hidden>Choose one</option>
       <option value="Just starting">Just starting</option>
@@ -83,7 +84,7 @@
   </fieldset>
 
   <fieldset>
-    <legend>Where do you sell? <span class="vb-wl-hint">(pick any)</span></legend>
+    <legend>Where do you sell? <span class="vb-wl-star" aria-hidden="true">*</span> <span class="vb-wl-hint">(pick any)</span></legend>
     <div class="vb-wl-grid">
       <label class="vb-wl-check"><input type="checkbox" name="sells" value="Etsy"> Etsy</label>
       <label class="vb-wl-check"><input type="checkbox" name="sells" value="My own website"> My own website</label>
@@ -95,7 +96,7 @@
   </fieldset>
 
   <fieldset id="vb-wl-wants">
-    <legend>What matters most to you? <span class="vb-wl-hint">(pick 3)</span></legend>
+    <legend>What matters most to you? <span class="vb-wl-star" aria-hidden="true">*</span> <span class="vb-wl-hint">(pick 3)</span></legend>
     <div class="vb-wl-grid">
       <label class="vb-wl-check"><input type="checkbox" name="wants" value="Knowing what each product costs me"> Knowing what each product costs me</label>
       <label class="vb-wl-check"><input type="checkbox" name="wants" value="Labels that follow the rules"> Labels that follow the rules</label>
@@ -110,7 +111,7 @@
     </div>
   </fieldset>
 
-  <p class="vb-wl-req">All questions are required.</p>
+  <p class="vb-wl-req"><span class="vb-wl-star" aria-hidden="true">*</span> Required</p>
   <button type="submit">Join the waitlist</button>
   <p class="vb-wl-note">We'll only email you about Verabatch: early access and news. Unsubscribe any time. See our <a href="/privacy/">Privacy Policy</a>.</p>
   <p class="vb-wl-msg" role="status" aria-live="polite"></p>
