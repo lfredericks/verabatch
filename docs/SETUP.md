@@ -12,6 +12,9 @@ Vercel environment variables (already set):
 
 - `NEXT_PUBLIC_SUPABASE_URL` = `https://lbuyjpscimxbawotgzkt.supabase.co`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` = the project's publishable key (safe to expose)
+- `CANVA_CLIENT_ID`, `CANVA_CLIENT_SECRET` = the Canva Connect app's keys (secret)
+- `RESEND_API_KEY` = Resend key "Verabatch waitlist", full access (secret; added Nov 7)
+- `RESEND_WAITLIST_SEGMENT_ID` = optional; a Resend segment id to file waitlist contacts under
 
 Never commit or paste the Supabase secret / service_role key or personal access tokens.
 

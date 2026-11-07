@@ -360,12 +360,35 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   in **Testing**: only listed test users can use Google until the privacy and terms pages are live and
   the app is published. Email code and password sign-in work for everyone. The Google screen shows the
   supabase.co address; fix with the auth.verabatch.com custom domain when upgrading to Supabase Pro.
-- **Pro price (Leslie, Nov 6): $19.99/month or $199/year** (2 months free), food pack included. Founding-
-  member offer for the waitlist: $149/year locked in while active, capped by date or spots. Nets ~$19.11/mo
-  or ~$193/yr after Stripe; ~6-8 subscribers cover running costs. Raise prices later for new customers only.
+- **Pro price (Leslie, Nov 6; confirmed Nov 7): $19.99/month or $199/year** (2 months free), food pack
+  included, plus Free. **No founding-member price** (Leslie, Nov 7: dropped). Makers must be able to
+  switch monthly to yearly in the app (Stripe proration: yearly starts at once, unused month credited;
+  yearly to monthly starts at renewal). Nets ~$19.11/mo or ~$193/yr after Stripe; ~6-8 subscribers
+  cover running costs. Raise prices later for new customers only.
 - **Privacy Policy and Terms drafted (Nov 6),** for lawyer review: https://claude.ai/artifact/WBfavU2SYzwuhJMPwcdLHF
   and https://claude.ai/artifact/AdV2TDSvQZqMijWvL8rVAM. To publish at verabatch.com/privacy and /terms
   (WordPress), then link them from the app and submit Canva's review.
+
+### Nov 7: legal pages, billing rules, waitlist
+
+- **Terms and Privacy filled in** with what's known: Madison County, Indiana for disputes; Google sign-in in
+  Privacy. Still blank: legal business name (Leslie is forming an LLC first), mailing address (PO box or
+  virtual mailbox, never her home), effective date (the day they go live).
+- **Billing rules (Leslie, Nov 7), for the Stripe build:** cancelling is by email to hello@verabatch.com (ask
+  the lawyer whether some states, e.g. California, need an online cancel button too). Monthly or yearly, Pro
+  runs to the end of the paid period, then the account is Free: nothing deleted, everything viewable and
+  downloadable, only the first product editable. Yearly partial refunds: open, written as no for now.
+  **Yearly renewal reminder emails 30, 15 and 2 days before renewal** (in the Terms; build with Stripe).
+- **hello@verabatch.com is a Bluehost mailbox** (Leslie, Nov 7), sending and receiving. Resend's DNS records
+  (send.verabatch.com, resend._domainkey) must stay untouched; only one SPF record on the root.
+- **Waitlist: built Nov 7.** `app/api/waitlist/route.ts` + `lib/waitlist.ts` (choices, checks) +
+  `lib/waitlistEmail.ts` (welcome email) + migration `0015_waitlist.sql` (insert-only table; read it in the
+  Supabase Table Editor). Resend: creates a contact (Resend replaced Audiences with global Contacts +
+  Segments in Nov 2025; optional `RESEND_WAITLIST_SEGMENT_ID`), then one welcome email from
+  hello@verabatch.com; a repeat signup gets no second email. Spam guards: hidden honeypot field and a
+  3-second minimum fill time. WordPress form: `docs/waitlist-form.html` (Custom HTML block; a test keeps its
+  choices matched to the app). No-JS fallback lands on https://verabatch.com/thank-you/. The WIP branch's
+  migration is now 0016.
 
 ## Next steps (as of Oct 23)
 

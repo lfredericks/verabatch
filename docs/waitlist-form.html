@@ -1,0 +1,143 @@
+<!--
+  Verabatch waitlist form for WordPress.
+  Paste ALL of this into a "Custom HTML" block on verabatch.com. No plugin needed.
+  It sends signups to app.verabatch.com/api/waitlist (app/api/waitlist/route.ts).
+  The choices must match lib/waitlist.ts exactly (a test checks this file).
+  Restyle freely in the <style> part; keep the name="..." and value="..." parts as they are.
+-->
+<style>
+  .vb-wl{max-width:640px;font-family:inherit;color:inherit}
+  .vb-wl fieldset{border:0;margin:0 0 22px;padding:0}
+  .vb-wl legend,.vb-wl .vb-wl-label{display:block;font-weight:700;margin:0 0 8px}
+  .vb-wl .vb-wl-hint{font-weight:400;opacity:.75}
+  .vb-wl .vb-wl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:4px 20px}
+  .vb-wl label.vb-wl-check{display:flex;align-items:center;gap:8px;min-height:40px;cursor:pointer}
+  .vb-wl input[type=checkbox]{width:18px;height:18px;accent-color:#6a2945}
+  .vb-wl input[type=email],.vb-wl select{width:100%;box-sizing:border-box;min-height:48px;padding:10px 12px;border:1px solid #b9c1b9;border-radius:4px;font:inherit;background:#fff;color:#1a1f1c}
+  .vb-wl button{min-height:52px;padding:0 28px;border:0;border-radius:4px;background:#6a2945;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+  .vb-wl button:disabled{opacity:.6;cursor:wait}
+  .vb-wl .vb-wl-note{font-size:14px;opacity:.8;margin:14px 0 0}
+  .vb-wl .vb-wl-msg{margin:14px 0 0;font-weight:700}
+  .vb-wl .vb-wl-hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+  .vb-wl label.vb-wl-check.vb-wl-off{opacity:.45}
+</style>
+
+<form class="vb-wl" id="vb-waitlist" method="post" action="https://app.verabatch.com/api/waitlist">
+  <input type="hidden" name="started" value="">
+  <input type="hidden" name="source" value="landing">
+  <input type="hidden" name="return" value="https://verabatch.com/thank-you/">
+  <div class="vb-wl-hp" aria-hidden="true"><label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+
+  <fieldset>
+    <label class="vb-wl-label" for="vb-wl-email">Email address</label>
+    <input id="vb-wl-email" type="email" name="email" required autocomplete="email" placeholder="you@yourshop.com">
+  </fieldset>
+
+  <fieldset>
+    <legend>What do you make? <span class="vb-wl-hint">(pick any)</span></legend>
+    <div class="vb-wl-grid">
+      <label class="vb-wl-check"><input type="checkbox" name="makes" value="Soap"> Soap</label>
+      <label class="vb-wl-check"><input type="checkbox" name="makes" value="Balms, butters and body oils"> Balms, butters and body oils</label>
+      <label class="vb-wl-check"><input type="checkbox" name="makes" value="Lotions and creams"> Lotions and creams</label>
+      <label class="vb-wl-check"><input type="checkbox" name="makes" value="Herbal products"> Herbal products</label>
+      <label class="vb-wl-check"><input type="checkbox" name="makes" value="Candles and wax melts"> Candles and wax melts</label>
+      <label class="vb-wl-check"><input type="checkbox" name="makes" value="Room sprays and home fragrance"> Room sprays and home fragrance</label>
+      <label class="vb-wl-check"><input type="checkbox" name="makes" value="Teas and spice blends"> Teas and spice blends</label>
+      <label class="vb-wl-check"><input type="checkbox" name="makes" value="Potpourri, sachets and incense blends"> Potpourri, sachets and incense blends</label>
+      <label class="vb-wl-check"><input type="checkbox" name="makes" value="Something else"> Something else</label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <label class="vb-wl-label" for="vb-wl-count">How many products do you make?</label>
+    <select id="vb-wl-count" name="product_count">
+      <option value="" disabled selected hidden>Choose one</option>
+      <option value="Just starting">Just starting</option>
+      <option value="1-5">1 to 5</option>
+      <option value="6-15">6 to 15</option>
+      <option value="16-40">16 to 40</option>
+      <option value="More than 40">More than 40</option>
+    </select>
+  </fieldset>
+
+  <fieldset>
+    <legend>Where do you sell? <span class="vb-wl-hint">(pick any)</span></legend>
+    <div class="vb-wl-grid">
+      <label class="vb-wl-check"><input type="checkbox" name="sells" value="Etsy"> Etsy</label>
+      <label class="vb-wl-check"><input type="checkbox" name="sells" value="My own website"> My own website</label>
+      <label class="vb-wl-check"><input type="checkbox" name="sells" value="Markets and craft fairs"> Markets and craft fairs</label>
+      <label class="vb-wl-check"><input type="checkbox" name="sells" value="Shops and wholesale"> Shops and wholesale</label>
+      <label class="vb-wl-check"><input type="checkbox" name="sells" value="Friends and family"> Friends and family</label>
+      <label class="vb-wl-check"><input type="checkbox" name="sells" value="Not selling yet"> Not selling yet</label>
+    </div>
+  </fieldset>
+
+  <fieldset id="vb-wl-wants">
+    <legend>What matters most to you? <span class="vb-wl-hint">(pick 3)</span></legend>
+    <div class="vb-wl-grid">
+      <label class="vb-wl-check"><input type="checkbox" name="wants" value="Knowing what each product costs me"> Knowing what each product costs me</label>
+      <label class="vb-wl-check"><input type="checkbox" name="wants" value="Labels that follow the rules"> Labels that follow the rules</label>
+      <label class="vb-wl-check"><input type="checkbox" name="wants" value="Batch records and lot numbers"> Batch records and lot numbers</label>
+      <label class="vb-wl-check"><input type="checkbox" name="wants" value="Tracing supplies if there&#39;s a recall"> Tracing supplies if there's a recall</label>
+      <label class="vb-wl-check"><input type="checkbox" name="wants" value="Tracking my stock and supplies"> Tracking my stock and supplies</label>
+      <label class="vb-wl-check"><input type="checkbox" name="wants" value="Notes on my recipe tests"> Notes on my recipe tests</label>
+      <label class="vb-wl-check"><input type="checkbox" name="wants" value="Product sheets for wholesale"> Product sheets for wholesale</label>
+      <label class="vb-wl-check"><input type="checkbox" name="wants" value="Using it on my phone in the workshop"> Using it on my phone in the workshop</label>
+      <label class="vb-wl-check"><input type="checkbox" name="wants" value="Connecting to Etsy or Shopify"> Connecting to Etsy or Shopify</label>
+      <label class="vb-wl-check"><input type="checkbox" name="wants" value="Labels for teas and spice blends"> Labels for teas and spice blends</label>
+    </div>
+  </fieldset>
+
+  <button type="submit">Join the waitlist</button>
+  <p class="vb-wl-note">We'll only email you about Verabatch: early access and news. Unsubscribe any time. See our <a href="/privacy/">Privacy Policy</a>.</p>
+  <p class="vb-wl-msg" role="status" aria-live="polite"></p>
+</form>
+
+<script>
+(function () {
+  var form = document.getElementById("vb-waitlist");
+  if (!form) return;
+  form.elements.started.value = String(Date.now());
+  var msg = form.querySelector(".vb-wl-msg");
+  var btn = form.querySelector("button");
+
+  // "Pick 3": once 3 are checked, the rest are greyed out.
+  var wants = form.querySelectorAll('input[name="wants"]');
+  function limit() {
+    var n = form.querySelectorAll('input[name="wants"]:checked').length;
+    wants.forEach(function (box) {
+      var off = n >= 3 && !box.checked;
+      box.disabled = off;
+      box.parentNode.classList.toggle("vb-wl-off", off);
+    });
+  }
+  wants.forEach(function (box) { box.addEventListener("change", limit); });
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var data = {};
+    new FormData(form).forEach(function (v, k) {
+      if (k === "makes" || k === "sells" || k === "wants") (data[k] = data[k] || []).push(v);
+      else data[k] = v;
+    });
+    btn.disabled = true;
+    msg.textContent = "Adding you...";
+    fetch(form.action, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res.ok) {
+          form.innerHTML = "<p class='vb-wl-msg'>" + (res.already
+            ? "You're already on the list. We'll be in touch when early access opens."
+            : "You're on the list! Check your inbox for a welcome email.") + "</p>";
+        } else {
+          msg.textContent = res.error || "Something went wrong. Please try again.";
+          btn.disabled = false;
+        }
+      })
+      .catch(function () {
+        msg.textContent = "Something went wrong. Please try again.";
+        btn.disabled = false;
+      });
+  });
+})();
+</script>
