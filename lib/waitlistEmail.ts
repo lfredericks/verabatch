@@ -11,11 +11,11 @@ export function waitlistWelcomeEmail(firstName = ""): { subject: string; text: s
   const paras = [
     hi,
     `Thanks for joining the ${name} waitlist.`,
-    `${name} takes the recipe you already use and drafts your label from it: official ingredient names, the right order, net contents and lettering sizes. It also keeps a record of every batch, down to the supplier lots you used.`,
+    `${name} is the all-in-one ledger for small-batch makers. Your recipes and recipe tests, every batch with its lot number, and the supplier lots that went into it, all in one place. When it's time to sell, your labels and product sheets come straight from the recipe.`,
     `Early access opens soon. We'll email you when your spot is ready, and we'll pick our first testers from this list.`,
-    `Got a minute? Reply and tell us what you make and what slows you down. A real person reads every reply.`,
+    `Got a minute? Reply and tell us what you make and what slows you down. I read every reply.`,
   ];
-  const sign = `The ${name} team`;
+  const sign = `Leslie, founder of ${name}`;
   const foot = `You're getting this because this address was entered on verabatch.com. Not you? Reply and we'll remove it.`;
 
   const text = [...paras, "", sign, "", foot].join("\n\n");
