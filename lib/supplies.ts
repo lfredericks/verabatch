@@ -96,21 +96,22 @@ export function matchScore(lineText: string, supplyIngredient: string): number {
 }
 
 /**
- * Supplies to offer for one recipe line: matches first (best match, then newest), then
- * everything else still open. Used-up lots are only kept if already picked.
+ * Supplies to offer for one recipe line: matches first (best match, then oldest, so old stock
+ * gets used first), then everything else still open. Lots without a received date go last.
+ * Used-up lots are only kept if already picked.
  */
 export function suppliesForLine<T extends Supply>(lineText: string, supplies: T[], picked?: string): { matches: T[]; others: T[] } {
   const open = supplies.filter((s) => !s.used_up || s.id === picked);
-  const newest = (x: T, y: T) => (y.received_on ?? "").localeCompare(x.received_on ?? "");
+  const oldest = (x: T, y: T) => (x.received_on ?? "9999").localeCompare(y.received_on ?? "9999");
   const scored = open.map((s) => ({ s, n: matchScore(lineText, s.ingredient) }));
   const matches = scored
     .filter((x) => x.n > 0)
-    .sort((x, y) => y.n - x.n || newest(x.s, y.s))
+    .sort((x, y) => y.n - x.n || oldest(x.s, y.s))
     .map((x) => x.s);
   const others = scored
     .filter((x) => x.n === 0)
     .map((x) => x.s)
-    .sort(newest);
+    .sort(oldest);
   return { matches, others };
 }
 
@@ -133,8 +134,8 @@ export function cleanSupplyPicks(raw: unknown, lineCount: number, known: Set<str
 }
 
 /**
- * Lots to start a new batch's line with: the newest lot on hand of each matching ingredient,
- * so "chamomile infused jojoba oil" starts with the newest chamomile and the newest jojoba.
+ * Lots to start a new batch's line with: the oldest lot on hand of each matching ingredient,
+ * so "chamomile infused jojoba oil" starts with the oldest chamomile and the oldest jojoba.
  */
 export function defaultLots(lineText: string, supplies: Supply[]): string[] {
   const seen = new Set<string>();

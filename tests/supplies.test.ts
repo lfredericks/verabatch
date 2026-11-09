@@ -30,7 +30,7 @@ describe("supplies", () => {
     expect(matchScore("white beeswax pearls", "Beeswax pastilles")).toBe(1);
   });
 
-  it("offers matching lots first, newest first, and hides used-up lots", () => {
+  it("offers matching lots first, oldest first, and hides used-up lots", () => {
     const list = [
       sup({ id: "a", ingredient: "Chamomile flower", supplier_lot: "AAAA-AAAA", received_on: "2026-01-05" }),
       sup({ id: "b", ingredient: "Chamomile flower", supplier_lot: "XXXX-XXXX", received_on: "2026-09-10" }),
@@ -38,11 +38,16 @@ describe("supplies", () => {
       sup({ id: "d", ingredient: "Chamomile flower", used_up: true, received_on: "2025-05-01" }),
     ];
     const r = suppliesForLine("1/4 cup chamomile infused jojoba", list);
-    // Chamomile and jojoba both match this line; newest lot first.
-    expect(r.matches.map((s) => s.id)).toEqual(["b", "c", "a"]);
-    expect(suppliesForLine("chamomile flower", list).matches.map((s) => s.id)).toEqual(["b", "a"]);
+    // Chamomile and jojoba both match this line; oldest lot first (use old stock first).
+    expect(r.matches.map((s) => s.id)).toEqual(["a", "c", "b"]);
+    expect(suppliesForLine("chamomile flower", list).matches.map((s) => s.id)).toEqual(["a", "b"]);
     expect(r.matches.map((s) => s.id)).not.toContain("d");
     expect(suppliesForLine("chamomile", list, "d").matches.map((s) => s.id)).toContain("d");
+  });
+
+  it("puts lots without a received date after dated ones", () => {
+    const list = [sup({ id: "x", ingredient: "Shea butter" }), sup({ id: "y", ingredient: "Shea butter", received_on: "2026-03-01" })];
+    expect(suppliesForLine("shea", list).matches.map((s) => s.id)).toEqual(["y", "x"]);
   });
 
   it("keeps only real picks for real lines", () => {
@@ -52,14 +57,14 @@ describe("supplies", () => {
     expect([...m]).toEqual([[0, [a]]]);
   });
 
-  it("starts an infused oil line with the newest herb lot and the newest oil lot", () => {
+  it("starts an infused oil line with the oldest herb lot and the oldest oil lot", () => {
     const list = [
       sup({ id: "a", ingredient: "Chamomile flower", received_on: "2026-01-05" }),
       sup({ id: "b", ingredient: "Chamomile flower", received_on: "2026-09-10" }),
       sup({ id: "c", ingredient: "Jojoba oil", received_on: "2026-08-01" }),
       sup({ id: "e", ingredient: "Lavender essential oil", received_on: "2026-08-02" }),
     ];
-    expect(defaultLots("chamomile infused jojoba oil", list)).toEqual(["b", "c"]);
+    expect(defaultLots("chamomile infused jojoba oil", list)).toEqual(["a", "c"]);
     expect(defaultLots("10 drops lavender", list)).toEqual(["e"]);
     expect(defaultLots("beeswax", list)).toEqual([]);
   });

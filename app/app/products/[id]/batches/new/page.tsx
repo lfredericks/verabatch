@@ -17,8 +17,9 @@ export default async function NewBatch({ params }: { params: Promise<{ id: strin
     <main className="wrap narrow">
       <BrandMark href="/app" />
       <div>
-        <p className="eyebrow">I made a batch</p>
-        <h1>{product.name}</h1>
+        <p className="eyebrow">{product.name} · today</p>
+        <h1>What went in</h1>
+        {!limited && product.recipe.length > 0 && <p className="hint">We picked your oldest of each. Tap a line to change it.</p>}
       </div>
       {limited ? (
         <PlanNote title="Batches on Free" text={BATCH_LIMIT_TEXT} back={`/app/products/${product.id}`} />

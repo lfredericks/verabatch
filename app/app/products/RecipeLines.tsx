@@ -22,7 +22,7 @@ export const toRows = (lines: RecipeLine[]): Row[] => lines.map((l) => ({ ...l, 
 export const blankRow = (): Row => ({ id: nextId++, amount: "", unit: "oz", text: "" });
 export const rowsToLines = (rows: Row[]): RecipeLine[] => rows.map(({ id: _id, ...l }) => l);
 
-function amountText(r: RecipeLine): string {
+export function amountText(r: RecipeLine): string {
   if (!r.amount) return "—";
   return `${r.amount} ${UNIT_LABELS[r.unit]}`;
 }

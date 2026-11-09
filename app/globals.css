@@ -430,3 +430,14 @@ body:has(.tabbar) .disclaimer-line { padding-bottom: calc(84px + env(safe-area-i
 .tile span { color: var(--muted); font-size: 0.85rem; }
 .rows a.variation { padding-left: 32px; border-top: 1px dashed var(--line); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* I made a batch: lines show their delivery; "Which delivery?" pills like "Which lavender?". */
+.pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { min-height: 44px; padding: 0 14px; border-radius: 22px; border: 1px solid var(--line); background: var(--surface); font: inherit; font-size: 0.92rem; font-weight: 700; color: var(--ink); cursor: pointer; }
+.pill[aria-pressed="true"] { border: 2px solid var(--accent); font-weight: 800; }
+.rlist li.rline.open { background: var(--accent-soft); }
+.linkbtn { align-self: flex-start; border: 0; background: none; padding: 6px 0; font: inherit; font-weight: 700; color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.batch-form { display: flex; flex-direction: column; gap: 16px; }
+.done { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; padding-top: 24px; }
+.done .tick { width: 88px; height: 88px; border-radius: 50%; background: var(--success); color: var(--on-accent); display: flex; align-items: center; justify-content: center; }
+.done .lotno { font-size: 1.4rem; font-weight: 800; padding: 8px 18px; border-radius: var(--radius-control); background: var(--surface); border: 1px solid var(--line); }
+.center-self { align-self: center; }

@@ -6,7 +6,7 @@ import type { RecipeLine } from "@/lib/core";
 import { NO_SIZE, type Batch } from "@/lib/batches";
 import { amountText, defaultLots, MAX_LOTS_PER_LINE, suppliesForLine, type Supply } from "@/lib/supplies";
 import { saveBatch, type BatchFormState } from "./batchActions";
-import { RecipeLines, rowsToLines, toRows, type Row } from "./RecipeLines";
+import { amountText as lineAmount, RecipeLines, rowsToLines, toRows, type Row } from "./RecipeLines";
 
 function today(): string {
   const d = new Date();
@@ -83,133 +83,182 @@ export function BatchForm({
     });
   const countFields = sizes.length ? sizes : [{ id: NO_SIZE, name: "How many" }];
 
+  const [open, setOpen] = useState<string | null>(null);
+  const [details, setDetails] = useState(Boolean(batch?.note));
+  const dayText = (d: string | null) => (d ? new Date(`${d}T12:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "");
+  const lotName = (sp: Supply) => [dayText(sp.received_on) || sp.ingredient, sp.supplier].filter(Boolean).join(" · ");
+  const byId = new Map(supplies.map((sp) => [sp.id, sp]));
+  const fromText = (ids: string[]) => {
+    if (ids.length === 1) {
+      const sp = byId.get(ids[0]!);
+      if (!sp) return "";
+      const d = dayText(sp.received_on);
+      return d ? `From your ${d} delivery${sp.supplier ? ` · ${sp.supplier}` : ""}` : `From your ${sp.ingredient}${sp.supplier ? ` · ${sp.supplier}` : ""}`;
+    }
+    return `From ${ids.length} deliveries`;
+  };
+  const setLine = (id: string, ids: string[]) => setPicks((p) => ({ ...p, [id]: ids.slice(0, MAX_LOTS_PER_LINE) }));
+
   return (
     <>
-      <form action={action} className="card form">
+      <form action={action} className="form batch-form">
         {batch && <input type="hidden" name="id" value={batch.id} />}
         <input type="hidden" name="product_id" value={productId} />
         <input type="hidden" name="changed" value={changed ? "1" : "0"} />
         <input type="hidden" name="recipe" value={JSON.stringify(changed ? lines : [])} />
         <input type="hidden" name="counts" value={JSON.stringify(counts)} />
         <input type="hidden" name="supplies" value={JSON.stringify(pickIndex)} />
+        <input type="hidden" name="made_on" value={madeOn} />
 
-        {batch && (
-          <p>
-            Lot <b className="mono">{batch.lot}</b>
-          </p>
-        )}
-
-        <label className="fld narrow-fld">
-          <span>Date made</span>
-          <input type="date" name="made_on" value={madeOn} onChange={(e) => setMadeOn(e.target.value)} required />
-        </label>
-        {batch && <p className="hint">Changing the date keeps the same lot number.</p>}
-
-        <fieldset className="fld">
-          <span>Recipe</span>
-          <label className="radio">
-            <input type="radio" checked={!changed} onChange={() => setChanged(false)} /> Made the usual way
-          </label>
-          <label className="radio">
-            <input type="radio" checked={changed} onChange={() => setChanged(true)} /> Something changed this time
-          </label>
-        </fieldset>
-
-        {changed && (
+        {changed ? (
           <div className="sub">
             <p className="hint">
-              Edit the lines that were different (fewer drops, a different beeswax). This only changes this batch, not your {productName} recipe.
+              Change the lines that were different (fewer drops, a different beeswax). This only changes this batch, not your {productName} recipe.
             </p>
             <RecipeLines rows={rows} setRows={setRows} onChange={() => {}} startOpen={false} />
           </div>
-        )}
+        ) : null}
 
-        {supplies.length > 0 && shown.length > 0 && (
-          <fieldset className="fld">
-            <span>Supplier lots used (optional)</span>
-            <p className="hint">So a supplier recall can be traced to this batch. Lots marked used up aren&rsquo;t listed.</p>
+        {shown.length > 0 && (
+          <ul className="rlist">
             {shown.map((l, i) => {
               const id = lineId(i);
-              const chosen = picks[id] ?? [];
-              const slots = chosen.length ? chosen : [""];
+              const chosen = (picks[id] ?? []).filter(Boolean);
+              const { matches, others } = suppliesForLine(l.text, supplies, chosen[0]);
+              const isOpen = open === id;
+              const status = chosen.length
+                ? fromText(chosen)
+                : matches.length
+                  ? "Not picked. That's fine."
+                  : supplies.length
+                    ? "Not in your supplies. That's fine."
+                    : "";
+              const amt = lineAmount(l);
               return (
-                <div key={id} className="fld supply-pick">
-                  <span className="hint">{l.text || "Line " + (i + 1)}</span>
-                  {slots.map((value, at) => {
-                    const { matches, others } = suppliesForLine(l.text, supplies, value);
-                    const taken = new Set(chosen.filter((x, j) => j !== at));
-                    const opts = (list: Supply[]) =>
-                      list
-                        .filter((s) => !taken.has(s.id))
-                        .map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {supplyLabel(s)}
-                          </option>
-                        ));
-                    return (
-                      <div key={at} className="lot-row">
-                        <select value={value} onChange={(e) => setLot(id, at, e.target.value)} aria-label={`Supplier lot for ${l.text}`}>
-                          <option value="">{at === 0 ? "Not tracked" : "Remove this lot"}</option>
-                          {matches.length > 0 && <optgroup label="Matching">{opts(matches)}</optgroup>}
-                          {others.length > 0 && <optgroup label="Other supplies">{opts(others)}</optgroup>}
-                        </select>
-                      </div>
-                    );
-                  })}
-                  {chosen.length > 0 && chosen.length < MAX_LOTS_PER_LINE && chosen.length < supplies.filter((s) => !s.used_up).length && (
-                    <button type="button" className="btn ghost sm cta" onClick={() => setPicks((p) => ({ ...p, [id]: [...chosen, ""] }))}>
-                      + Another lot for this line
-                    </button>
+                <li key={id} className={isOpen ? "rline open" : "rline"}>
+                  <button type="button" className="rread" onClick={() => setOpen(isOpen ? null : id)} aria-expanded={isOpen}>
+                    <span className="amt">{amt}</span>
+                    <span className="ing">
+                      <span className="ing-name">{l.text}</span>
+                      {status && <span className="rstatus">{status}</span>}
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div className="answers" role="group" aria-label="Which delivery?">
+                      {matches.length > 0 && <p className="rstatus warn-text">Which delivery?</p>}
+                      {matches.length > 0 && (
+                        <div className="pills">
+                          {matches.map((sp, k) => (
+                            <button
+                              key={sp.id}
+                              type="button"
+                              className="pill"
+                              aria-pressed={chosen.length === 1 && chosen[0] === sp.id}
+                              onClick={() => (setLine(id, [sp.id]), setOpen(null))}
+                            >
+                              {lotName(sp)}
+                              {k === 0 && matches.length > 1 ? " · oldest" : ""}
+                            </button>
+                          ))}
+                          {matches.length > 1 && (
+                            <button
+                              type="button"
+                              className="pill"
+                              aria-pressed={chosen.length > 1}
+                              onClick={() => (setLine(id, matches.map((m) => m.id)), setOpen(null))}
+                            >
+                              Both / not sure
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      {others.length > 0 && (
+                        <label className="fld">
+                          <span className="hint">{matches.length ? "Something else" : "Pick one of your supplies"}</span>
+                          <select
+                            value=""
+                            onChange={(e) => e.target.value && (setLine(id, [e.target.value]), setOpen(null))}
+                            aria-label={`Another supply for ${l.text}`}
+                          >
+                            <option value="">Choose...</option>
+                            {others.map((sp) => (
+                              <option key={sp.id} value={sp.id}>
+                                {supplyLabel(sp)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                      {chosen.length > 0 && (
+                        <button type="button" className="btn ghost sm" onClick={() => (setLine(id, []), setOpen(null))}>
+                          Don&rsquo;t track this one
+                        </button>
+                      )}
+                      {!supplies.length && (
+                        <p className="hint">
+                          Add what you buy under <Link href="/app/supplies">Supplies</Link> and it shows up here.
+                        </p>
+                      )}
+                    </div>
                   )}
-                </div>
+                </li>
               );
             })}
-          </fieldset>
+          </ul>
         )}
-        {supplies.length === 0 && (
-          <p className="hint">
-            Track supplier lots? Add them under <Link href="/app/supplies">Supplies</Link>, then pick them here.
-          </p>
-        )}
+
+        <button type="button" className="linkbtn" onClick={() => setChanged(!changed)}>
+          {changed ? "Made it the usual way after all" : "Something was different this time"}
+        </button>
 
         <div className="fld">
           <span>How many you made</span>
           <div className="counts">
-            {countFields.map((s) => (
-              <label key={s.id} className="count">
+            {countFields.map((sz) => (
+              <label key={sz.id} className="count">
                 <input
                   inputMode="numeric"
-                  value={counts[s.id] ?? ""}
-                  onChange={(e) => setCounts((c) => ({ ...c, [s.id]: e.target.value.replace(/[^\d]/g, "") }))}
+                  value={counts[sz.id] ?? ""}
+                  onChange={(e) => setCounts((c) => ({ ...c, [sz.id]: e.target.value.replace(/[^\d]/g, "") }))}
                   placeholder="0"
-                  aria-label={s.name}
+                  aria-label={sz.name}
                 />
-                <span>{s.name}</span>
+                <span>{sz.name}</span>
               </label>
             ))}
           </div>
         </div>
 
-        <label className="fld">
-          <span>Note (optional)</span>
-          <textarea name="note" defaultValue={batch?.note ?? ""} maxLength={2000} placeholder="Weather, how it set up..." />
-        </label>
+        {details ? (
+          <>
+            <label className="fld narrow-fld">
+              <span>Date made</span>
+              <input type="date" value={madeOn} onChange={(e) => setMadeOn(e.target.value)} required />
+            </label>
+            {batch && <p className="hint">Changing the date keeps the same lot number.</p>}
+            <label className="fld">
+              <span>Note (optional)</span>
+              <textarea name="note" defaultValue={batch?.note ?? ""} maxLength={2000} placeholder="Weather, how it set up..." />
+            </label>
+          </>
+        ) : (
+          <button type="button" className="linkbtn" onClick={() => setDetails(true)}>
+            Change the date or add a note
+          </button>
+        )}
 
         {state.error && (
           <p className="error" role="alert">
             {state.error}
           </p>
         )}
-        <div className="row">
-          <button className="btn pri" disabled={saving || !madeOn}>
-            {saving ? "Saving..." : batch ? "Save batch" : "Save batch and get lot number"}
-          </button>
-          <Link href={`/app/products/${productId}`} className="btn ghost cta">
-            Cancel
-          </Link>
-        </div>
+        <button className="btn pri big" disabled={saving || !madeOn}>
+          {saving ? "Saving..." : "Save batch"}
+        </button>
+        <Link href={`/app/products/${productId}`} className="btn ghost cta">
+          Cancel
+        </Link>
       </form>
-
     </>
   );
 }

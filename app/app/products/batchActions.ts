@@ -96,7 +96,8 @@ export async function saveBatch(_prev: BatchFormState, form: FormData): Promise<
   if (!newId) return { error: "We couldn't save that batch. Try again in a moment." };
   await saveSupplyLinks(supabase, newId, fields.recipe, supplyRaw);
   revalidatePath(`/app/products/${productId}`);
-  redirect(`/app/products/${productId}/label?batch=${newId}`);
+  revalidatePath("/app/batches");
+  redirect(`/app/products/${productId}/batches/${newId}/saved`);
 }
 
 export async function deleteBatch(form: FormData) {
