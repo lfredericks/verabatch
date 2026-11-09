@@ -9,12 +9,13 @@ import { effectiveRecipe } from "@/lib/productData";
 import { cleanRecipe } from "@/lib/products";
 import { createClient } from "@/lib/supabase/server";
 import { cleanSupplyPicks } from "@/lib/supplies";
+import { recordUsage } from "@/lib/materialsServer";
 import { newKey } from "@/lib/variations";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { RecipeLine } from "@/lib/core";
 
-/** Record which supply lot each line used. Replaces what was there. */
-async function saveSupplyLinks(supabase: SupabaseClient, batchId: string, recipe: RecipeLine[], raw: string) {
+/** Record which delivery each line used, and how much of it. Replaces what was there. */
+async function saveSupplyLinks(supabase: SupabaseClient, batchId: string, recipe: RecipeLine[], raw: string, scale = 1) {
   let parsed: unknown = {};
   try {
     parsed = JSON.parse(raw || "{}");
@@ -25,7 +26,16 @@ async function saveSupplyLinks(supabase: SupabaseClient, batchId: string, recipe
   const picks = cleanSupplyPicks(parsed, recipe.length, new Set((own ?? []).map((s) => s.id as string)));
   await supabase.from("batch_supplies").delete().eq("batch_id", batchId);
   const rows = [...picks].flatMap(([i, ids]) => ids.map((supplyId) => ({ batch_id: batchId, supply_id: supplyId, line_key: recipe[i]!.key! })));
-  if (rows.length) await supabase.from("batch_supplies").insert(rows);
+  if (rows.length) {
+    await supabase.from("batch_supplies").insert(rows);
+    await recordUsage(supabase, batchId, recipe, scale);
+  }
+}
+
+/** How many times the recipe was made: what was made over what the recipe makes (1 if unknown). */
+function batchScale(makes: number | null | undefined, counts: Record<string, number>): number {
+  const made = Object.values(counts).reduce((s, n) => s + (Number(n) || 0), 0);
+  return makes && makes > 0 && made > 0 ? made / makes : 1;
 }
 
 export interface BatchFormState {
@@ -37,7 +47,7 @@ const UUID = /^[0-9a-f-]{36}$/i;
 async function loadContext(productId: string) {
   const supabase = await createClient();
   const [{ data: product }, { data: sizes }] = await Promise.all([
-    supabase.from("products").select("id, name, recipe, parent_id, changes").eq("id", productId).maybeSingle(),
+    supabase.from("products").select("id, name, recipe, parent_id, changes, makes").eq("id", productId).maybeSingle(),
     supabase.from("sizes").select("id").eq("product_id", productId),
   ]);
   return { supabase, product, sizeIds: (sizes ?? []).map((s) => s.id as string) };
@@ -72,7 +82,7 @@ export async function saveBatch(_prev: BatchFormState, form: FormData): Promise<
     if (existing && !b.changed && !existing.changed) fields.recipe = keyed(cleanRecipe(existing.recipe));
     const { error } = await supabase.from("batches").update(fields).eq("id", b.id);
     if (error) return { error: "We couldn't save that batch. Try again in a moment." };
-    await saveSupplyLinks(supabase, b.id, fields.recipe, supplyRaw);
+    await saveSupplyLinks(supabase, b.id, fields.recipe, supplyRaw, batchScale(product.makes as number | null, b.counts));
     revalidatePath(`/app/products/${productId}`);
     redirect(`/app/products/${productId}/label?batch=${b.id}`);
   }
@@ -94,7 +104,7 @@ export async function saveBatch(_prev: BatchFormState, form: FormData): Promise<
     else if (error && error.code !== "23505") return { error: limitError(error) ?? "We couldn't save that batch. Try again in a moment." };
   }
   if (!newId) return { error: "We couldn't save that batch. Try again in a moment." };
-  await saveSupplyLinks(supabase, newId, fields.recipe, supplyRaw);
+  await saveSupplyLinks(supabase, newId, fields.recipe, supplyRaw, batchScale(product.makes as number | null, b.counts));
   revalidatePath(`/app/products/${productId}`);
   revalidatePath("/app/batches");
   redirect(`/app/products/${productId}/batches/${newId}/saved`);

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { pageTitle } from "@/lib/brand";
-import type { Supply } from "@/lib/supplies";
+import { amountShort, remaining, type Delivery } from "@/lib/materials";
 import { createClient } from "@/lib/supabase/server";
 import { BrandMark } from "../../../BrandMark";
 import { DangerDelete } from "../../DangerDelete";
@@ -36,10 +36,14 @@ export default async function SupplyPage({
   const { error } = await searchParams;
   const [{ data }, { data: links }] = await Promise.all([
     supabase.from("supplies").select("*").eq("id", id).maybeSingle(),
-    supabase.from("batch_supplies").select("line_key, batches(id, lot, made_on, product_id, products(name))").eq("supply_id", id),
+    supabase.from("batch_supplies").select("line_key, amount_used, batches(id, lot, made_on, product_id, products(name))").eq("supply_id", id),
   ]);
   if (!data) notFound();
-  const supply = data as Supply;
+  const supply = data as Delivery;
+  const left = remaining(
+    supply,
+    ((links ?? []) as { amount_used: number | string | null }[]).filter((l) => l.amount_used !== null).map((l) => Number(l.amount_used)),
+  );
   // One row per batch (a lot can feed two lines of the same batch).
   const seen = new Set<string>();
   const usedIn = ((links ?? []) as unknown as UsedIn[])
@@ -52,10 +56,11 @@ export default async function SupplyPage({
       <BrandMark href="/app" />
       <div>
         <p className="eyebrow">
-          <Link href="/app/supplies">Supplies</Link>
+          <Link href={supply.material_id ? `/app/supplies/m/${supply.material_id}` : "/app/supplies"}>{supply.material_id ? supply.ingredient : "My supplies"}</Link>
           {supply.used_up && " · used up"}
         </p>
-        <h1>{supply.ingredient}</h1>
+        <h1>{supply.supplier ? `From ${supply.supplier}` : "Delivery"}</h1>
+        {left !== null && supply.unit && <p className="hint">{amountShort(left, supply.unit)} left of {supply.amount} {supply.unit}</p>}
       </div>
       <SupplyForm supply={supply} />
 
