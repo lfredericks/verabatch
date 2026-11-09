@@ -427,6 +427,18 @@ screens, supplies.
   Don't link); one match shows quietly. Migration 0018_line_links.sql. Anthropic API key is on hold
   (Leslie, Nov 9), so invoice photos and PDFs stay "Coming soon".
 
+- **Food pack plan (Nov 9, next up):** 1) each product follows its own rulebook, picked from its
+  product type (today `activePack()` is one market per deployment; ~15 call sites); aromatic blends
+  (potpourri, sachets, simmer pots, incense blends) go in as household products like candles, with
+  "Not for consumption." 2) `lib/packs/food` for teas and spice blends: everyday names, the nine
+  major allergens (sesame since 2023) in a "Contains:" line (allergens in spice blends must still be
+  declared), net weight, food claim checker. 3) Home kitchen setup, Indiana first (IC 16-42-5.3-5):
+  processing date, the 10-point "home produced and processed ... not inspected by the state
+  department of health" statement, label posted on the vendor's website, no shipping out of
+  Indiana (warn Etsy sellers); Nutrition Facts exemption question (21 CFR 101.9(j)(1): under
+  $500,000 total or $50,000 food sales, lost with any nutrition or health claim). 4) Test with a
+  real tea and spice blend. Stopped here Nov 9 (Leslie's usage).
+
 ## Next steps (as of Oct 23)
 
 1. Redesign step 3: onboarding, one question per screen (step 2, the recipe screen, is done).
