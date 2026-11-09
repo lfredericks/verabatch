@@ -98,7 +98,8 @@ export async function saveProduct(_prev: ProductFormState, form: FormData): Prom
       .single();
     if (error || !data) return { error: limitError(error) ?? "We couldn't save that. Try again in a moment." };
     revalidatePath("/app");
-    redirect(`/app/products/${data.id}?saved=1`);
+    // A brand-new product goes straight to its container (the last question before the label).
+    redirect(`/app/products/${data.id}/container`);
   }
 
   const { data: current } = await supabase

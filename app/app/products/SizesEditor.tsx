@@ -102,7 +102,7 @@ type Step = "container" | "label" | "amount" | "own";
  * 1. what it goes in (picture tiles), 2. which label, 3. how much goes in one.
  * "My container isn't here" opens the typed-in version.
  */
-function SizeForm({
+export function SizeForm({
   productId,
   size,
   defaultUnit,
@@ -240,7 +240,7 @@ function SizeForm({
             My container isn&rsquo;t here: type my own size
           </button>
           <button type="button" className="bigbtn bigbtn-pri" disabled={!pick} onClick={() => setStep("label")}>
-            {pick ? `Use ${pick.label}` : "Pick a container"}
+            {pick ? "Use this container" : "Pick a container"}
           </button>
           <button type="button" className="btn ghost sm" onClick={onDone}>
             Cancel
@@ -317,7 +317,7 @@ function SizeForm({
           {lookup.trim() &&
             (looked ? (
               <button type="button" className="btn sm cta" onClick={() => (pickSheet(looked.id), setLookup(""))}>
-                Use {looked.brand} {looked.id}: {looked.label}
+                Use this label
               </button>
             ) : (
               <p className="hint">We don&rsquo;t know that one yet. Type the size below.</p>

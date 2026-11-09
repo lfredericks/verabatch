@@ -198,7 +198,7 @@ export function Onboarding({ needsBusiness }: { needsBusiness: boolean }) {
     fd.set("identity", identity.trim());
     fd.set("makes", makes);
     fd.set("recipe", JSON.stringify(lines.filter((l) => l.text.trim() || l.amount.trim())));
-    // On success the server sends the maker to the new product's page.
+    // On success the server sends the maker to the container question, then the label.
     startTransition(async () => {
       const r = await saveProduct({}, fd);
       setBusy(false);
