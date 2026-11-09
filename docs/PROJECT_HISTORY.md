@@ -349,7 +349,7 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   cosmetics. To make room, **The Bench moves to spring** (Leslie, Nov 6); Pro launches owner-only.
   Leslie (Nov 6): teas, spice blends **and aromatic blends** must be working and tested before launch.
   Aromatic blends (potpourri, sachets, simmer pots, incense blends) are household products, handled like
-  candles: safety warnings plus a "not for eating" line. Get a tea/spice maker into the test round.
+  candles: safety warnings plus a "Not for consumption." line (Leslie, Nov 9; no rule requires other wording). Get a tea/spice maker into the test round.
 - **Beta tags (Leslie, Nov 6):** at launch and for every new feature or service, a "Beta" tag so makers
   can use it knowing it's new and being tested. Beta use is also the meter for costs: the app counts how
   often each beta feature is used (first-party counts, no tracking tools) to see demand and running costs
