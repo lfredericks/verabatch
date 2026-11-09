@@ -396,6 +396,22 @@ API directly. Leslie generated a project-scoped Supabase access token named "Cla
   Later Nov 7 (Leslie): **every question is required** (what you make, how many, where you sell, and at least 1 of
   the "matters most" picks, up to 3), checked in the form and again in `cleanWaitlist`.
 
+### Nov 8-9: supplies redesign, four tabs, Pro price (planning; see the Claude project copy)
+
+The full decisions are in the Claude project's PROJECT_HISTORY.md, the App Flow Map
+(https://claude.ai/artifact/4X7G8kfFXN7vstF9y8zSd5) and the screens canvas
+(https://claude.ai/artifact/FG4u8muZwbVPQ562zRVQLE). In short: materials-first supplies
+(supply + delivery, optional supplier products, blends), oldest delivery first, on-hand totals on
+every plan, four tabs (Products, Batches, Supplies, My shop), done screens, generic button labels,
+labels printed in-house (standard sheets) or by a print shop (any typed size), Pro $29.99/mo or
+$249.99/yr with no add-ons. February: tabs, container as the last first-run question, new batch
+screens, supplies.
+
+- **Shop descriptions hidden (Leslie, Nov 9):** the Etsy/website/Amazon description section and its
+  "Shop description" button are off (`lib/features.ts`, `FEATURES.shopDescriptions = false`). Code,
+  the `products.descriptions` column and saved text stay. It returns later as a full section with
+  AI drafts. The product page now has two big buttons: Get my label, I made a batch.
+
 ## Next steps (as of Oct 23)
 
 1. Redesign step 3: onboarding, one question per screen (step 2, the recipe screen, is done).

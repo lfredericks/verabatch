@@ -13,6 +13,7 @@ import { ProductEditor } from "../ProductEditor";
 import { ProductInfo } from "../ProductInfo";
 import { SizesEditor } from "../SizesEditor";
 import { Descriptions } from "../Descriptions";
+import { FEATURES } from "@/lib/features";
 import { cleanDescriptions } from "@/lib/channels";
 import { logoUrl } from "@/lib/logos";
 import { LogoField } from "../../LogoField";
@@ -154,7 +155,7 @@ export default async function EditProduct({
       <div className="anchor">
         <SizesEditor productId={product.id} sizes={sizes} defaultUnit={defaultUnit} typeKey={product.type_key} />
       </div>
-      <Descriptions productId={product.id} descriptions={descriptions} />
+      {FEATURES.shopDescriptions && <Descriptions productId={product.id} descriptions={descriptions} />}
       <section className="card anchor" aria-labelledby="batches">
         <h2 id="batches">Batches (optional)</h2>
         {batches && batches.length > 0 ? (

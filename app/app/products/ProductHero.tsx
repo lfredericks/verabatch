@@ -1,7 +1,8 @@
+import { FEATURES } from "@/lib/features";
 import Link from "next/link";
 
 /**
- * Top of a product page: who it is, whether its label is ready, the three things makers do
+ * Top of a product page: who it is, whether its label is ready, the things makers do
  * most (big buttons, Etsy-style), then a Shopify-style list of everything else on the page.
  */
 export function ProductHero({
@@ -70,20 +71,22 @@ export function ProductHero({
           </svg>
           Get my label
         </Link>
-        <Link href={`/app/products/${productId}/batches/new`} className="bigbtn">
+        <Link href={`/app/products/${productId}/batches/new`} className={FEATURES.shopDescriptions ? "bigbtn" : "bigbtn bigbtn-wide"}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M8 3h8l-1 6 4 11H5L9 9z" />
             <path d="M7 15h10" />
           </svg>
           I made a batch
         </Link>
-        <Link href="#desc" className="bigbtn">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M4 20h4L19 9l-4-4L4 16z" />
-            <path d="M13 7l4 4" />
-          </svg>
-          Shop description
-        </Link>
+        {FEATURES.shopDescriptions && (
+          <Link href="#desc" className="bigbtn">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M4 20h4L19 9l-4-4L4 16z" />
+              <path d="M13 7l4 4" />
+            </svg>
+            Shop description
+          </Link>
+        )}
       </div>
 
       <nav className="navlist" aria-label="On this page">
