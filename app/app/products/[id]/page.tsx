@@ -23,6 +23,8 @@ import { cleanClaims } from "@/lib/frontClaims";
 import { Claims } from "../Claims";
 import { buildLabel } from "@/lib/label";
 import { ProductHero } from "../ProductHero";
+import { loadLineLinks, supplyChoices } from "@/lib/lineLinks";
+import { loadMaterials } from "@/lib/materialsServer";
 
 export const dynamic = "force-dynamic";
 
@@ -35,8 +37,17 @@ async function load(id: string) {
     .eq("id", id)
     .maybeSingle();
   if (!data) return null;
-  const { lines, parent } = await effectiveRecipe(supabase, data);
-  return { product: { ...(data as Product), recipe: lines } as Product, parent, descriptions: cleanDescriptions(data.descriptions) };
+  const [{ lines, parent }, links, { materials }] = await Promise.all([
+    effectiveRecipe(supabase, data),
+    loadLineLinks(supabase, data),
+    loadMaterials(supabase),
+  ]);
+  return {
+    product: { ...(data as Product), recipe: lines } as Product,
+    parent,
+    descriptions: cleanDescriptions(data.descriptions),
+    supplyLinks: { productId: data.id as string, links, choices: supplyChoices(materials) },
+  };
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -144,7 +155,7 @@ export default async function EditProduct({
       <LogoField title="Product logo" url={productLogo} productId={product.id} note={logoNote} />
       </div>
       <div id="recipe" className="anchor stack">
-        <ProductEditor product={product} parent={parent} justSaved={saved === "1"} />
+        <ProductEditor product={product} parent={parent} justSaved={saved === "1"} supplyLinks={loaded.supplyLinks} />
       </div>
       <div className="anchor">
         <Warnings productId={product.id} typeKey={product.type_key} warnings={warnings} />

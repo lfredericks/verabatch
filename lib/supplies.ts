@@ -100,9 +100,19 @@ export function matchScore(lineText: string, supplyIngredient: string): number {
  * gets used first), then everything else still open. Lots without a received date go last.
  * Used-up lots are only kept if already picked.
  */
-export function suppliesForLine<T extends Supply>(lineText: string, supplies: T[], picked?: string): { matches: T[]; others: T[] } {
+export function suppliesForLine<T extends Supply & { material_id?: string | null }>(
+  lineText: string,
+  supplies: T[],
+  picked?: string,
+  /** The line's saved link: a supply (material id), null = don't link, undefined = match by name. */
+  link?: string | null,
+): { matches: T[]; others: T[] } {
   const open = supplies.filter((s) => !s.used_up || s.id === picked);
   const oldest = (x: T, y: T) => (x.received_on ?? "9999").localeCompare(y.received_on ?? "9999");
+  if (link !== undefined) {
+    const matches = link ? open.filter((s) => s.material_id === link).sort(oldest) : [];
+    return { matches, others: open.filter((s) => !matches.includes(s)).sort(oldest) };
+  }
   const scored = open.map((s) => ({ s, n: matchScore(lineText, s.ingredient) }));
   const matches = scored
     .filter((x) => x.n > 0)
@@ -137,7 +147,8 @@ export function cleanSupplyPicks(raw: unknown, lineCount: number, known: Set<str
  * Lots to start a new batch's line with: the oldest lot on hand of each matching ingredient,
  * so "chamomile infused jojoba oil" starts with the oldest chamomile and the oldest jojoba.
  */
-export function defaultLots(lineText: string, supplies: Supply[]): string[] {
+export function defaultLots(lineText: string, supplies: (Supply & { material_id?: string | null })[], link?: string | null): string[] {
+  if (link !== undefined) return suppliesForLine(lineText, supplies, undefined, link).matches.slice(0, 1).map((s) => s.id);
   const seen = new Set<string>();
   const out: string[] = [];
   const best = suppliesForLine(lineText, supplies).matches;

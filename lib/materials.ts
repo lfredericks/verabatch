@@ -1,5 +1,5 @@
 import { GRAMS_PER, ML_PER, parseAmount } from "./core";
-import type { Supply, SupplyUnit } from "./supplies";
+import { matchScore, type Supply, type SupplyUnit } from "./supplies";
 
 /**
  * Supplies, as makers see them (Leslie, Nov 8-9): a MATERIAL is whatever the maker calls it
@@ -81,4 +81,16 @@ export function amountShort(amount: number, unit: SupplyUnit): string {
   const n = amount >= 10 ? Math.round(amount * 10) / 10 : Math.round(amount * 100) / 100;
   const u = UNIT_TEXT[unit] ?? unit;
   return u ? `${n} ${u}` : String(n);
+}
+
+/**
+ * Your supplies that a recipe line could be ("Which one of yours is it?"), best match first.
+ * Words like oil and butter don't count, so "20 drops lavender" finds "Lavender essential oil".
+ */
+export function matchMaterials<T extends { id: string; name: string }>(lineText: string, materials: T[]): T[] {
+  return materials
+    .map((m) => ({ m, n: matchScore(lineText, m.name) }))
+    .filter((x) => x.n > 0)
+    .sort((a, b) => b.n - a.n)
+    .map((x) => x.m);
 }

@@ -8,6 +8,7 @@ import { activePack } from "@/lib/packs";
 import type { Product } from "@/lib/products";
 import { recipesDiffer } from "@/lib/variations";
 import { saveProduct, type ProductFormState } from "./actions";
+import type { LineLinks, SupplyChoice } from "@/lib/lineLinks";
 import { blankRow, RecipeLines, rowsToLines, toRows, type Row } from "./RecipeLines";
 
 const pack = activePack();
@@ -21,11 +22,14 @@ export function ProductEditor({
   product,
   parent = null,
   justSaved,
+  supplyLinks = null,
 }: {
   product: Product | null;
   /** Set when this product is a variation: the parent's name and recipe. */
   parent?: { id: string; name: string; recipe: RecipeLine[] } | null;
   justSaved?: boolean;
+  /** Which of the maker's supplies each saved line is ("Which one of yours is it?"). */
+  supplyLinks?: { productId: string; choices: SupplyChoice[]; links: LineLinks } | null;
 }) {
   const [state, action, saving] = useActionState<ProductFormState, FormData>(saveProduct, {});
   const [name, setName] = useState(product?.name ?? "");
@@ -163,6 +167,7 @@ export function ProductEditor({
           startOpen={!product?.recipe.length}
           onMakes={(n) => setMakes(String(n))}
           parent={parent ? { name: parent.name, lines: parent.recipe } : null}
+          supplyLinks={supplyLinks}
         />
 
         <div className="makes">

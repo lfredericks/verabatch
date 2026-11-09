@@ -1,5 +1,6 @@
 "use client";
 
+import type { LineLinks } from "@/lib/lineLinks";
 import Link from "next/link";
 import { useActionState, useEffect, useMemo, useState } from "react";
 import type { RecipeLine } from "@/lib/core";
@@ -27,6 +28,7 @@ export function BatchForm({
   batch,
   supplies,
   picks: savedPicks,
+  links = {},
 }: {
   productId: string;
   productName: string;
@@ -34,10 +36,13 @@ export function BatchForm({
   makes: number | null;
   sizes: { id: string; name: string }[];
   batch: Batch | null;
-  supplies: Supply[];
+  supplies: (Supply & { material_id?: string | null })[];
   /** Saved supply lots per line key (existing batch). */
   picks: Record<string, string[]>;
+  /** Which of the maker's supplies each recipe line is, by line key. */
+  links?: LineLinks;
 }) {
+  const linkOf = (key: string | undefined) => (key && key in links ? links[key] : undefined);
   const [state, action, saving] = useActionState<BatchFormState, FormData>(saveBatch, {});
   const [madeOn, setMadeOn] = useState(batch?.made_on ?? "");
   const [changed, setChanged] = useState(batch?.changed ?? false);
@@ -66,7 +71,7 @@ export function BatchForm({
     // New batch: start each line on the newest matching lot of each ingredient on hand.
     const out: Record<string, string[]> = {};
     usualLines.forEach((l, i) => {
-      const lots = defaultLots(l.text, supplies);
+      const lots = defaultLots(l.text, supplies, linkOf(l.key));
       if (lots.length) out[l.key ?? `u${i}`] = lots;
     });
     return out;
@@ -124,7 +129,7 @@ export function BatchForm({
             {shown.map((l, i) => {
               const id = lineId(i);
               const chosen = (picks[id] ?? []).filter(Boolean);
-              const { matches, others } = suppliesForLine(l.text, supplies, chosen[0]);
+              const { matches, others } = suppliesForLine(l.text, supplies, chosen[0], linkOf(l.key));
               const isOpen = open === id;
               const status = chosen.length
                 ? fromText(chosen)

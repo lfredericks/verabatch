@@ -422,6 +422,11 @@ screens, supplies.
   with on-hand and deliveries oldest first, typed invoices, supplier lot lookup with CSV download,
   batches count down what's on hand.
 
+- **Recipe lines to supplies (Nov 9):** after "Which lavender?", a line asks "Which one of yours
+  is it?" (your matching supplies with shops and what's left, Something else, + Add a new one,
+  Don't link); one match shows quietly. Migration 0018_line_links.sql. Anthropic API key is on hold
+  (Leslie, Nov 9), so invoice photos and PDFs stay "Coming soon".
+
 ## Next steps (as of Oct 23)
 
 1. Redesign step 3: onboarding, one question per screen (step 2, the recipe screen, is done).

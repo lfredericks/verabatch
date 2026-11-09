@@ -1,3 +1,4 @@
+import { loadLineLinks } from "@/lib/lineLinks";
 import { notFound, redirect } from "next/navigation";
 import type { Batch } from "@/lib/batches";
 import type { Supply } from "@/lib/supplies";
@@ -25,13 +26,15 @@ export async function loadForBatch(productId: string, batchId?: string) {
     batchId ? supabase.from("batch_supplies").select("line_key, supply_id").eq("batch_id", batchId) : Promise.resolve({ data: [] }),
   ]);
   if (!product || (batchId && !batchRes.data)) notFound();
-  const { lines } = await effectiveRecipe(supabase, product);
+  const [{ lines }, links] = await Promise.all([effectiveRecipe(supabase, product), loadLineLinks(supabase, product)]);
   const batch = batchRes.data ? ({ ...batchRes.data, recipe: cleanRecipe(batchRes.data.recipe) } as Batch) : null;
   return {
     product: { ...product, recipe: lines } as { id: string; name: string; makes: number | null; recipe: ReturnType<typeof cleanRecipe> },
     sizes: (sizes ?? []) as { id: string; name: string }[],
     batch,
-    supplies: (supplies ?? []) as Supply[],
+    supplies: (supplies ?? []) as (Supply & { material_id?: string | null })[],
+    /** Which of the maker's supplies each recipe line is (line key → supply, null = don't link). */
+    links,
     /** Supply lots picked for each line of this batch, by line key. */
     picks: ((linksRes.data ?? []) as { line_key: string; supply_id: string }[]).reduce<Record<string, string[]>>((acc, l) => {
       (acc[l.line_key] ??= []).push(l.supply_id);

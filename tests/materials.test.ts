@@ -41,3 +41,33 @@ describe("materials and deliveries", () => {
     expect(onHand([{ left: 1, unit: "lb" }, { left: 4, unit: "floz" }])).toBeNull();
   });
 });
+
+import { matchMaterials } from "../lib/materials";
+import { defaultLots, suppliesForLine, type Supply } from "../lib/supplies";
+
+describe("recipe line to one of your supplies", () => {
+  const mats = [
+    { id: "a", name: "Lavender essential oil" },
+    { id: "b", name: "Lavender buds" },
+    { id: "c", name: "Unrefined shea" },
+  ];
+  it("finds supplies by name, ignoring words like oil and butter", () => {
+    expect(matchMaterials("20 drops lavender", mats).map((m) => m.id)).toEqual(["a", "b"]);
+    expect(matchMaterials("shea butter", mats).map((m) => m.id)).toEqual(["c"]);
+    expect(matchMaterials("jojoba oil", mats)).toEqual([]);
+  });
+
+  const d = (id: string, material_id: string, ingredient: string, received_on: string): Supply & { material_id: string } => ({
+    id, material_id, ingredient, received_on, supplier: "", supplier_lot: "", amount: "", unit: "", best_by: null, note: "", used_up: false,
+  });
+  const deliveries = [d("1", "a", "Lavender essential oil", "2026-03-01"), d("2", "b", "Lavender buds", "2026-01-01"), d("3", "a", "Lavender essential oil", "2026-02-01")];
+
+  it("a linked line only offers that supply's deliveries, oldest first", () => {
+    expect(suppliesForLine("lavender", deliveries, undefined, "a").matches.map((x) => x.id)).toEqual(["3", "1"]);
+    expect(defaultLots("lavender", deliveries, "a")).toEqual(["3"]);
+  });
+  it("a line set to don't link offers nothing up front", () => {
+    expect(suppliesForLine("lavender", deliveries, undefined, null).matches).toEqual([]);
+    expect(defaultLots("lavender", deliveries, null)).toEqual([]);
+  });
+});

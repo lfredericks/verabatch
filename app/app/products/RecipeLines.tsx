@@ -4,6 +4,8 @@ import { useMemo, useState, type ReactNode } from "react";
 import { computeRecipe, parseQuickEntry, UNIT_LABELS, type NamePick, type RecipeLine, type Resolution, type Unit } from "@/lib/core";
 import { activePack } from "@/lib/packs";
 import { compareToParent } from "@/lib/variations";
+import type { LineLinks, SupplyChoice } from "@/lib/lineLinks";
+import { LineSupply } from "./LineSupply";
 import { NameFinder } from "./NameFinder";
 
 export type Row = RecipeLine & { id: number };
@@ -38,6 +40,7 @@ export function RecipeLines({
   startOpen,
   onMakes,
   parent,
+  supplyLinks,
 }: {
   rows: Row[];
   setRows: (fn: (rows: Row[]) => Row[]) => void;
@@ -48,7 +51,11 @@ export function RecipeLines({
   onMakes?: (n: number) => void;
   /** For a variation: the parent's recipe, to mark what differs. */
   parent?: { name: string; lines: RecipeLine[] } | null;
+  /** Saved products only: link each line to one of the maker's supplies. */
+  supplyLinks?: { productId: string; choices: SupplyChoice[]; links: LineLinks } | null;
 }) {
+  const [links, setLinks] = useState<LineLinks>(() => supplyLinks?.links ?? {});
+  const [mine, setMine] = useState<SupplyChoice[]>(() => supplyLinks?.choices ?? []);
   const [open, setOpen] = useState<Set<number>>(() => new Set(startOpen ? rows.map((r) => r.id) : []));
   const [paste, setPaste] = useState("");
   /** Lines where the maker chose "Mine isn't listed" on a which-one question. */
@@ -303,6 +310,26 @@ export function RecipeLines({
                     {r.note && <p className="hint">{r.note}</p>}
                   </div>
                 ))}
+              {supplyLinks && mine.length > 0 && row.key && row.text.trim() && r?.status !== "needsChoice" && (
+                <LineSupply
+                  productId={supplyLinks.productId}
+                  lineKey={row.key}
+                  lineText={row.text}
+                  choices={mine}
+                  value={row.key in links ? links[row.key] : undefined}
+                  editing={editing}
+                  onChange={(v, added) => {
+                    const k = row.key!;
+                    setLinks((l) => {
+                      const n = { ...l };
+                      if (v === undefined) delete n[k];
+                      else n[k] = v;
+                      return n;
+                    });
+                    if (added) setMine((c) => (c.some((x) => x.id === added.id) ? c : [...c, added]));
+                  }}
+                />
+              )}
               {editing && row.text.trim() && (
                 <label className="radio">
                   <input type="checkbox" checked={Boolean(row.organic)} onChange={(e) => update(row.id, { organic: e.target.checked || undefined })} />

@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: pageTitle("I made a batch") };
 export const dynamic = "force-dynamic";
 
 export default async function NewBatch({ params }: { params: Promise<{ id: string }> }) {
-  const { product, sizes, supplies, picks } = await loadForBatch((await params).id);
+  const { product, sizes, supplies, picks, links } = await loadForBatch((await params).id);
   const limited = atBatchLimit(await planInfo(await createClient()));
   return (
     <main className="wrap narrow">
@@ -24,7 +24,7 @@ export default async function NewBatch({ params }: { params: Promise<{ id: strin
       {limited ? (
         <PlanNote title="Batches on Free" text={BATCH_LIMIT_TEXT} back={`/app/products/${product.id}`} />
       ) : (
-      <BatchForm productId={product.id} productName={product.name} master={product.recipe} makes={product.makes} sizes={sizes} batch={null} supplies={supplies} picks={picks} />
+      <BatchForm productId={product.id} productName={product.name} master={product.recipe} makes={product.makes} sizes={sizes} batch={null} supplies={supplies} picks={picks} links={links} />
       )}
     </main>
   );
