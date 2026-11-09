@@ -7,7 +7,7 @@ import type { FillUnit } from "@/lib/core";
 import { activePack } from "@/lib/packs";
 import { FILL_UNITS, sizeFacts, type Size } from "@/lib/sizes";
 import { findTemplate, type TemplateShape } from "@/lib/labelTemplates";
-import { EASY_PICKS, findContainer, pickTabsFor, picksFor, labelOptions, labelRoomSqIn, type ContainerLook, type LabelOption, type PickTab } from "@/lib/containers";
+import { EASY_PICKS, findContainer, pickTabsFor, picksFor, labelOptions, labelFit, labelRoomSqIn, type ContainerLook, type Fit, type LabelOption, type PickTab } from "@/lib/containers";
 import { deleteSize, saveSize, type SizeFormState } from "./sizeActions";
 
 const pack = activePack();
@@ -137,6 +137,8 @@ export function SizeForm({
   const [wrap, setWrap] = useState(Boolean(size?.label_wrap));
   const [small, setSmall] = useState(Boolean(size?.label_small));
   const [lookup, setLookup] = useState("");
+  // A size with no label sheet was typed in: a print shop's custom size.
+  const [printBy, setPrintBy] = useState<"self" | "shop">(size && known && !size.label_template ? "shop" : "self");
   const pick = EASY_PICKS.find((p) => p.key === pickKey);
   const container = pick ? findContainer(pick.key) : undefined;
   const options = container ? labelOptions(container) : [];
@@ -157,6 +159,25 @@ export function SizeForm({
       setHeight(String(o.heightIn));
     }
   }
+  /** Print shop: start at the largest size that fits this spot; the maker can type smaller. */
+  function chooseSpot(o: LabelOption) {
+    setTemplateId("");
+    setShape(o.shape);
+    setWrap(o.placement === "wrap");
+    if (o.shape === "round") setDiameter(String(o.widthIn));
+    else {
+      setWidth(String(o.widthIn));
+      setHeight(String(o.heightIn));
+    }
+  }
+  const spot = options.find((o) => o.shape === shape && wrap === (o.placement === "wrap")) ?? options[0];
+  const fit = spot ? (shape === "round" ? labelFit(spot, Number(diameter), Number(diameter)) : labelFit(spot, Number(width), Number(height))) : "fits";
+  const FIT_TEXT: Record<Exclude<Fit, "fits">, string> = {
+    "too-wide": "Too wide for this spot. Try a smaller width.",
+    "too-tall": "Too tall for this spot. Try a smaller height.",
+    "too-big": "Too big for this spot. Try a smaller size.",
+    "too-small": "Too small to fit the words a label needs. Half an inch is the least.",
+  };
   function choosePick(key: string) {
     const p = EASY_PICKS.find((x) => x.key === key);
     const c = p ? findContainer(p.key) : undefined;
@@ -251,24 +272,77 @@ export function SizeForm({
       {step === "label" && pick && (
         <>
           {back("container")}
-          <p className="step-q">Which label for your {pick.label}?</p>
-          <div className="labelpicks">
-            {options.map((o) => (
-              <button type="button" key={o.placement} className="labelpick" aria-pressed={chosen(o)} onClick={() => chooseLabel(o)}>
-                <PlaceIcon p={o.placement} />
-                <span>
-                  <b>{PLACE[o.placement].title}</b>
-                  <span>
-                    {sizeText(o)} · {PLACE[o.placement].count}
-                  </span>
-                </span>
-              </button>
-            ))}
+          <p className="step-q">How do you print your labels?</p>
+          <div className="seg" role="group" aria-label="How you print labels">
+            <button type="button" aria-pressed={printBy === "self"} onClick={() => (setPrintBy("self"), options[0] && chooseLabel(options[0]))}>
+              I print them myself
+            </button>
+            <button type="button" aria-pressed={printBy === "shop"} onClick={() => (setPrintBy("shop"), options[0] && chooseSpot(options[0]))}>
+              A print shop makes them
+            </button>
           </div>
-          <button type="button" className="linkbtn" onClick={() => setStep("own")}>
-            Use a different label size
-          </button>
-          <button type="button" className="bigbtn bigbtn-pri" onClick={() => setStep("amount")}>
+          {printBy === "self" ? (
+            <>
+              <p className="step-q">Which label for your {pick.label}?</p>
+              <div className="labelpicks">
+                {options.map((o) => (
+                  <button type="button" key={o.placement} className="labelpick" aria-pressed={chosen(o)} onClick={() => chooseLabel(o)}>
+                    <PlaceIcon p={o.placement} />
+                    <span>
+                      <b>{PLACE[o.placement].title}</b>
+                      <span>
+                        {sizeText(o)} · {PLACE[o.placement].count}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <p className="hint">Standard sheets you can buy and run through your printer.</p>
+              <button type="button" className="linkbtn" onClick={() => setStep("own")}>
+                Use a different label size
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="step-q">Where does it go?</p>
+              <div className="labelpicks">
+                {options.map((o) => (
+                  <button type="button" key={o.placement} className="labelpick" aria-pressed={spot === o} onClick={() => chooseSpot(o)}>
+                    <PlaceIcon p={o.placement} />
+                    <span>
+                      <b>{PLACE[o.placement].title}</b>
+                      <span>Up to {sizeText(o)}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+              {shape === "round" ? (
+                <label className="fld">
+                  <span>Width across (inches)</span>
+                  <input value={diameter} onChange={typed(setDiameter)} inputMode="decimal" maxLength={10} />
+                </label>
+              ) : (
+                <div className="fld">
+                  <span>Width and height from your print shop (inches)</span>
+                  <div className="pair">
+                    <input value={width} onChange={typed(setWidth)} inputMode="decimal" maxLength={10} aria-label="Width in inches" />
+                    <input value={height} onChange={typed(setHeight)} inputMode="decimal" maxLength={10} aria-label="Height in inches" />
+                  </div>
+                </div>
+              )}
+              {fit === "fits" ? (
+                <p className="ok" role="status">
+                  That fits.
+                </p>
+              ) : (
+                <p className="error" role="alert">
+                  {FIT_TEXT[fit]}
+                </p>
+              )}
+              <p className="hint">We filled in the largest size that fits. Any smaller size works too.</p>
+            </>
+          )}
+          <button type="button" className="bigbtn bigbtn-pri" disabled={printBy === "shop" && fit !== "fits"} onClick={() => setStep("amount")}>
             Next
           </button>
         </>

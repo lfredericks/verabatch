@@ -380,3 +380,19 @@ export const EASY_PICKS: { label: string; key: string; tab: PickTab; look: Conta
   { label: "8 oz candle tin", key: "candle-tin-8oz", tab: "Candles", look: "candle-tin" },
   { label: "8 oz candle jar", key: "candle-jelly-8oz", tab: "Candles", look: "candle-jar" },
 ];
+
+export type Fit = "fits" | "too-wide" | "too-tall" | "too-big" | "too-small";
+
+/**
+ * Does a typed size (a print shop's custom label) fit the spot an option describes? The
+ * option is already the largest that fits, so anything up to it is fine. Under half an
+ * inch either way there's no room for the required text.
+ */
+export function labelFit(o: LabelOption, w: number, h: number): Fit {
+  const slack = 0.01;
+  if (!(w >= 0.5 && h >= 0.5)) return "too-small";
+  if (o.shape === "round") return Math.max(w, h) <= o.widthIn + slack ? "fits" : "too-big";
+  const wide = w > o.widthIn + slack;
+  const tall = h > o.heightIn + slack;
+  return wide && tall ? "too-big" : wide ? "too-wide" : tall ? "too-tall" : "fits";
+}

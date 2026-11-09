@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CONTAINERS, averyThatFit, findContainer, labelOptions, labelRoomSqIn } from "../lib/containers";
+import { CONTAINERS, averyThatFit, findContainer, labelFit, labelOptions, labelRoomSqIn } from "../lib/containers";
 
 describe("container presets", () => {
   it("every container has a supplier source and unique key", () => {
@@ -47,5 +47,27 @@ describe("container presets", () => {
   it("small containers have under 12 sq in of side room", () => {
     expect(labelRoomSqIn(findContainer("boston-1oz")!)).toBeLessThan(12);
     expect(labelRoomSqIn(findContainer("boston-4oz")!)).toBeGreaterThan(12);
+  });
+});
+
+describe("print-shop sizes (any size the maker types)", () => {
+  const jar = labelOptions(findContainer("jar-4oz")!);
+  const front = jar.find((o) => o.placement === "front-back")!;
+  it("a size up to the largest that fits is fine", () => {
+    expect(labelFit(front, front.widthIn, front.heightIn)).toBe("fits");
+    expect(labelFit(front, front.widthIn - 0.5, front.heightIn - 0.25)).toBe("fits");
+  });
+  it("says which way a size is too big", () => {
+    expect(labelFit(front, front.widthIn + 0.25, front.heightIn)).toBe("too-wide");
+    expect(labelFit(front, front.widthIn, front.heightIn + 0.25)).toBe("too-tall");
+    expect(labelFit(front, front.widthIn + 1, front.heightIn + 1)).toBe("too-big");
+  });
+  it("a round lid label goes by its width across", () => {
+    const lid = labelOptions(findContainer("tin-2oz")!)[0]!;
+    expect(labelFit(lid, lid.widthIn, lid.widthIn)).toBe("fits");
+    expect(labelFit(lid, lid.widthIn + 0.25, lid.widthIn + 0.25)).toBe("too-big");
+  });
+  it("very small labels are flagged, since the required text can't fit", () => {
+    expect(labelFit(front, 0.4, 0.4)).toBe("too-small");
   });
 });

@@ -412,6 +412,16 @@ screens, supplies.
   the `products.descriptions` column and saved text stay. It returns later as a full section with
   AI drafts. The product page now has two big buttons: Get my label, I made a batch.
 
+- **February additions (Leslie, Nov 9):** AI invoice reading (photos and PDFs, Pro) and print-shop
+  label sizes are both in the February cut. Typing in a whole invoice is on every plan and is live.
+  Print-shop sizes are live: the label step asks "How do you print your labels?" (I print them
+  myself = standard sheets; A print shop makes them = the largest size that fits is filled in, any
+  smaller typed size works, `labelFit()` in `lib/containers.ts` says if it's too wide/tall). No
+  database change: a size with no label sheet is a custom size.
+- **Supplies live (Nov 9):** materials (migration 0017), add-a-supply in three questions, supply page
+  with on-hand and deliveries oldest first, typed invoices, supplier lot lookup with CSV download,
+  batches count down what's on hand.
+
 ## Next steps (as of Oct 23)
 
 1. Redesign step 3: onboarding, one question per screen (step 2, the recipe screen, is done).
