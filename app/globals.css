@@ -384,3 +384,49 @@ details.card summary { min-height: 28px; }
 .btn.google:hover { background: var(--paper); color: var(--ink); }
 .or-line { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 14px; margin: 16px 0; }
 .or-line::before, .or-line::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+/* Four tabs at the bottom (Products, Batches, Supplies, My shop). Nov 9. */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--surface); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.tabbar .tab {
+  min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  font-size: 0.78rem; font-weight: 600; color: var(--muted); text-decoration: none;
+}
+.tabbar .tab[aria-current="page"] { color: var(--accent); font-weight: 800; }
+.tabbar .tab[aria-current="page"] svg { stroke-width: 2.4; }
+.wrap.has-tabs { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
+body:has(.tabbar) .disclaimer-line { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+.tabhead h1 { margin: 0; }
+.tabhead p { margin: 6px 0 0; }
+/* Rows you tap into (lists on the tab screens). */
+.rows { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-card); }
+.rows > li + li { border-top: 1px solid var(--line); }
+.rows a, .rows summary { display: flex; align-items: center; gap: 12px; padding: 14px 16px; min-height: 44px; color: var(--ink); text-decoration: none; cursor: pointer; }
+.rows summary { list-style: none; }
+.rows summary::-webkit-details-marker { display: none; }
+.rows .row-main { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rows .row-main b { font-size: 1.05rem; }
+.rows .row-main span { color: var(--muted); font-size: 0.9rem; }
+.rows .row-end { font-weight: 800; white-space: nowrap; }
+.rows svg.chev { color: var(--muted); flex-shrink: 0; }
+.rows details[open] > summary svg.chev { transform: rotate(90deg); }
+.rows .row-body { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 14px; }
+.rows .row-body > .card { border: 0; padding: 0; background: none; }
+.st-ok { color: var(--success) !important; font-weight: 700; }
+.st-warn { color: var(--warn) !important; font-weight: 700; }
+.bottom-cta { display: flex; flex-direction: column; gap: 10px; }
+.bottom-cta .btn.pri.big { text-decoration: none; display: flex; align-items: center; justify-content: center; }
+.planbox { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: var(--radius-card); background: var(--accent-soft); color: var(--accent-deep); }
+.planbox .row-main { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.lookup { display: flex; gap: 8px; }
+.lookup input { flex: 1; min-height: 48px; }
+.tiles2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tile { min-height: 96px; padding: 14px; border-radius: var(--radius-card); border: 2px solid var(--line); border-bottom-width: 4px; background: var(--surface); color: var(--ink); text-decoration: none; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.tile b { font-size: 1.05rem; }
+.tile span { color: var(--muted); font-size: 0.85rem; }
+.rows a.variation { padding-left: 32px; border-top: 1px dashed var(--line); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

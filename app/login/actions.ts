@@ -24,7 +24,7 @@ export async function sendCode(_prev: LoginState, form: FormData): Promise<Login
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host");
   const proto = h.get("x-forwarded-proto") ?? "https";
-  const emailRedirectTo = host ? `${proto}://${host}/auth/confirm?next=${reset ? "/app?password=reset" : "/app"}` : undefined;
+  const emailRedirectTo = host ? `${proto}://${host}/auth/confirm?next=${reset ? "/app/shop?password=reset" : "/app"}` : undefined;
   // A password reset never creates an account.
   const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: !reset, emailRedirectTo } });
   if (error) {
@@ -53,7 +53,7 @@ export async function verifyCode(prev: LoginState, form: FormData): Promise<Logi
   const supabase = await createClient();
   const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
   if (error) return { step: "code", email, reset, error: "That code didn't work. It may have expired, so ask for a new one." };
-  redirect(reset ? "/app?password=reset#signin" : "/app");
+  redirect(reset ? "/app/shop?password=reset#signin" : "/app");
 }
 
 /** Sign in with a password the person set on their account page. */

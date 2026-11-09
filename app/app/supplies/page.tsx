@@ -6,6 +6,7 @@ import { amountText, type Supply } from "@/lib/supplies";
 import { createClient } from "@/lib/supabase/server";
 import { BrandMark } from "../../BrandMark";
 import { AddSupply } from "./AddSupply";
+import { TabBar } from "../TabBar";
 
 export const metadata: Metadata = { title: pageTitle("Supplies") };
 export const dynamic = "force-dynamic";
@@ -44,11 +45,10 @@ export default async function SuppliesPage({ searchParams }: { searchParams: Pro
   const usedUp = supplies.filter((s) => s.used_up);
 
   return (
-    <main className="wrap narrow">
+    <main className="wrap narrow has-tabs">
       <BrandMark href="/app" />
       <div>
-        <p className="eyebrow">Supplies</p>
-        <h1>Supplier lots</h1>
+        <h1>My supplies</h1>
       </div>
       <p className="lead">
         Log each delivery with the supplier&rsquo;s lot number. When you log a batch, pick which lot went in, so a supplier recall can be traced to
@@ -82,9 +82,7 @@ export default async function SuppliesPage({ searchParams }: { searchParams: Pro
           </ul>
         </details>
       )}
-      <Link href="/app" className="btn ghost cta">
-        Back to your shop
-      </Link>
+      <TabBar active="supplies" />
     </main>
   );
 }
